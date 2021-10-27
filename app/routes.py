@@ -85,30 +85,23 @@ def delete_task(task_id):
         {"details": f"Task {task.task_id} \"{task.title}\" successfully deleted"}, 200
     )
 
-# single Task: update (patch request to mark Task as complete)
+# single Task: update (patch request to mark task as complete)
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"], strict_slashes=False)
 def complete_task(task_id):
     task = Task.query.get_or_404(task_id)
 
-    # if task.completed_at is not None:
     task.completed_at = datetime.datetime.now()
 
     return make_response(
         {"task":(task.to_dict())}, 200
     )
 
-# single Task: update (patch request to mark Task as complete)
+# single Task: update (incompleted tasks stay incompleted)
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"], strict_slashes=False)
 def incomplete_task(task_id):
     task = Task.query.get_or_404(task_id)
 
     task.completed_at = None
-
-    # if task.completed_at is not None: # as in it has a date, it's completed
-    #     task.completed_at = None
-
-    # elif task.completed_at is None:
-    #     task.completed_at = None
 
     return make_response(
         {"task":(task.to_dict())}, 200
