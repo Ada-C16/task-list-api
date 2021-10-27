@@ -20,8 +20,6 @@ def create_new_task():
         description = request_body["description"],
         completed_at = datetime.datetime.now(),
     )
-
     db.session.add(new_task)
     db.session.commit()
-
-    return make_response(f"Task {new_task.title} created", 200)
+    return make_response(jsonify(f"task: {new_task.to_dict()}"), 201)
