@@ -6,4 +6,13 @@ tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
-    pass
+    if request.method == "POST":
+        request_body = request.get_json()
+        new_task = Task(title=request_body["title"],
+                            description=request_body["description"],
+                            )
+
+        db.session.add(new_task)
+        db.session.commit()
+
+        return jsonify(new_task.create_dict()), 201

@@ -13,9 +13,10 @@ class Task(db.Model):
         if self.completed_at:
             complete_status = True
 
-        return {
-                        "id": self.task_id,
-                        "title": self.title,
-                        "description": self.description,
-                        "is_complete": complete_status,
-                    }
+        return {"task":
+                    {
+                "id": self.task_id,
+                "title": self.title,
+                "description": self.description,
+                "is_complete": complete_status,
+        }}
