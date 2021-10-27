@@ -1,0 +1,24 @@
+overview of steps done to build api
+
+- create database task_list
+
+- connection string in app/__init__.py
+
+- define Task 
+
+- make Task model visible (i.e. import it in __init__)
+
+- init failed 
+    fix: 
+    reinstall reqs
+    deactivate venv
+    activate
+
+- flask db init
+
+- flask db migrate -m "message"
+
+- flask db upgrade
+
+- confirm in db
+
