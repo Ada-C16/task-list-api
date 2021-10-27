@@ -27,8 +27,12 @@ def read_tasks():
 @task_bp.route("", methods=["POST"])
 def create_task():
     req = request.get_json()
-    new_task = Task(
-        title=req["title"], description=req["description"], completed_at=req["completed_at"])
+
+    try:
+        new_task = Task(
+            title=req["title"], description=req["description"], completed_at=req["completed_at"])
+    except:
+        return jsonify({"details": "Invalid data"}), 400
 
     db.session.add(new_task)
     db.session.commit()
