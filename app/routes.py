@@ -1,7 +1,7 @@
-import re
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
+import datetime
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -44,7 +44,7 @@ def get_tasks():
         tasks_response.append(task.to_dict())
     return jsonify(tasks_response), 200
 
-# single task: read
+# single Task: read
 @tasks_bp.route("/<task_id>", methods=["GET"], strict_slashes=False)
 def get_task(task_id):
     task = Task.query.get_or_404(task_id)
@@ -53,7 +53,7 @@ def get_task(task_id):
         {"task":(task.to_dict())}, 200
     )
 
-# single task: update
+# single Task: update
 @tasks_bp.route("/<task_id>", methods=["PUT"], strict_slashes=False)
 def update_task(task_id):
     task = Task.query.get_or_404(task_id)
@@ -66,7 +66,6 @@ def update_task(task_id):
 
     task.title = request_body["title"]
     task.description = request_body["description"]
-    # task.completed_at = request_body["completed_at"]
 
     db.session.commit()
 
@@ -74,7 +73,7 @@ def update_task(task_id):
         {"task":(task.to_dict())}, 200
     )
 
-# single task: delete
+# single Task: delete
 @tasks_bp.route("/<task_id>", methods=["DELETE"], strict_slashes=False)
 def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
@@ -84,4 +83,33 @@ def delete_task(task_id):
 
     return make_response(
         {"details": f"Task {task.task_id} \"{task.title}\" successfully deleted"}, 200
+    )
+
+# single Task: update (patch request to mark Task as complete)
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"], strict_slashes=False)
+def complete_task(task_id):
+    task = Task.query.get_or_404(task_id)
+
+    # if task.completed_at is not None:
+    task.completed_at = datetime.datetime.now()
+
+    return make_response(
+        {"task":(task.to_dict())}, 200
+    )
+
+# single Task: update (patch request to mark Task as complete)
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"], strict_slashes=False)
+def incomplete_task(task_id):
+    task = Task.query.get_or_404(task_id)
+
+    task.completed_at = None
+
+    # if task.completed_at is not None: # as in it has a date, it's completed
+    #     task.completed_at = None
+
+    # elif task.completed_at is None:
+    #     task.completed_at = None
+
+    return make_response(
+        {"task":(task.to_dict())}, 200
     )
