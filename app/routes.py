@@ -83,3 +83,11 @@ def mark_complete(id):
     task.completed_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
+
+
+@task_bp.route("/<id>/mark_incomplete", methods=["PATCH"])
+def mark_incomplete(id):
+    task = get_task_by_id(id)
+    task.completed_at = None
+    db.session.commit()
+    return jsonify({"task": task.to_dict()}), 200
