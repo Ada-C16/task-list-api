@@ -22,3 +22,9 @@ def create_task():
     db.session.commit()
 
     return jsonify({"task": new_task.to_dict()}), 201
+
+
+@task_bp.route("/<id>", methods=["GET"])
+def read_task(id):
+    task = Task.query.get(id)
+    return jsonify({"task": task.to_dict()}), 200
