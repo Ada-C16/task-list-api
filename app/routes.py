@@ -40,3 +40,15 @@ def create_task():
 def read_task(id):
     task = get_task_by_id(id)
     return jsonify({"task": task.to_dict()}), 200
+
+
+@task_bp.route("/<id>", methods=["PUT"])
+def update_task(id):
+    task = get_task_by_id(id)
+    req = request.get_json()
+
+    task.title = req["title"]
+    task.description = req["description"]
+
+    db.session.commit()
+    return jsonify({"task": task.to_dict()}), 200
