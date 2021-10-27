@@ -1,3 +1,4 @@
+import re
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
@@ -30,8 +31,14 @@ def create_task():
 # reads all created Tasks
 @tasks_bp.route("", methods=["GET"], strict_slashes=False)
 def get_tasks():
-    tasks = Task.query.all()
     tasks_response = []
+
+    if request.args.get("sort") == "asc":
+        tasks = Task.query.order_by(Task.title)
+    elif request.args.get("sort") == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
+    else:
+        tasks = Task.query.all()
 
     for task in tasks:
         tasks_response.append(task.to_dict())
