@@ -1,8 +1,20 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from app import db
 from app.models.task import Task
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+
+
+def is_valid_int(number):
+    try:
+        int(number)
+    except:
+        abort(400)
+
+
+def get_task_by_id(id):
+    is_valid_int(id)
+    return Task.query.get_or_404(id)
 
 
 @task_bp.route("", methods=["GET"])
@@ -26,5 +38,5 @@ def create_task():
 
 @task_bp.route("/<id>", methods=["GET"])
 def read_task(id):
-    task = Task.query.get(id)
+    task = get_task_by_id(id)
     return jsonify({"task": task.to_dict()}), 200
