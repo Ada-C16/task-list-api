@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, make_response
 from app import db
 from app.models.task import Task
 
@@ -44,3 +44,19 @@ def handle_tasks():
                 "is_complete": False
                 }
         }, 201
+
+@tasks_bp.route("/<task_id>", methods =["GET"])
+def handle_task(task_id):
+    task = Task.query.get(task_id)
+    if task is None:
+        return make_response("", 404)
+    
+    if request.method == "GET":
+        return {
+            "task": {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False
+            }
+        }
