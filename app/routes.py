@@ -45,9 +45,10 @@ def handle_tasks():
                 }
         }, 201
 
-@tasks_bp.route("/<task_id>", methods =["GET"])
+@tasks_bp.route("/<task_id>", methods =["GET", "PUT", "DELETE"])
 def handle_task(task_id):
     task = Task.query.get(task_id)
+
     if task is None:
         return make_response("", 404)
     
@@ -60,3 +61,27 @@ def handle_task(task_id):
                 "is_complete": False
             }
         }
+    
+    elif request.method == "PUT":
+        request_data = request.get_json()
+
+        task.title = request_data["title"]
+        task.description = request_data["description"]
+
+        db.session.commit()
+
+        return {
+            "task": {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False
+            }
+        }
+    
+    elif request.method == "DELETE":
+        db.session.delete(task)
+        db.session.commit()
+        return {
+            "details": 'Task 1 "Go on my daily walk 🏞" successfully deleted'
+            }
