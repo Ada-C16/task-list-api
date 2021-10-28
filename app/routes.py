@@ -100,3 +100,40 @@ def handle_task(task_id):
         return make_response({
         "details": f'Task {task.task_id} "{task.title}" successfully deleted'
     })
+
+@tasks_bp.route("/<task_id>/mark_complete", methods = ["PATCH"])
+def complete_task(task_id):
+    task = Task.query.get(task_id)
+    if task is None:
+            return make_response("", 404)
+    if request.method == "PATCH":
+        
+        from datetime import datetime
+        task.completed_at = datetime.now()
+
+        return make_response({
+            "task": {
+            "id": task.task_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": bool(task.completed_at)
+            }
+        }
+        )
+@tasks_bp.route("/<task_id>/mark_incomplete", methods = ["PATCH"])
+def incomplete_task(task_id):
+    task = Task.query.get(task_id)
+    if task is None:
+            return make_response("", 404)
+    if request.method == "PATCH":
+        task.completed_at = None
+
+        return make_response({
+            "task": {
+            "id": task.task_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": bool(task.completed_at)
+            }
+        }
+        )
