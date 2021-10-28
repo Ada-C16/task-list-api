@@ -24,10 +24,10 @@ def create_task():
 @tasks_list_bp.route("", methods=["GET"])
 def read_all_tasks():
     tasks = Task.query.all()
-    tasks_repsonse = []
+    tasks_response = []
     for task in tasks:
-        tasks.response.append(task.to_dict())
-    return jsonify(tasks_repsonse)
+        tasks_response.append(task.to_dict())
+    return jsonify(tasks_response)
 
 
 #UPDATE
