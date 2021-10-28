@@ -6,11 +6,13 @@ tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["POST", "GET"])
 def handle_tasks():
+    # POST REQUESTS
     if request.method == "POST":
 
         request_body = request.get_json()
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-            return 400
+            
+            return {"details": "Invalid data"}, 400
 
         new_task = Task(
             title = request_body["title"],
@@ -25,26 +27,38 @@ def handle_tasks():
             "id": new_task.id,
             "title": new_task.title,
             "description": new_task.description,
-            "is_complete": new_task.is_complete
+            "is_complete": new_task.completed_at is not None
         }
 
         return jsonify(new_task_response), 201
 
+    # GET REQUESTS
     elif request.method == "GET":
-        tasks = Task.query.all()
+        title_query = request.args.get("title")
+        description_query = request.args.get("description")
+        if title_query:
+            tasks = Task.query.filter(Task.title.contains(title_query))
+        elif description_query:
+            tasks = Task.query.filter(Task.description.contains(description_query))
+        else:
+            tasks = Task.query.all()
 
-    tasks_response = []
-    for task in tasks:
-        tasks_response.append(
-            {
-                "id": task.id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": task.is_complete
-            }
-        )
-    return jsonify(tasks_response)
+        task_response = {}
+        for task in tasks:
+            task_response.append(
+               {
+                    "id": task.id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": task.completed_at is not None
+                }
+            )
+ 
+        if task_response == []:
+            return 200
+        return jsonify(task_response), 200
 
+# GET, PUT, DELETE ONE AT A TIME
 @tasks_bp.route("/task_id>", methods=["GET", "PUT", "DELETE"])
 def handle_one_task_at_a_time(task_id):
     task = Task.query.get(task_id)
@@ -57,9 +71,9 @@ def handle_one_task_at_a_time(task_id):
             "id": task.id,
             "title": task.title,
             "description": task.description,
-            "is_complete": task.is_complete
-        }
-    
+            "is_complete": task.completed_at is not None
+        }, 200
+
     if request.method == "PUT":
         if task is None:
             return jsonify(task_id), 404
@@ -82,6 +96,6 @@ def handle_one_task_at_a_time(task_id):
         db.session.delete(task_id)
         db.session.commit()
 
-        return jsonify(task_id), 200
+        return jsonify(task_id)
 
         
