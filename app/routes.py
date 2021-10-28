@@ -61,3 +61,13 @@ def delete_task(task_id):
     db.session.commit()
     return make_response(
         {"details": f'Task {selected_task.id} "{selected_task.title}" successfully deleted'}, 200)
+
+# Custom Routes: marking tasks complete or incomplete
+
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"], strict_slashes=False)
+def mark_incompleted_task_complete(task_id):
+    task_id = int(task_id)
+    selected_task = Task.query.get_or_404(task_id) 
+    selected_task.completed_at = datetime.datetime.now()
+    db.session.commit()
+    return make_response({"task": selected_task.to_dict()}, 200)

@@ -11,9 +11,13 @@ class Task(db.Model):
     # is_complete = db.Column(db.Boolean, default=False)
 
     def to_dict(self):
+        if self.completed_at:
+            is_complete = True
+        else:
+            is_complete = False
         return {
             "id": self.id,
             "title": self.title,
             "description": self.description,
-            "is_complete": False
+            "is_complete": is_complete
         }
