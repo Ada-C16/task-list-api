@@ -48,15 +48,13 @@ def create_new_task():
 
 @tasks_bp.route("/<task_id>", methods=["GET"], strict_slashes=False)
 def get_one_task(task_id):
-    task_id = int(task_id)
-    selected_task = Task.query.get_or_404(task_id)
+    selected_task = get_task_from_id(task_id)
     return make_response({"task": selected_task.to_dict()}, 200)
 
 @tasks_bp.route("/<task_id>", methods=["PUT"], strict_slashes=False)
 def update_task(task_id):
     request_body = request.get_json()
-    task_id = int(task_id)
-    selected_task = Task.query.get_or_404(task_id)
+    selected_task = get_task_from_id(task_id)
     if "title" in request_body:
         selected_task.title = request_body["title"]
     if "description" in request_body:
@@ -66,8 +64,7 @@ def update_task(task_id):
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"], strict_slashes=False)
 def delete_task(task_id):
-    task_id = int(task_id)
-    selected_task = Task.query.get_or_404(task_id)
+    selected_task = get_task_from_id(task_id)
     db.session.delete(selected_task)
     db.session.commit()
     return make_response(
@@ -77,16 +74,14 @@ def delete_task(task_id):
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"], strict_slashes=False)
 def mark_incompleted_task_complete(task_id):
-    task_id = int(task_id)
-    selected_task = Task.query.get_or_404(task_id) 
+    selected_task = get_task_from_id(task_id)
     selected_task.completed_at = datetime.datetime.now()
     db.session.commit()
     return make_response({"task": selected_task.to_dict()}, 200)
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"], strict_slashes=False)
 def mark_completed_task_incomplete(task_id):
-    task_id = int(task_id)
-    selected_task = Task.query.get_or_404(task_id) 
+    selected_task = get_task_from_id(task_id)
     selected_task.completed_at = None
     db.session.commit()
     return make_response({"task": selected_task.to_dict()}, 200)
