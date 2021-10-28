@@ -1,11 +1,14 @@
 from flask import Blueprint, jsonify, request, abort
 from app import db
 from app.models.task import Task
+from app.models.goal import Goal
 from datetime import datetime, timezone
 import requests
 import os
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+
+goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 
 def is_valid_int(number):
@@ -113,3 +116,18 @@ def mark_incomplete(id):
     task.completed_at = None
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
+
+
+@goal_bp.route("", methods=["POST"])
+def create_goal():
+    req = request.get_json()
+
+    try:
+        new_goal = Goal(title=req["title"])
+    except:
+        return jsonify({"details": "Invalid data"}), 400
+
+    db.session.add(new_goal)
+    db.session.commit()
+
+    return jsonify({"goal": new_goal.to_dict()}), 201
