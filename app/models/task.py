@@ -10,8 +10,6 @@ class Task(db.Model):
 
     def create_dict(self):
         complete_status = True if self.completed_at else False
-        # if self.completed_at:
-        #     complete_status = True
 
         return {
                 "id": self.task_id,

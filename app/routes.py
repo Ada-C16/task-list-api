@@ -8,23 +8,20 @@ tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 def handle_tasks():
     if request.method == "POST":
         request_body = request.get_json()
-        if "title" not in request_body or "description" not in request_body:
+        if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
             error_dict = {"details": "Invalid data"}
             return jsonify(error_dict), 400
         
-        if "completed_at" in request_body:
-            new_task = Task(title=request_body["title"],
-                                description=request_body["description"],
-                                completed_at=request_body["completed_at"]
-                                )
-        else:
-            new_task = Task(title=request_body["title"],
-                            description=request_body["description"])
-
+        
+        new_task = Task(title=request_body["title"],
+                        description=request_body["description"],
+                        completed_at=request_body["completed_at"]
+                        )
+        
         db.session.add(new_task)
         db.session.commit()
 
-        task_response = {"task": new_task.create_dict}
+        task_response = {"task": new_task.create_dict()}
         return jsonify(task_response), 201
 
     elif request.method == "GET":
