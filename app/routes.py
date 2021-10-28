@@ -10,12 +10,11 @@ def handle_tasks():
         tasks = Task.query.all()
         tasks_response = []
         for task in tasks:
-            task_complete = bool(task.completed_at)
             tasks_response.append({
                 "id": task.task_id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": task_complete    
+                "is_complete": bool(task.completed_at)    
             })
         return jsonify(tasks_response)
     if request.method == "POST":
@@ -28,13 +27,12 @@ def handle_tasks():
             db.session.add(new_task)
             db.session.commit()
 
-            task_complete = bool(new_task.completed_at)
             return {
                 "task": {
                 "id": new_task.task_id,
                 "title": new_task.title,
                 "description": new_task.description,
-                "is_complete": task_complete  
+                "is_complete": bool(new_task.completed_at)  
                 }
             }, 201
         except KeyError:
@@ -46,13 +44,12 @@ def handle_task(task_id):
     if task is None:
         return make_response(f"Task {task_id} not found", 404)
     if request.method == "GET":
-        task_complete = bool(task.completed_at)
         return {
             "task": {
             "id": task.task_id,
             "title": task.title,
             "description": task.description,
-            "is_complete": task_complete  
+            "is_complete": bool(task.completed_at)  
             }
         }
     if request.method == "PUT":
@@ -61,13 +58,12 @@ def handle_task(task_id):
         task.description = request_body["description"]
         db.session.commit()
         task = Task.query.get(task_id)
-        task_complete = bool(task.completed_at)
         return {
             "task": {
             "id": task.task_id,
             "title": task.title,
             "description": task.description,
-            "is_complete": task_complete  
+            "is_complete": bool(task.completed_at)  
             }
         }
     if request.method == "DELETE":
