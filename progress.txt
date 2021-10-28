@@ -22,3 +22,9 @@ overview of steps done to build api
 
 - confirm in db
 
+- define bp
+
+- register bp
+
+- define CRUD
+
