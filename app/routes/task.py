@@ -10,8 +10,8 @@ def read_all_tasks():
     
     if request.args.get('sort') == 'asc':
         tasks = tasks.order_by(Task.title.asc())
-    elif request.args.get('sort') == 'dsc':
-        tasks = tasks.order_by(Task.title.dsc())
+    elif request.args.get('sort') == 'desc':
+        tasks = tasks.order_by(Task.title.desc())
 
     response_body = [task.to_dict() for task in tasks]
     return make_response(jsonify(response_body), 200)
@@ -19,7 +19,9 @@ def read_all_tasks():
 @task_bp.route('', methods=['POST'])
 def create_new_task():
     request_body = request.get_json()
-    if not request_body['title'] or not request_body['description'] or not request_body['completed_at']:
+    # if not request_body['title'] or not request_body['description'] or not request_body['completed_at']:
+    # if request_body['title'] == None or request_body['description'] == None or request_body['completed_at'] == None:
+    if 'title' not in request_body or 'description' not in request_body or 'completed_at' not in request_body:
         response_body = {
             'details': 'Invalid data'
         }
@@ -28,12 +30,18 @@ def create_new_task():
     task_to_create = Task(
         title=request_body['title'],
         description=request_body['description']
+        # completed_at=request_body['completed_at']
     )
     
     db.session.add(task_to_create)
     db.session.commit()
 
-    return make_response(f'Task {task_to_create.title} added to task list', 201)
+    new_task = db.session.query(Task).filter(Task.title==task_to_create.title).one()
+    response_body = {
+        'task': new_task.to_dict()
+    }
+
+    return make_response(jsonify(response_body), 201)
 
 @task_bp.route('/<task_id>', methods=['GET'])
 def read_single_task(task_id):
@@ -51,7 +59,8 @@ def update_single_task(task_id):
     if not task:
         return make_response('', 404)
 
-    if not request_body['title'] or not request_body['description']:
+    # if not request_body['title'] or not request_body['description']:
+    if 'title' not in request_body or 'description' not in request_body:
         return make_response('Invalid data', 400)
         
     task.title = request_body['title']
@@ -59,7 +68,10 @@ def update_single_task(task_id):
 
     db.session.commit()
 
-    return make_response(f'Task id {task_id} updated', 200)
+    response_body = {
+        'task': Task.query.get(task_id).to_dict()
+    }
+    return make_response(jsonify(response_body), 200)
 
 @task_bp.route('/<task_id>/mark_complete', methods=['PATCH'])
 def update_single_task_complete(task_id):
@@ -86,14 +98,29 @@ def update_single_task_incomplete(task_id):
     return make_response(jsonify(task.to_dict()), 200)
 
 @task_bp.route('/<task_id>', methods=['DELETE'])
+# def delete_single_task(task_id):
+#     task = Task.query.get(task_id)
+#     if not task or not taks.accessible:
+#         return make_response('', 404)
+#     task.accessible = False
+#     db.session.commit()
+#     response_body = {
+#         'details': f'Task {task_id} "{task.title}" successfully deleted'
+#     }
+#     return make_response(jsonify(response_body), 200)
 def delete_single_task(task_id):
     task = Task.query.get(task_id)
-    if not task or not taks.accessible:
+    if not task:
         return make_response('', 404)
-    task.accessible = False
+    
+    db.session.delete(task)
     db.session.commit()
+
     response_body = {
-        'details': f'Task {task_id} "{task.title}" successfully deleted'
+        "details": f'Task {task.id} "{task.title}" successfully deleted'
     }
     return make_response(jsonify(response_body), 200)
-    
+
+    # return make_response(jsonify({
+    #     "details": f'Task {task.id} "{task.title}" successfully deleted'
+    # }), 200)

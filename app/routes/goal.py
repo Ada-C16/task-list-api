@@ -7,10 +7,7 @@ goal_bp = Blueprint('goals', __name__, url_prefix='/goals')
 @goal_bp.route('', methods=['GET'])
 def get_all_goals():
     goals = Goal.query.all()
-    response_body = list()
-
-    for goal in goals:
-        response_body.append(goal.to_dict())
+    response_body = [goal.to_dict() for goal in goals]
 
     return make_response(jsonify(response_body), 200)
 
