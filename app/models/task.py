@@ -13,8 +13,10 @@ class Task(db.Model):
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'title': self.title,
-            'description': self.description,
-            'is_complete': True if self.completed_at else False
+            'task': {
+                'id': self.id,
+                'title': self.title,
+                'description': self.description,
+                'is_complete': True if self.completed_at else False
+            }
         }
