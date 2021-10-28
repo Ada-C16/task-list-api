@@ -44,3 +44,37 @@ def handle_tasks():
                 tasks_response.append(task.create_dict())
         
         return jsonify(tasks_response)
+
+@tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE", "PATCH"])
+def task(task_id):
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify(None), 404
+    
+    if request.method == "GET":
+        task_response = {"task": task.create_dict()}
+        return jsonify(task_response), 200
+    
+    elif request.method == "PUT":
+        form_data = request.get_json()
+
+        task.title = form_data["title"]
+        task.description = form_data["description"]
+        task.iscomplete = None
+
+        db.session.commit()
+
+        task_response = {"task": task.create_dict()}
+        return jsonify(task_response), 200
+
+    elif request.method == "DELETE":
+        db.session.delete(task)
+        db.session.commit()
+        
+        new_string = f'Task {task.task_id} "{task.title}" successfully deleted'
+        delete_message = {
+            "details": new_string
+        }
+        
+        return jsonify(delete_message), 200
+        
