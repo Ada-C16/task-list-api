@@ -27,8 +27,8 @@ def create_new_task():
         return make_response({"details": "Invalid data"}, 400)
     new_task = Task(
         title = request_body["title"],
-        description = request_body["description"]
-        # completed_at = request_body["completed_at"]
+        description = request_body["description"],
+        completed_at = request_body["completed_at"]
     )
     db.session.add(new_task)
     db.session.commit()
@@ -69,5 +69,13 @@ def mark_incompleted_task_complete(task_id):
     task_id = int(task_id)
     selected_task = Task.query.get_or_404(task_id) 
     selected_task.completed_at = datetime.datetime.now()
+    db.session.commit()
+    return make_response({"task": selected_task.to_dict()}, 200)
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"], strict_slashes=False)
+def mark_completed_task_incomplete(task_id):
+    task_id = int(task_id)
+    selected_task = Task.query.get_or_404(task_id) 
+    selected_task.completed_at = None
     db.session.commit()
     return make_response({"task": selected_task.to_dict()}, 200)
