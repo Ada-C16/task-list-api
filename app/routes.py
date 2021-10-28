@@ -40,4 +40,15 @@ def delete_task(task_id):
 def get_one_task(task_id):
     task_id = int(task_id)
     selected_task = Task.query.get_or_404(task_id)
-    return make_response(selected_task.to_dict(), 200)
+    return make_response({"task": selected_task.to_dict()}, 200)
+
+@tasks_bp.route("/<task_id>", methods=["PUT"], strict_slashes=False)
+def update_task(task_id):
+    request_body = request.get_json()
+    task_id = int(task_id)
+    selected_task = Task.query.get_or_404(task_id)
+    if "title" in request_body:
+        selected_task.title = request_body["title"]
+    if "description" in request_body:
+        selected_task.description = request_body["description"]
+    return make_response({"task": selected_task.to_dict()}, 200)
