@@ -7,8 +7,15 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["GET"], strict_slashes=False)
 def get_all_tasks():
-    all_tasks = Task.query.all()
-    tasks_response = [task.to_dict() for task in all_tasks]
+
+    sort_query = request.args.get("sort")
+    if sort_query == "asc":
+        tasks = Task.query.order_by(Task.title.asc())
+    elif sort_query == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
+    else:
+        tasks = Task.query.all()
+    tasks_response = [task.to_dict() for task in tasks]
     return make_response(jsonify(tasks_response), 200)
 # should I respond with error code if table is empty?
 
