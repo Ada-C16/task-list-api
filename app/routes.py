@@ -16,7 +16,7 @@ def handle_tasks():
                 "id": task.task_id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": False
+                "is_complete": False if task.completed_at == None else True
             })
         return jsonify(tasks_response)
     
@@ -38,10 +38,10 @@ def handle_tasks():
 
         return {
             "task": {
-                "id": 1,
+                "id": new_task.task_id,
                 "title": new_task.title,
                 "description": new_task.description,
-                "is_complete": False
+                "is_complete": False if new_task.completed_at == None else True
                 }
         }, 201
 
@@ -58,7 +58,7 @@ def handle_task(task_id):
                 "id": task.task_id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": False
+                "is_complete": False if task.completed_at == None else True
             }
         }
     
@@ -75,13 +75,12 @@ def handle_task(task_id):
                 "id": task.task_id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": False
+                "is_complete": False if task.completed_at == None else True
             }
         }
     
     elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
-        return {
-            "details": 'Task 1 "Go on my daily walk 🏞" successfully deleted'
-            }
+
+        return {"details": f'Task {task.task_id} "{task.title}" successfully deleted'}
