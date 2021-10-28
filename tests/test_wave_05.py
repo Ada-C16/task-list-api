@@ -117,7 +117,6 @@ def test_delete_goal(client, one_goal):
     assert response.status_code == 404
 
 
-@pytest.mark.skip(reason="test to be completed by student")
 def test_delete_goal_not_found(client):
     # Act
     response = client.delete("/goals/1")

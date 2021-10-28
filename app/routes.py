@@ -23,6 +23,11 @@ def get_task_by_id(id):
     return Task.query.get_or_404(id)
 
 
+def get_goal_by_id(id):
+    is_valid_int(id)
+    return Goal.query.get_or_404(id)
+
+
 def notify_slack_bot(task):
     SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
 
@@ -138,3 +143,9 @@ def read_goals():
     goals = Goal.query.all()
     goals = [goal.to_dict() for goal in goals]
     return jsonify(goals), 200
+
+
+@goal_bp.route("/<id>", methods=["GET"])
+def read_goal(id):
+    goal = get_goal_by_id(id)
+    return jsonify({"goal": goal.to_dict()}), 200
