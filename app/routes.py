@@ -1,4 +1,5 @@
 from re import L
+import re
 from flask import Blueprint, jsonify, request, make_response
 from app.models.task import Task, task_schema
 from app import db
@@ -18,7 +19,14 @@ tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 @tasks_bp.route('', methods=['GET', 'POST'])
 def handle_tasks():
     if request.method == 'GET':
-        tasks = Task.query.all()
+        # if request.args.get("description"):
+        #     tasks = Task.query.filter_by(description=request.args.get("description"))
+        if request.args.get("sort") == "asc":
+            tasks = Task.query.order_by(Task.title.asc())
+        elif request.args.get("sort") == "desc":
+            tasks = Task.query.order_by(Task.title.desc())
+        else:
+            tasks = Task.query.all()
         # if not tasks:
         #     return make_response(jsonify({'message': 'No tasks found'}), 404)
         return jsonify([task.to_dict() for task in tasks]), 200
@@ -38,7 +46,7 @@ def handle_tasks():
                     # due_date=task['due_date']
                 )
                 db.session.add(new_task)
-                return jsonify(task.to_dict() for task in request_body), 201
+                return jsonify({"task": task.to_dict()} for task in request_body), 201
         else:
             new_task = Task(
                 title=request_body['title'],
@@ -76,3 +84,27 @@ def get_task(id_num):
         db.session.commit()
         return jsonify({'details': f'Task {task_id} "{task_title}" successfully deleted'}), 200
 
+@tasks_bp.route('/<int:id_num>/mark_complete', methods=['PATCH'])
+def mark_complete(id_num):
+    task = Task.query.get_or_404(id_num)
+    if not task:
+        return make_response(jsonify({'message': 'Task not found'}), 404)
+    task.completed_at = db.func.current_timestamp()
+    task.is_complete = True
+    db.session.commit()
+
+    # lets make a call to Slack API
+    
+
+    return jsonify({"task": task.to_dict()}), 200
+
+@tasks_bp.route('/<int:id_num>/mark_incomplete', methods=['PATCH'])
+def mark_incomplete(id_num):
+    task = Task.query.get_or_404(id_num)
+    if not task:
+        return make_response(jsonify({'message': 'Task not found'}), 404)
+    task.completed_at = None
+    task.is_complete = False
+
+    db.session.commit()
+    return jsonify({"task": task.to_dict()}), 200
