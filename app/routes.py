@@ -1,10 +1,21 @@
 from app import db
-from flask import Blueprint, request, make_response, jsonify
+from flask import Blueprint, request, make_response, jsonify, abort
 from app.models.task import Task
 
 # DEFINE BLUEPRINT
 tasks_list_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
+#-----------------
+#HELPER FUNCTIONS 
+def get_task_from_id(id):
+    try:
+        id = int(id)
+    except:
+        abort(400, {"error": "invalid id"})
+    return Task.query.get_or_404(id)
+
+
+#-----------------
 #CREATE
 @tasks_list_bp.route("", methods=["POST"])
 def create_task():
@@ -20,6 +31,8 @@ def create_task():
 
     return make_response(f"New task {new_task.title} successfully created!", 201)
 
+
+#-----------------
 #READ
 @tasks_list_bp.route("", methods=["GET"])
 def read_all_tasks():
@@ -28,6 +41,11 @@ def read_all_tasks():
     for task in tasks:
         tasks_response.append(task.to_dict())
     return jsonify(tasks_response)
+
+@tasks_list_bp.route("/<id>", methods=["GET"])
+def read_one_task(id):
+    task = get_task_from_id(id)
+    return task.to_dict()
 
 
 #UPDATE
