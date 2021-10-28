@@ -1,5 +1,7 @@
 .vscode
 .DS_Store
+notes.md
+migrations/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
