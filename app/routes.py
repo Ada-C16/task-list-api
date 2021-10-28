@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, make_response, request
 from app.models.task import Task
 from app import db
 from sqlalchemy import desc, asc
+import datetime
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -52,7 +53,7 @@ def handle_tasks():
         return jsonify(tasks_response)
 
 @tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE", "PATCH"])
-def task(task_id):
+def task_handling(task_id):
     task = Task.query.get(task_id)
     if not task:
         return jsonify(None), 404
@@ -81,4 +82,31 @@ def task(task_id):
         delete_message = {"details": delete_string}
         
         return jsonify(delete_message), 200
+
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def task_completed(task_id):
+    if request.method == "PATCH":
+        task = Task.query.get(task_id)
+        if not task:
+            return jsonify(None), 404
+        request_body = request.get_json()
         
+        task.completed_at = datetime.datetime.now()
+        db.session.commit()
+
+        task_response = {"task": task.create_dict()}
+        return jsonify(task_response), 200
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def task_incomplete(task_id):
+    if request.method == "PATCH":
+        task = Task.query.get(task_id)
+        if not task:
+            return jsonify(None), 404
+        request_body = request.get_json()
+        
+        task.completed_at = None
+        db.session.commit()
+
+        task_response = {"task": task.create_dict()}
+        return jsonify(task_response), 200
