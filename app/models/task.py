@@ -8,3 +8,11 @@ class Task(db.Model):
     description = db.Column(db.String, nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)
     is_complete = db.Column(db.String, nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.task_id,
+            "title": self.title,
+            "description": self.description,
+            "is_complete": self.is_complete
+        }
