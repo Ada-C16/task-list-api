@@ -3,7 +3,9 @@ from flask import Blueprint, jsonify, make_response, request, abort
 from app.models.task import Task
 import datetime
 
+
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 # Helper functions
 def confirm_valid_id(id, id_type):
@@ -15,6 +17,8 @@ def confirm_valid_id(id, id_type):
 def get_task_from_id(id):
     confirm_valid_id(id, "task_id")
     return Task.query.get_or_404(id)
+
+# Tasks routes
 
 @tasks_bp.route("", methods=["GET"], strict_slashes=False)
 def get_all_tasks():
@@ -85,3 +89,6 @@ def mark_completed_task_incomplete(task_id):
     selected_task.completed_at = None
     db.session.commit()
     return make_response({"task": selected_task.to_dict()}, 200)
+
+
+# Goals routes
