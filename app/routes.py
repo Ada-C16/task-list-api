@@ -20,6 +20,23 @@ def get_task_by_id(id):
     return Task.query.get_or_404(id)
 
 
+def notify_slack_bot(task):
+    SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
+
+    req_body = {
+        "channel": "task-notifications",
+        "text": f"Someone just completed the task {task.title}"
+    }
+
+    headers = {
+        "Authorization": f"Bearer {SLACK_API_KEY}"
+    }
+
+    path = "https://slack.com/api/chat.postMessage"
+
+    requests.post(path, json=req_body, headers=headers)
+
+
 @task_bp.route("", methods=["GET"])
 def read_tasks():
     sort_query = request.args.get("sort")
@@ -85,20 +102,7 @@ def mark_complete(id):
     task.completed_at = datetime.now(timezone.utc)
     db.session.commit()
 
-    SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
-
-    req_body = {
-        "channel": "task-notifications",
-        "text": f"Someone just completed the task {task.title}"
-    }
-
-    headers = {
-        "Authorization": f"Bearer {SLACK_API_KEY}"
-    }
-
-    path = "https://slack.com/api/chat.postMessage"
-
-    requests.post(path, json=req_body, headers=headers)
+    notify_slack_bot(task)
 
     return jsonify({"task": task.to_dict()}), 200
 
