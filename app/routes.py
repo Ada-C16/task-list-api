@@ -149,3 +149,12 @@ def read_goals():
 def read_goal(id):
     goal = get_goal_by_id(id)
     return jsonify({"goal": goal.to_dict()}), 200
+
+
+@goal_bp.route("/<id>", methods=["PUT"])
+def update_goal(id):
+    goal = get_goal_by_id(id)
+    req = request.get_json()
+    goal.title = req["title"]
+    db.session.commit()
+    return jsonify({"goal": goal.to_dict()}), 200
