@@ -26,11 +26,21 @@ def handle_tasks():
         return (new_task.to_dict()),201
 
     elif request.method == "GET":
-        tasks = Task.query.all()
         tasks_response = []
+        if request.args.get("sort") =="asc":
+            tasks = Task.query.order_by(Task.title)
+        
+        elif request.args.get("sort") =="desc":
+            tasks = Task.query.order_by(Task.title.desc())
+
+        else:
+            tasks = Task.query.all()
+        
         for task in tasks:
+            
             if not task.completed_at:
                 is_complete = False
+            
             else:
                 is_complete =task.completed_at
             task=({"id": task.task_id, 
@@ -38,6 +48,7 @@ def handle_tasks():
                 "description": task.description,
                 "is_complete": is_complete})
             tasks_response.append(task)
+        
         return jsonify(tasks_response)
 
 @tasks_bp.route("/<task_id>", methods = ["GET","PUT","DELETE"])
