@@ -12,8 +12,7 @@ class Task(db.Model):
 
     # attributes with defaults
     created_date = db.Column(db.DateTime, default=db.func.current_timestamp())
-    completed_at = db.Column(db.DateTime, default=None, nullable=True)
-    is_complete = db.Column(db.Boolean, default=False)
+    completed_at = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
         return {
@@ -22,7 +21,7 @@ class Task(db.Model):
             'description': self.description,
             #'completed_at': self.completed_at,
             #'created_date': self.created_date,
-            'is_complete': self.is_complete
+            'is_complete': True if self.completed_at else False
         }
 
 task_schema = {
