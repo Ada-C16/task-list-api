@@ -10,7 +10,7 @@ goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
 def handle_tasks():
     if request.method=="POST":
         request_body = request.get_json()
-        if "title" or "description" not in request_body:
+        if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
             return jsonify({"details": "Invalid data"}), 400
         else:
             new_task = Task(
@@ -21,7 +21,7 @@ def handle_tasks():
             db.session.add(new_task)
             db.session.commit()
             print(new_task)
-            return jsonify(new_task.task_dict()), 201
+            return jsonify({"task": new_task.task_dict()}), 201
 
     elif request.method == "GET":
         tasks = Task.query.all()
