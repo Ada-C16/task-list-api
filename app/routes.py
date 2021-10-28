@@ -1,7 +1,17 @@
 from re import L
 from flask import Blueprint, jsonify, request, make_response
-from app.models.task import Task
+from app.models.task import Task, task_schema
 from app import db
+import jsonschema
+from jsonschema import validate
+
+def validate_json(json_data, comparison):
+    try:
+        validate(instance=json_data, schema=comparison)
+    except jsonschema.exceptions.ValidationError as err:
+        #print(err)
+        return False
+    return True
 
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -15,11 +25,15 @@ def handle_tasks():
 
     elif request.method == 'POST':
         request_body = request.get_json()
+        if not validate_json(request_body, task_schema):
+            return make_response(jsonify({"details": "Invalid data"}), 400)
+        
         if isinstance(request_body, list):
             for task in request_body:
                 new_task = Task(
                     title=task['title'],
-                    description=task['description']
+                    description=task['description'],
+                    completed_at = task['completed_at']
                     # priority=task['priority'],
                     # due_date=task['due_date']
                 )
@@ -28,17 +42,37 @@ def handle_tasks():
         else:
             new_task = Task(
                 title=request_body['title'],
-                description=request_body['description']
+                description=request_body['description'],
+                completed_at = request_body['completed_at']
                 # priority=request_body['priority'],
                 # due_date=request_body['due_date']
             )
             db.session.add(new_task)
             db.session.commit()
-            return jsonify(new_task.to_dict()), 201
+            return jsonify({"task": new_task.to_dict()}), 201
 
-@tasks_bp.route('/<int:task_id>', methods=['GET'])
-def get_task(task_id):
-    task = Task.query.get(task_id)
+@tasks_bp.route('/<int:id_num>', methods=['GET', "PUT", "DELETE"])
+def get_task(id_num):
+    task = Task.query.get_or_404(id_num)
     if not task:
         return make_response(jsonify({'message': 'Task not found'}), 404)
-    return jsonify(task.to_dict()), 200
+
+    if request.method == 'GET':
+        return jsonify({"task": task.to_dict()}), 200
+
+    elif request.method == 'PUT':
+        request_body = request.get_json()
+        for key, value in request_body.items():
+            if key in Task.__table__.columns.keys():
+                setattr(task, key, value)
+        db.session.commit()
+        return jsonify({"task": task.to_dict()}), 200
+
+    elif request.method == "DELETE":
+        task_id = task.to_dict()['id']
+        task_title = task.to_dict()['title']
+
+        db.session.delete(task)
+        db.session.commit()
+        return jsonify({'details': f'Task {task_id} "{task_title}" successfully deleted'}), 200
+
