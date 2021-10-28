@@ -1,9 +1,20 @@
 from app import db
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, jsonify, make_response, request, abort
 from app.models.task import Task
 import datetime
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+
+# Helper functions
+def confirm_valid_id(id, id_type):
+    try:
+        int(id)
+    except:
+        abort(make_response({"error": f"{id_type} must be an int"}, 400))
+
+def get_task_from_id(id):
+    confirm_valid_id(id, "task_id")
+    return Task.query.get_or_404(id)
 
 @tasks_bp.route("", methods=["GET"], strict_slashes=False)
 def get_all_tasks():
