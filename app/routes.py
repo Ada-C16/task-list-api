@@ -158,3 +158,14 @@ def update_goal(id):
     goal.title = req["title"]
     db.session.commit()
     return jsonify({"goal": goal.to_dict()}), 200
+
+
+@goal_bp.route("/<id>", methods=["DELETE"])
+def delete_goal(id):
+    goal = get_goal_by_id(id)
+    db.session.delete(goal)
+    db.session.commit()
+    response_body = {
+        "details": f'Goal {goal.id} "{goal.title}" successfully deleted'
+    }
+    return jsonify(response_body), 200
