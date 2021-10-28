@@ -25,13 +25,13 @@ def create_task():
 
     return make_response(new_task.to_dict(), 201)
 
-# @task_bp.route("", methods=["GET"])
-# def read_all_tasks():
-#     tasks = Task.query.all()
+@task_bp.route("", methods=["GET"])
+def read_all_tasks():
+    tasks = Task.query.all()
 
-#     task_response = []
-#     for task in tasks:
-#         task_response.append(
-#             task.to_dict()
-#         )
-#     return make_response(jsonify(task_response), 200)
+    task_response = []
+    for task in tasks:
+        task_response.append(
+            task.to_dict()
+        )
+    return make_response(jsonify(task_response), 200)
