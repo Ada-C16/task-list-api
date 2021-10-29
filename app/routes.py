@@ -15,17 +15,18 @@ task_bp = Blueprint("task", __name__,url_prefix ="/tasks")
 def create_task():
     request_body = request.get_json()
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
+    # if "title" not in request_body or "description" not in request_body:
         return make_response({"details": "Invalid data"}, 400)
 
     new_task = Task(
         title=request_body["title"],
-        description=request_body["description"],
+        description=request_body["description"]
     )
 
     db.session.add(new_task)
     db.session.commit()
 
-    return make_response(new_task.to_dict(), 201)
+    return make_response({"task": new_task.to_dict()}, 201)
 
 @task_bp.route("", methods=["GET"])
 def read_all_tasks():

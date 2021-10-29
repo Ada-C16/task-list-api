@@ -13,7 +13,7 @@ class Task(db.Model):
             self.completed_at = False
 
         return {
-            "task_id": self.task_id,
+            "id": self.task_id,
             "title": self.title,
             "description": self.description,
             "is_complete": self.completed_at
