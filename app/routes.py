@@ -85,8 +85,11 @@ def update_task(id):
     task = get_task_by_id(id)
     req = request.get_json()
 
-    task.title = req["title"]
-    task.description = req["description"]
+    try:
+        task.title = req["title"]
+        task.description = req["description"]
+    except:
+        return jsonify({"details": "Invalid data"}), 400
 
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
