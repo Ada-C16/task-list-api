@@ -1,13 +1,18 @@
 from flask import Blueprint, jsonify, make_response, request
 from app import db
 from app.models.task import Task
+from sqlalchemy import asc, desc
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
 @task_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
     if request.method == "GET":
-        tasks = Task.query.all()
+        sort_query = eval(request.args.get("sort"))
+        if sort_query:
+            tasks = Task.query.order_by(sort_query(Task.title))
+        else:
+            tasks = Task.query.all()
         tasks_response = []
         for task in tasks:
             tasks_response.append({
@@ -16,7 +21,7 @@ def handle_tasks():
                 "description": task.description,
                 "is_complete": bool(task.completed_at)    
             })
-        return jsonify(tasks_response)
+        return jsonify(tasks_response), 200
     if request.method == "POST":
         request_body = request.get_json()
         try:
@@ -51,7 +56,7 @@ def handle_task(task_id):
             "description": task.description,
             "is_complete": bool(task.completed_at)  
             }
-        }
+        }, 200
     if request.method == "PUT":
         request_body = request.get_json()
         task.title = request_body["title"]
@@ -65,7 +70,7 @@ def handle_task(task_id):
             "description": task.description,
             "is_complete": bool(task.completed_at)  
             }
-        }
+        }, 200
     if request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
