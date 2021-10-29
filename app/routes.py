@@ -1,18 +1,10 @@
-from re import L
-import re
 from flask import Blueprint, jsonify, request, make_response
 from app.models.task import Task, task_schema
 from app import db
 import jsonschema
 from jsonschema import validate
-
-def validate_json(json_data, comparison):
-    try:
-        validate(instance=json_data, schema=comparison)
-    except jsonschema.exceptions.ValidationError as err:
-        #print(err)
-        return False
-    return True
+from app import slack_key
+import requests
 
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -93,8 +85,8 @@ def mark_complete(id_num):
     task.is_complete = True
     db.session.commit()
 
-    # lets make a call to Slack API
-    
+    # lets make a call to my slack bot
+    slack_bot(task.title)
 
     return jsonify({"task": task.to_dict()}), 200
 
@@ -108,3 +100,22 @@ def mark_incomplete(id_num):
 
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
+
+
+'''HELPER FUNCTIONS'''
+def validate_json(json_data, comparison):
+    try:
+        validate(instance=json_data, schema=comparison)
+    except jsonschema.exceptions.ValidationError as err:
+        #print(err)
+        return False
+    return True
+
+def slack_bot(task_title):
+    url = "https://slack.com/api/chat.postMessage"
+    payload = {
+    "token" : slack_key,
+    "channel" : "task-notifications",
+    "text" : f"Someone just completed {task_title}"
+    }
+    return requests.post(url, data=payload).json()
