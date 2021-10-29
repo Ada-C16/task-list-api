@@ -158,7 +158,11 @@ def read_goal(id):
 def update_goal(id):
     goal = get_goal_by_id(id)
     req = request.get_json()
-    goal.title = req["title"]
+    try:
+        goal.title = req["title"]
+    except:
+        return jsonify({"details": "Invalid data"}), 400
+
     db.session.commit()
     return jsonify({"goal": goal.to_dict()}), 200
 
