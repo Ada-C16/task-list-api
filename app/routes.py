@@ -8,7 +8,15 @@ from app import db
 task_bp = Blueprint("task", __name__,url_prefix ="/tasks")
 
 # Helper Functions
-# TODO:PUT ANY HELPER FUNCTIONS header_property
+def valid_int(number, parameter_type):
+    try:
+        int(number)
+    except:
+        abort(make_response({"error": f"{parameter_type} must be an int"}, 400))
+
+def get_task_from_id(task_id):
+    valid_int(task_id, "task_id")
+    return Task.query.get_or_404(task_id, description="{task not found}")
 
 # Routes
 @task_bp.route("", methods=["POST"])
@@ -38,3 +46,8 @@ def read_all_tasks():
             task.to_dict()
         )
     return make_response(jsonify(task_response), 200)
+
+@task_bp.route("/<task_id>", methods=["GET"])
+def read_one_task(task_id):
+    task = get_task_from_id(task_id)
+    return make_response({"task": task.to_dict()}, 200)
