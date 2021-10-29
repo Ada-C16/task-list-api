@@ -1,6 +1,7 @@
 from flask import Blueprint, json, jsonify, request
 from .models.task import Task
 from app import db
+from datetime import datetime
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -12,6 +13,19 @@ def task_success_message(task, code):
 def invalid_data_message():
     return jsonify({ "details" : "Invalid data" }), 400
 
+def validate_task_id(task_id):
+
+    try:
+        int(task_id) == task_id
+
+    except ValueError:
+        return invalid_data_message()
+
+    task = Task.query.get(task_id)
+
+    if not task:
+        return "", 404
+
 
 @tasks_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
@@ -19,15 +33,15 @@ def handle_tasks():
     if request.method == "POST":
         request_body = request.get_json()
 
-        print(request_body)
-
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
             return invalid_data_message()
 
+        print(request_body)
+
         new_task = Task(
             title=request_body["title"],
-            description=request_body["description"], 
-            completed_at = request_body["completed_at"]
+            description=request_body["description"],
+            completed_at = datetime.today() if request_body["completed_at"] else None
             )
         
         db.session.add(new_task)
@@ -55,18 +69,12 @@ def handle_tasks():
 
 @tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
 def handle_task(task_id):
-    
-    # check if id is an integer
-    try:
-        int(task_id) == task_id
 
-    except ValueError:
-        return invalid_data_message()
+    id_error = validate_task_id(task_id)
+    if id_error:
+        return id_error
 
     task = Task.query.get(task_id)
-
-    if not task:
-        return "", 404
 
     if request.method == "GET":
 
@@ -92,6 +100,39 @@ def handle_task(task_id):
         task.title = request_body["title"]
         task.description = request_body["description"]
 
+        if "completed_at" in request_body:
+            task.completed_at = datetime.today()
+
         db.session.commit()
 
         return task_success_message(task, 200)
+
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def handle_task_complete(task_id):
+    
+    id_error = validate_task_id(task_id)
+    if id_error:
+        return id_error
+
+    task = Task.query.get(task_id)
+
+    task.completed_at = datetime.today()
+
+    db.session.commit()
+
+    return task_success_message(task, 200)
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def handle_task_incomplete(task_id):
+    
+    id_error = validate_task_id(task_id)
+    if id_error:
+        return id_error
+
+    task = Task.query.get(task_id)
+
+    task.completed_at = None
+
+    db.session.commit()
+
+    return task_success_message(task, 200)
