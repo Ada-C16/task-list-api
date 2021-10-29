@@ -3,6 +3,11 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from app import db
 from app.models.task import Task
 import datetime
+import requests
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 task_bp = Blueprint("task", __name__, url_prefix="/tasks")
 
@@ -95,9 +100,33 @@ def delete_task(task_id):
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_task_complete(task_id):
     task = get_task_from_id(task_id)
-    task.completed_at = datetime.datetime
+    task.completed_at = datetime.datetime.now()
 
     db.session.commit()
 
-    response_body = {"task": task.to_json()}
+    response_body = {"task": task.to_dict()}
+    return jsonify(response_body), 200
+
+    # Slack bot
+    bot_token = os.environ.get("BOT_API_TOKEN")
+    url= 'https://slack.com/api/chat.postMessage'
+    channel_code = 'C02KYFE1LQH'
+    payload = {
+        "token":bot_token,
+        "channel":channel_code,
+        "text":"Testing endpoint!"
+    }
+    r = requests.post(url, data=payload)
+
+# Q: do we need to write another route for posting the slock bot message?
+
+# Mark incomplete on a completed task
+@task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_task_incomplete(task_id):
+    task = get_task_from_id(task_id)
+    task.completed_at = None
+
+    db.session.commit()
+
+    response_body = {"task": task.to_dict()}
     return jsonify(response_body), 200
