@@ -8,6 +8,6 @@ class Task(db.Model):
     description=db.Column(db.String)
     completed_at=db.Column(db.DateTime, nullable=True)
 
-    def task_dict(self):
-        # self.is_complete = False if not self.completed_at else True
-        return f"{self.task_id} name: {self.title} description: {self.description}"
+    # def task_dict(self):
+    #     self.is_complete = False if not self.completed_at else True
+    #     return f"{self.task_id} name: {self.title} description: {self.description}"
