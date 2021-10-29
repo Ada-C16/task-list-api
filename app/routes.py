@@ -87,3 +87,15 @@ def put_task(task_id):
     }}
     #TODO: Refactor to use to_dict() method
 
+@tasks_bp.route("/<task_id>", methods=["DELETE"])
+def delete_task(task_id):
+    """Deletes task by id."""
+    task = Task.query.get_or_404(task_id)
+    if task:
+        return_statement = f"Task {task.id} \"{task.title}\" successfully deleted"
+        db.session.delete(task)
+        db.session.commit()
+
+        return {
+            "details": return_statement
+        }, 200
