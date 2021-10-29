@@ -1,7 +1,10 @@
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
-import datetime
+import datetime, requests, os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -91,6 +94,10 @@ def complete_task(task_id):
     task = Task.query.get_or_404(task_id)
 
     task.completed_at = datetime.datetime.now()
+    db.session.commit()
+
+    # call the slack API using helper function
+    post_to_slack_task_notifications_channel(f"Someone just completed the task {task.title}")
 
     return make_response(
         {"task":(task.to_dict())}, 200
@@ -102,7 +109,17 @@ def incomplete_task(task_id):
     task = Task.query.get_or_404(task_id)
 
     task.completed_at = None
+    db.session.commit()
 
     return make_response(
         {"task":(task.to_dict())}, 200
     )
+
+def post_to_slack_task_notifications_channel(text):
+    url = "https://slack.com/api/chat.postMessage"
+    headers = {"Authorization": os.environ.get("TANYAB0T_TOKEN")}
+    data = {
+        "channel": os.environ.get("TASK_NOTIFICATIONS_CHANNEL_ID"),
+        "text": text
+    }
+    requests.post(url, headers=headers, data=data)
