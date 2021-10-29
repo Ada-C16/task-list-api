@@ -18,7 +18,7 @@ def create_new_goal():
         response_body = {
             'details': 'Invalid data'
         }
-        make_response(jsonify(response_body), 400)
+        return make_response(jsonify(response_body), 400)
     
     goal_to_create = Goal(
         title=request_body['title']
@@ -34,10 +34,24 @@ def create_new_goal():
     return make_response(jsonify(response_body), 201)
 
 @goal_bp.route('/<goal_id>', methods=['GET'])
-def get_single_goals(goal_id):
+def get_single_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if not goal:
         return make_response('', 404)
         
     response_body = {'goal': goal.to_dict()}
+    return make_response(jsonify(response_body), 200)
+
+@goal_bp.route('/<goal_id>', methods=['DELETE'])
+def delete_single_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return make_response('', 404)
+    
+    db.session.delete(goal)
+    db.session.commit()
+
+    response_body = {
+        'details': f'Goal {goal_id} "{goal.title}" successfully deleted'
+    }
     return make_response(jsonify(response_body), 200)
