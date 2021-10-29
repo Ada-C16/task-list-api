@@ -105,4 +105,14 @@ def delete_task(task_id):
 
     return jsonify({'details': f'Task {task.id} "{task.title}" successfully deleted'})
 
-# @task_bp.route("<dog_id>/mark_complete", methods = ["GET"])
+
+@task_bp.route("<task_id>/mark_complete", methods = ["PATCH"])
+def update_completion_status(task_id, completed_at_value):
+    request_body = request.get_json()
+    task = get_task_with_task_id(task_id)
+
+    if "completed_at" in request_body:
+        task.completed_at = request_body["completed_at"]
+
+    db.session.commit()
+    return jsonify(task.to_dict, 200)
