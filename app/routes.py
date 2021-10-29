@@ -20,17 +20,21 @@ def handle_tasks():
             
         elif request.method == 'POST':
             request_body = request.get_json()
-            new_task = Task(title=request_body['title'],
-                            description=request_body['description'],
-                            completed_at=request_body['completed_at']
-                            )
-            db.session.add(new_task)
-            db.session.commit()
-            return make_response({"task": { "id": new_task.task_id,
-                                            "title": new_task.title,
-                                            "description": new_task.description,
-                                            "is_complete": False if new_task.completed_at is None else new_task.completed_at  
-                                            }}, 201)
+            if 'title' not in request_body.keys() or 'description' not in request_body.keys() \
+                                                  or 'completed_at' not in request_body.keys():
+                return make_response({"details": "Invalid data"}, 400)
+            else:
+                new_task = Task(title=request_body['title'],
+                                description=request_body['description'],
+                                completed_at=request_body['completed_at']
+                                )
+                db.session.add(new_task)
+                db.session.commit()
+                return make_response({"task": { "id": new_task.task_id,
+                                                "title": new_task.title,
+                                                "description": new_task.description,
+                                                "is_complete": False if new_task.completed_at is None else new_task.completed_at  
+                                                }}, 201)
 
 @tasks_bp.route('/<task_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_one_task(task_id):
@@ -58,3 +62,4 @@ def handle_one_task(task_id):
         db.session.delete(task)
         db.session.commit()
         return make_response({"details": f"Task {task.task_id} \"{task.title}\" successfully deleted"})
+    
