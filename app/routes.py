@@ -1,10 +1,16 @@
 import datetime
+from typing import ChainMap
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
 from flask import request, Blueprint, make_response, jsonify
 from datetime import datetime
-from tests.conftest import completed_task
+from dotenv import load_dotenv
+import os
+import requests
+import json
+
+load_dotenv()
 
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
@@ -60,6 +66,7 @@ def handle_task_complete(task_id):
         if not task:
             return make_response(f"Book {task_id} not found", 404)
         task.completed_at = datetime.utcnow()
+        initiate_slack_message(task)
         return make_response({"task": task.to_dict()}, 200)
 
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
@@ -106,6 +113,15 @@ def handle_goal(goal_id):
         goal.title = request_body["title"] if "title" in request_body else goal.title
         return make_response({"goal": goal.to_dict()}, 200)
 
+
+def initiate_slack_message(task):
+    SLACKBOT_KEY = os.environ.get("SLACK_BOT")
+    CHANNEL = os.environ.get("CHANNEL")
+    message = f"Someone just completed the task {task.title}"
+    query_params = {"token":SLACKBOT_KEY, "channel": CHANNEL, "text": message}
+    url = "https://slack.com/api/chat.postMessage"
+    response = requests.post(url, data=query_params)
+    
 
 
 
