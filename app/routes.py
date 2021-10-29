@@ -3,6 +3,7 @@ from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
 
 
+
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["GET", "POST"])
@@ -11,8 +12,31 @@ def handle_tasks():
     if request.method == "GET":
         title_query = request.args.get("title")
         description_query = request.args.get("description")
-        if title_query:
+        #add re making query more flexible and add is_completed
+        sort_query = request.args.get("sort")
+        
+        if sort_query == "asc":
+            tasks = Task.query.order_by(Task.title.asc())
+            # if :
+         
+
+        elif sort_query == "desc":
+            tasks = Task.query.order_by(Task.title.desc())
+            # if :
+           
+            # elif:
+            #     query.order_by(desc(Task.title))
+        
+    
+            # query.order_by(Task.title.desc()) # desc
+
+
+            # query.order_by(SpreadsheetCells.y_index.asc())
+            
+        elif title_query:
             tasks = Task.query.filter(Task.title.contains(title_query))
+            # query.order_by(desc(SpreadsheetCells.y_index)) # desc
+
         elif description_query:
             tasks = Task.query.filter_by(description=description_query)
         else:
