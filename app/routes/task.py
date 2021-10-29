@@ -25,11 +25,12 @@ def create_new_task():
             'details': 'Invalid data'
         }
         return make_response(jsonify(response_body), 400)
-
+    # goal = None if 'goal_id' not in request_body else request_body['goal_id']
     task_to_create = Task(
         title=request_body['title'],
         description=request_body['description'],
         completed_at=request_body['completed_at']
+        # goal_id=
     )
     
     db.session.add(task_to_create)
