@@ -38,8 +38,14 @@ def add_books():
 def read_all_tasks():
     """Read all tasks"""
 
-    # title_query = request.args.get("title")
-    tasks = Task.query.all()
+    sort_query = request.args.get("sort")
+
+    if sort_query == "asc":
+        tasks = Task.query.order_by(Task.title.asc())
+    elif sort_query == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
+    else:
+        tasks = Task.query.all()
 
     task_response = []
     for task in tasks:
@@ -47,10 +53,12 @@ def read_all_tasks():
     
     return jsonify(task_response), 200
 
+
 @task_bp.route("/<task_id>", methods = ["GET"])
 def read_one_task(task_id):
     task = get_task_with_task_id(task_id)
     return jsonify({"task": task.to_dict()})
+
 
 @task_bp.route("/<task_id>", methods = ["PUT"])
 def update_all_task_info(task_id):
@@ -86,6 +94,7 @@ def update_some_task_info(task_id):
 
     db.session.commit()
     return make_response(f"Task {task.title} has been updated.", 201)
+
 
 @task_bp.route("/<task_id>", methods = ["DELETE"])
 def delete_task(task_id):
