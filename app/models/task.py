@@ -9,9 +9,12 @@ class Task(db.Model):
     completed_at = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
+        if not self.completed_at:
+            self.completed_at = False
+
         return {
             "task_id": self.task_id,
             "title": self.title,
             "description": self.description,
-            "completed_at": self.completed_at
+            "is_complete": self.completed_at
         }
