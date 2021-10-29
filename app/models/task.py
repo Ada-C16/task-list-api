@@ -13,9 +13,14 @@ class Task(db.Model):
     def to_dict(self):
         is_complete = False if not self.completed_at else True
 
-        return {
+        response = {
             "id": self.id,
             "title": self.title,
             "description": self.description,
             "is_complete": is_complete,
         }
+
+        if self.goal:
+            response["goal_id"] = self.goal_id
+
+        return response
