@@ -7,12 +7,13 @@ class Task(db.Model):
     title = db.Column(db.String, nullable=False) # Not sure if I need to specify if these are nullable
     description = db.Column(db.String, nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)
-    is_complete = db.Column(db.String, nullable=True)
 
     def to_dict(self):
         return {
             "id": self.task_id,
             "title": self.title,
             "description": self.description,
-            "is_complete": self.is_complete
+            "is_complete": bool(self.completed_at)
         }
+
+
