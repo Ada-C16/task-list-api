@@ -119,3 +119,4 @@ def slack_bot(task_title):
     "text" : f"Someone just completed {task_title}"
     }
     return requests.post(url, data=payload).json()
+
