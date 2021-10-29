@@ -11,22 +11,18 @@ def handle_tasks():
     task_response = []
     if request.method == "GET":
         tasks = Task.query.all()
-        for task in tasks:
-            task_response.append(to_dict(task))
-        print(task_response)
+        task_response = [task.to_dict() for task in tasks]
         return jsonify(task_response), 200
     elif request.method == "POST":
         request_body = request.get_json()
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
             return make_response({"details": "Invalid data"}, 400) 
-        if request_body["completed_at"] == None:
-            completion_status = None
         new_task = Task(title=request_body["title"],
                         description=request_body["description"], 
-                        completed_at=completion_status)
+                        completed_at=request_body["completed_at"])
         db.session.add(new_task)
         db.session.commit()
-        return make_response({"task": to_dict(new_task)}, 201)
+        return make_response({"task": new_task.to_dict()}, 201)
 
 @task_bp.route("/<task_id>", methods=["GET", "DELETE", "PUT"])
 def handle_task(task_id):
@@ -34,7 +30,7 @@ def handle_task(task_id):
     if request.method == "GET":
         if not task:
             return make_response(f"Book {task_id} not found", 404)
-        return {"task": to_dict(task)}
+        return {"task": task.to_dict()}
     elif request.method == "DELETE":
         if not task:
             return make_response("", 404)
@@ -45,17 +41,8 @@ def handle_task(task_id):
         if not task:
             return make_response("", 404)
         request_body = request.get_json()
-        if "title" in request_body:
-            task.title = request_body["title"]
-        if "description" in request_body:
-            task.description = request_body["description"]
-        if "completed_at" in request_body:
-            task.completed_at = request_body["completed_at"]
-        return make_response({"task": to_dict(task)}, 200)
-def to_dict(task):
-    return {
-        "id": task.task_id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": task.completed_at
-    }
+        task.title = request_body["title"] if "title" in request_body else task.title
+        task.description = request_body["description"] if "description" in request_body else task.description
+        task.completed_at = request_body["completed_at"] if "completed_at" in request_body else task.completed_at
+        return make_response({"task": task.to_dict()}, 200)
+
