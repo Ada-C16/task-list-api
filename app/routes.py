@@ -6,11 +6,17 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
-    title_query = request.args.get("title")
-    if title_query:
-        tasks = Task.query.filter(Task.title.contains(title_query))
+    sort_query = request.args.get("sort")
+    if sort_query == "asc":
+        tasks = Task.query.order_by(Task.title).all()
+    elif sort_query == "desc":
+        tasks = Task.query.order_by(Task.title.desc()).all()
     else:
         tasks = Task.query.all()
+
+    # title_query = request.args.get("title")
+    # if title_query:
+    #     tasks = Task.query.filter(Task.title.contains(title_query))
 
     tasks_response = [task.to_dict() for task in tasks]
     return jsonify(tasks_response), 200
@@ -82,3 +88,7 @@ def delete_task(task_id):
     return jsonify({
         'details': f'Task {task.task_id} "{task.title}" successfully deleted'
         }), 200
+
+@tasks_bp.route("/<task_id>", methods=["PATCH"])
+def mark_task_completed(task_id):
+    pass
