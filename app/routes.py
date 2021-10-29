@@ -20,6 +20,13 @@ def get_task_from_id(id):
 @tasks_list_bp.route("", methods=["POST"])
 def create_task():
     request_body = request.get_json()
+    
+    if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
+        return make_response({"details" : "Invalid data"}, 400)
+    
+    if request_body["completed_at"] == None:
+        pass    
+    
     new_task = Task(
         title=request_body["title"],
         description=request_body["description"], 
@@ -29,8 +36,8 @@ def create_task():
     db.session.add(new_task)
     db.session.commit()
 
-    return make_response(f"New task {new_task.title} successfully created!", 201)
-
+        
+    return make_response("201 CREATED", 201) 
 
 #-----------------
 #READ
@@ -45,28 +52,34 @@ def read_all_tasks():
 @tasks_list_bp.route("/<id>", methods=["GET"])
 def read_one_task(id):
     task = get_task_from_id(id)
-    return task.to_dict()
+    return make_response({"task" : task.to_dict()},200)
+    
 
 
 #UPDATE
-@tasks_list_bp.route("/<id>", methods=["PATCH"]) 
+@tasks_list_bp.route("/<id>", methods=["PUT"]) 
 def update_task(id):
     task = get_task_from_id(id)
     request_body = request.get_json()
+    
+    #if "title" or "description" not in request body return 400
     if "title" in request_body:
         task.title = request_body["title"]
     if "description" in request_body:
         task.description = request_body["description"]
-    if "completed_at" in request_body:
-        task.completed_at = request_body["completed_at"]
+    
+    
     db.session.commit()
-    return jsonify([task.to_dict(), "Task Updated Successful"])
+    
+    return make_response({"task" : task.to_dict()},200)
 
 
 #DELETE
 @tasks_list_bp.route("/<id>", methods=["DELETE"]) 
 def delete_task(id):
     task = get_task_from_id(id)
+    
     db.session.delete(task)
     db.session.commit()
-    return make_response("Task has been deleted from your Task List", 200)
+    
+    return make_response({"details": f"Task {id} {task.description} successfully deleted"},200) 
