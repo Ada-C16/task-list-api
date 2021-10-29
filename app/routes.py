@@ -182,8 +182,10 @@ def delete_goal(id):
 def set_goal_tasks(goal_id):
     goal = get_goal_by_id(goal_id)
     req = request.get_json()
-
-    goal.tasks = [get_task_by_id(task_id) for task_id in req["task_ids"]]
+    try:
+        goal.tasks = [get_task_by_id(task_id) for task_id in req["task_ids"]]
+    except:
+        return jsonify({"details": "Invalid data"}), 400
 
     db.session.commit()
     return jsonify(goal.to_basic_dict()), 200
