@@ -6,13 +6,17 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String)
-    is_complete = db.Column(db.Boolean, default=False)
     completed_at = db.Column(db.DateTime)
+
+    def check_if_completed(self):
+        if self.completed_at:
+            return True
+        return False
 
     def to_dict(self):
         return {
             "id": self.id,
             "title": self.title,
             "description": self.description,
-            "is_complete": self.is_complete
+            "is_complete": self.check_if_completed()
         }

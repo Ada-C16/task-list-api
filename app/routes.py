@@ -15,32 +15,19 @@ def get_tasks():
     else:
         tasks = Task.query.all()
 
-    task_response = []
+    tasks_response = []
     for task in tasks:
-        task_response.append({
-            "id": task.id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": task.is_complete
-        })
-            #TODO: Refactor to use to_dict() method
+        tasks_response.append(task.to_dict())
+    print(tasks_response)
 
-    return jsonify(task_response), 200
+    return jsonify(tasks_response)
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
 def get_task(task_id):
     """Retrieve one stored task by id."""
     task = Task.query.get_or_404(task_id)
-    print(task.__dict__)
 
-    # return jsonify({"task": task.to_dict()}), 200
-    return jsonify({"task": {
-            "id": task.id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": task.is_complete
-        }}), 200
-    #TODO: Refactor to use to_dict() method
+    return jsonify({"task": task.to_dict()}), 200
 
 @tasks_bp.route("", methods=["POST"])
 def post_task():
@@ -63,14 +50,7 @@ def post_task():
     db.session.commit()
 
     print(new_task.to_dict())
-    return {"task": {
-                "id": new_task.id,
-                "title": new_task.title,
-                "description": new_task.description,
-                "is_complete": new_task.is_complete
-                }
-        }, 201
-        #TODO: Refactor to use to_dict() method
+    return {"task": new_task.to_dict()}, 201
 
 @tasks_bp.route("/<task_id>", methods=["PUT"])
 def put_task(task_id):
@@ -88,13 +68,7 @@ def put_task(task_id):
 
     db.session.commit()
 
-    return {"task": {
-        "id": task.id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": task.is_complete
-    }}, 200
-    #TODO: Refactor to use to_dict() method
+    return {"task": task.to_dict()}, 200
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
