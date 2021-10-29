@@ -7,7 +7,13 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
     """Retrieve all stored tasks."""
-    tasks = Task.query.all()
+    query = request.args.get("sort")
+    if query == "asc":
+        tasks = Task.query.order_by(Task.title)
+    elif query == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
+    else:
+        tasks = Task.query.all()
 
     task_response = []
     for task in tasks:
@@ -17,7 +23,7 @@ def get_tasks():
             "description": task.description,
             "is_complete": task.is_complete
         })
-        #TODO: Refactor to use to_dict() method
+            #TODO: Refactor to use to_dict() method
 
     return jsonify(task_response), 200
 
@@ -34,7 +40,7 @@ def get_task(task_id):
             "description": task.description,
             "is_complete": task.is_complete
         }}), 200
-        #TODO: Refactor to use to_dict() method
+    #TODO: Refactor to use to_dict() method
 
 @tasks_bp.route("", methods=["POST"])
 def post_task():
