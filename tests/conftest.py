@@ -1,8 +1,7 @@
 import pytest
-from app import create_app
+from app import create_app, db
 from app.models.task import Task
 from app.models.goal import Goal
-from app import db
 from datetime import datetime
 
 
