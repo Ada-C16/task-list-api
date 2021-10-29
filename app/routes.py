@@ -46,6 +46,7 @@ def read_all_tasks():
     
     return jsonify(task_response)
 
-# @task_bp.route("<task_id>", methods = ["GET"])
-# def read_one_task(task_id):
-#     pass
+@task_bp.route("/<task_id>", methods = ["GET"])
+def read_one_task(task_id):
+    task = get_task_with_task_id(task_id)
+    return jsonify({"task": task.to_dict()})
