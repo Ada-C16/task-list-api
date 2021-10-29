@@ -25,6 +25,9 @@ def get_tasks():
 def get_task(task_id):
     """Retrieve one stored task by id."""
     task = Task.query.get_or_404(task_id)
+    print(task.__dict__)
+
+    # return jsonify({"task": task.to_dict()}), 200
     return jsonify({"task": {
             "id": task.id,
             "title": task.title,
@@ -84,18 +87,17 @@ def put_task(task_id):
         "title": task.title,
         "description": task.description,
         "is_complete": task.is_complete
-    }}
+    }}, 200
     #TODO: Refactor to use to_dict() method
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
     """Deletes task by id."""
     task = Task.query.get_or_404(task_id)
-    if task:
-        return_statement = f"Task {task.id} \"{task.title}\" successfully deleted"
-        db.session.delete(task)
-        db.session.commit()
 
-        return {
-            "details": return_statement
-        }, 200
+    db.session.delete(task)
+    db.session.commit()
+
+    return {
+        "details": f"Task {task.id} \"{task.title}\" successfully deleted"
+    }, 200
