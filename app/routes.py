@@ -172,13 +172,11 @@ def delete_goal(id):
 
 
 @goal_bp.route("/<goal_id>/tasks", methods=["POST"])
-def add_tasks_to_goal(goal_id):
+def set_goal_tasks(goal_id):
     goal = get_goal_by_id(goal_id)
     req = request.get_json()
 
-    for task_id in req["task_ids"]:
-        task = get_task_by_id(task_id)
-        goal.tasks.append(task)
+    goal.tasks = [get_task_by_id(task_id) for task_id in req["task_ids"]]
 
     db.session.commit()
     return jsonify(goal.to_basic_dict()), 200
