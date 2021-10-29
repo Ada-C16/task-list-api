@@ -49,12 +49,24 @@ def read_one_task(id):
 
 
 #UPDATE
-@tasks_list_bp.route("", methods=["PATCH"]) 
-def update_task():
-    pass
+@tasks_list_bp.route("/<id>", methods=["PATCH"]) 
+def update_task(id):
+    task = get_task_from_id(id)
+    request_body = request.get_json()
+    if "title" in request_body:
+        task.title = request_body["title"]
+    if "description" in request_body:
+        task.description = request_body["description"]
+    if "completed_at" in request_body:
+        task.completed_at = request_body["completed_at"]
+    db.session.commit()
+    return jsonify([task.to_dict(), "Task Updated Successful"])
 
 
 #DELETE
-@tasks_list_bp.route("", methods=["DELETE"]) 
-def delete_task():
-    pass
+@tasks_list_bp.route("/<id>", methods=["DELETE"]) 
+def delete_task(id):
+    task = get_task_from_id(id)
+    db.session.delete(task)
+    db.session.commit()
+    return make_response("Task has been deleted from your Task List", 200)
