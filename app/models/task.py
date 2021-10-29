@@ -10,12 +10,12 @@ class Task(db.Model):
 
     def to_dict(self):
         if not self.completed_at:
-            self.completed_at = False
+            completed_at = False
         new_dict = {
             "id": self.id,
             "title": self.title,
             "description": self.description,
-            "is_complete": self.completed_at,
+            "is_complete": completed_at,
             }
         
         return new_dict

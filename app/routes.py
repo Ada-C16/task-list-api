@@ -105,3 +105,4 @@ def delete_task(task_id):
 
     return jsonify({'details': f'Task {task.id} "{task.title}" successfully deleted'})
 
+# @task_bp.route("<dog_id>/mark_complete", methods = ["GET"])
