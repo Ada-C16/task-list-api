@@ -2,6 +2,9 @@ from flask import Blueprint, jsonify, make_response, request
 from app import db
 from app.models.task import Task
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+import requests
 
 task_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -73,13 +76,26 @@ def update_single_task(task_id):
 
 @task_bp.route('/<task_id>/mark_complete', methods=['PATCH'])
 def update_single_task_complete(task_id):
-    request_body = request.get_json()
+    # request_body = request.get_json()
     task = Task.query.get(task_id)
     if not task:
         return make_response('', 404)
         
     task.completed_at = datetime.utcnow()
     db.session.commit()
+
+    # "Someone just completed the task My Beautiful Task"
+    slack_channel_id = os.environ.get('SLACK_CHANNEL_ID')
+    slack_bot_token = os.environ.get('SLACK_BOT_TOKEN')
+    requests.post(
+        'https://slack.com/api/chat.postMessage',
+        headers={'Authorization': f'Bearer {slack_bot_token}'},
+        data={
+            'channel': slack_channel_id,
+            'text': f'Someone just completed the task {task.title}'
+        }
+    )
+
     response_body = {
         'task': task.to_dict()
     }
@@ -88,7 +104,7 @@ def update_single_task_complete(task_id):
 
 @task_bp.route('/<task_id>/mark_incomplete', methods=['PATCH'])
 def update_single_task_incomplete(task_id):
-    request_body = request.get_json()
+    # request_body = request.get_json()
     task = Task.query.get(task_id)
     if not task:
         return make_response('', 404)
