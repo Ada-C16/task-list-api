@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, abort
+from flask import Blueprint, jsonify, request, abort, make_response
 from app import db
 from app.models.task import Task
 
@@ -34,14 +34,32 @@ def get_all_tasks():
 
     return jsonify(response_tasks), 200
 
-@tasks_bp.route('/<task_id>', methods=["GET"])
+@tasks_bp.route('/<task_id>', methods=["GET", "PUT", "DELETE"])
 def get_one_task(task_id):
     task = Task.query.get(task_id)
     
     if not task:
-        abort(404)
+            return make_response('', 404)
+    
+    if request.method == "GET":
+        return {"task": task.to_dict()}, 200
 
-    return {"task": task.to_dict()}, 200
+    elif request.method == "PUT":
+        request_body = request.get_json()
+
+        task.title = request_body["title"]
+        task.description = request_body["description"]
+
+        #Save Action
+        db.session.commit()
+
+        return {"task": task.to_dict()}, 200
+
+    elif request.method == "DELETE":
+        db.session.delete(task)
+        db.session.commit()
+
+        return {"details": f'Task {task_id} "{task.title}" successfully deleted'}, 200
 
 
 
