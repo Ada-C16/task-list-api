@@ -3,19 +3,19 @@ from app import db
 
 
 class Task(db.Model):
-    task_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String)
     description = db.Column(db.String)
-    completed_at = db.Column(db.DateTime, default=None)
-    is_complete = db.Column(db.Boolean, default=False)
+    completed_at = db.Column(db.DateTime, nullable=True, default=None)
 
-def to_dict(self):
-    new_dict = {
-        "id": self.id,
-        "title": self.title,
-        "description": self.description,
-        "completed_at": self.completed_at,
-        "is_complete": self.is_complete,
-        }
-    
-    return new_dict
+    def to_dict(self):
+        if not self.completed_at:
+            self.completed_at = False
+        new_dict = {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "is_complete": self.completed_at,
+            }
+        
+        return new_dict
