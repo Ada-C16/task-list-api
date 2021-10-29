@@ -7,13 +7,13 @@ class Goal(db.Model):
     title = db.Column(db.String)
     tasks = db.relationship("Task", back_populates="goal")
 
-    def to_dict(self):
+    def to_dict(self, include_tasks=False):
         response = {
             "id": self.id,
             "title": self.title,
         }
 
-        if self.tasks:
+        if include_tasks:
             response["tasks"] = [task.to_dict() for task in self.tasks]
 
         return response

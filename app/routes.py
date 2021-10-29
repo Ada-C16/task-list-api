@@ -187,4 +187,4 @@ def add_tasks_to_goal(goal_id):
 @goal_bp.route("/<goal_id>/tasks", methods=["GET"])
 def get_tasks_by_goal(goal_id):
     goal = get_goal_by_id(goal_id)
-    return jsonify(goal.to_dict()), 200
+    return jsonify(goal.to_dict(include_tasks=True)), 200
