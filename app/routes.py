@@ -160,3 +160,86 @@ def incomplete_task(task_id):
             }
         }
         )
+
+#############################################
+## GOALS
+
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
+
+@goals_bp.route("", methods=["GET","POST"])
+def handle_goals():
+    if request.method == "GET":
+        title_query = request.args.get("title")
+        if title_query:
+            goals = Goal.query.filter_by(title=title_query)
+        else:
+            goals = Goal.query.all()
+
+        goals_response = []
+        for goal in goals:
+            goals_response.append({
+                "id": goal.goal_id,
+                "title": goal.title,
+            })
+        return make_response(jsonify(goals_response), 200)
+    
+    
+    elif request.method == "POST":
+        request_body = request.get_json()
+        try: 
+            new_goal = Goal(
+                title = request_body["title"],
+            )
+        except:
+            return make_response({"details": "Invalid data"}, 400)
+
+        db.session.add(new_goal)
+        db.session.commit()
+
+        return make_response({
+            "goal": {
+            "id": new_goal.goal_id,
+            "title": new_goal.title,
+            }
+        }, 201)
+
+
+@goals_bp.route("/<goal_id>", methods = ["GET", "PUT", "DELETE"])
+def handle_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    
+    
+    if goal is None:
+            return make_response("", 404)
+    
+    
+    if request.method == "GET":
+        return {
+            "goal": {
+            "id": goal.goal_id,
+            "title": goal.title,
+            }
+        }
+    
+    
+    elif request.method == "PUT":
+        form_data = request.get_json()
+        if form_data.get("title"):
+            goal.title = form_data["title"]
+        db.session.commit()
+        return make_response({
+            "goal": {
+            "id": goal.goal_id,
+            "title": goal.title,
+            }
+        }
+        )
+
+
+    elif request.method == "DELETE":
+        db.session.delete(goal)
+        db.session.commit()
+
+        return make_response({
+        "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
+    })
