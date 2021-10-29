@@ -8,7 +8,7 @@ task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 
 # Helper Functions
 def get_task_with_task_id(task_id):
-    return Task.query.get_or_404(task_id, description=f"Your task #{task_id} was not found. Must be a valid task_id.")
+    return Task.query.get_or_404(task_id, description={"details": "Invalid data"})
 
 # Routes
 @task_bp.route("", methods = ["POST"])
@@ -17,15 +17,15 @@ def add_books():
     request_body = request.get_json()
 
     if request_body is None:
-        return make_response("You must include a task title and description in order to add your task.", 400)
+        return make_response({"details": "Invalid data"}, 400)
 
-    if "title" not in request_body or "description" not in request_body:
-        return make_response("You must include a task title and description in order to add your task.", 400)
+    if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
+        return make_response({"details": "Invalid data"}, 400)
 
     new_task = Task(
         title=request_body["title"],
         description=request_body["description"],
-        completed_at = request_body["completed_at"]
+        completed_at=request_body['completed_at']
     )
 
     db.session.add(new_task)
