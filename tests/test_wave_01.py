@@ -20,11 +20,13 @@ def test_get_tasks_one_saved_tasks(client, one_task):
     assert response.status_code == 200
     assert len(response_body) == 1
     assert response_body == [
-        {
-            "id": 1,
+        { "task":{"id": 1,
             "title": "Go on my daily walk 🏞",
             "description": "Notice something new every day",
             "is_complete": False
+
+        }
+            
         }
     ]
 
@@ -54,8 +56,10 @@ def test_get_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
-
+    assert response_body == {"error": 404,
+                            "message": "Not found",
+                            "success": False
+                            }
 
 def test_create_task_with_none_completed_at(client):
     # Act
