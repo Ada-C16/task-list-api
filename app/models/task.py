@@ -13,7 +13,7 @@ class Task(db.Model):
         if not self.completed_at:
             is_complete = False
         else:
-            is_complete =self.completed_at
+            is_complete =True
         return ({"task": {"id": self.task_id, 
                 "title": self.title,
                 "description": self.description,

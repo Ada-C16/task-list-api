@@ -4,6 +4,7 @@ from flask.wrappers import Response
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
+from datetime import datetime
 
 tasks_bp = Blueprint("tasks_bp", __name__,url_prefix="/tasks")
 
@@ -81,5 +82,33 @@ def handle_task(task_id):
             'details': f'Task {task.task_id} "{task.title}" successfully deleted'
         }, 200
 
+@tasks_bp.route("/<task_id>/mark_incomplete", methods = ["PATCH"])
+def mark_incomplete(task_id):
+    if not task_id.isnumeric():
+        return { "Error": f"{task_id} must be numeric."}, 404
+    task_id = int(task_id)
+    task = Task.query.get(task_id)
+    if not task:
+        return "None",404
+ 
+    task.completed_at = None
+
+    db.session.commit()
+
+    return (task.to_dict()),200
+
+@tasks_bp.route("/<task_id>/mark_complete", methods = ["PATCH"])
+def mark_complete(task_id):
+    if not task_id.isnumeric():
+        return { "Error": f"{task_id} must be numeric."}, 404
+    task_id = int(task_id)
+    task = Task.query.get(task_id)
+    if not task:
+        return "None",404
     
+    task.completed_at = datetime.utcnow()
+
+    db.session.commit()
+
+    return (task.to_dict()),200
 
