@@ -52,6 +52,9 @@ def update_single_goal(goal_id):
         return make_response(jsonify(response_body), 400)
 
     goal = Goal.query.get(goal_id)
+    if not goal:
+        return make_response('', 404)
+
     goal.title = request_body['title']
     db.session.commit()
     response_body = {
