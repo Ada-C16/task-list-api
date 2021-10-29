@@ -2,6 +2,8 @@ from app import db
 from app.models.task import Task
 from app.models.goal import Goal
 from flask import Blueprint, request, make_response, jsonify
+import requests
+import os
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -104,12 +106,26 @@ def handle_task(task_id):
 @tasks_bp.route("/<task_id>/mark_complete", methods = ["PATCH"])
 def complete_task(task_id):
     task = Task.query.get(task_id)
+    
+    
     if task is None:
             return make_response("", 404)
+    
+    
     if request.method == "PATCH":
         
         from datetime import datetime
         task.completed_at = datetime.now()
+        
+        slack_url = 'https://slack.com/api/chat.postMessage'
+        slack_params = {
+            "channel" : "task-notifications",
+            "text" : f"Someone just completed the task {task.title}"
+        }
+        slack_header = {
+            "Authorization": f"Bearer {os.environ.get('SLACK_API_TOKEN')}"
+        }
+        requests.get(url = slack_url, params = slack_params, headers = slack_header)
 
         return make_response({
             "task": {
@@ -120,11 +136,18 @@ def complete_task(task_id):
             }
         }
         )
+
+
+
 @tasks_bp.route("/<task_id>/mark_incomplete", methods = ["PATCH"])
 def incomplete_task(task_id):
     task = Task.query.get(task_id)
+    
+    
     if task is None:
             return make_response("", 404)
+    
+    
     if request.method == "PATCH":
         task.completed_at = None
 
