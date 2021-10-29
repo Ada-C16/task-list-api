@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, make_response, request
 from app import db
 from app.models.task import Task
+from datetime import datetime
 
 task_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -19,8 +20,6 @@ def read_all_tasks():
 @task_bp.route('', methods=['POST'])
 def create_new_task():
     request_body = request.get_json()
-    # if not request_body['title'] or not request_body['description'] or not request_body['completed_at']:
-    # if request_body['title'] == None or request_body['description'] == None or request_body['completed_at'] == None:
     if 'title' not in request_body or 'description' not in request_body or 'completed_at' not in request_body:
         response_body = {
             'details': 'Invalid data'
@@ -29,16 +28,15 @@ def create_new_task():
 
     task_to_create = Task(
         title=request_body['title'],
-        description=request_body['description']
-        # completed_at=request_body['completed_at']
+        description=request_body['description'],
+        completed_at=request_body['completed_at']
     )
     
     db.session.add(task_to_create)
     db.session.commit()
 
-    new_task = db.session.query(Task).filter(Task.title==task_to_create.title).one()
     response_body = {
-        'task': new_task.to_dict()
+        'task': task_to_create.to_dict()
     }
 
     return make_response(jsonify(response_body), 201)
@@ -59,7 +57,6 @@ def update_single_task(task_id):
     if not task:
         return make_response('', 404)
 
-    # if not request_body['title'] or not request_body['description']:
     if 'title' not in request_body or 'description' not in request_body:
         return make_response('Invalid data', 400)
         
@@ -82,8 +79,11 @@ def update_single_task_complete(task_id):
         
     task.completed_at = datetime.utcnow()
     db.session.commit()
+    response_body = {
+        'task': task.to_dict()
+    }
 
-    return make_response(jsonify(task.to_dict()), 200)
+    return make_response(jsonify(response_body), 200)
 
 @task_bp.route('/<task_id>/mark_incomplete', methods=['PATCH'])
 def update_single_task_incomplete(task_id):
@@ -95,7 +95,11 @@ def update_single_task_incomplete(task_id):
     task.completed_at = None
     db.session.commit()
 
-    return make_response(jsonify(task.to_dict()), 200)
+    response_body = {
+        'task': task.to_dict()
+    }
+
+    return make_response(jsonify(response_body), 200)
 
 @task_bp.route('/<task_id>', methods=['DELETE'])
 # def delete_single_task(task_id):
@@ -120,7 +124,3 @@ def delete_single_task(task_id):
         "details": f'Task {task.id} "{task.title}" successfully deleted'
     }
     return make_response(jsonify(response_body), 200)
-
-    # return make_response(jsonify({
-    #     "details": f'Task {task.id} "{task.title}" successfully deleted'
-    # }), 200)
