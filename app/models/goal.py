@@ -1,5 +1,6 @@
 from flask import current_app
 from app import db
+from .task import Task
 
 
 class Goal(db.Model):
@@ -11,4 +12,11 @@ class Goal(db.Model):
         return {
             'id': self.id,
             'title': self.title
+        }
+    
+    def to_dict_with_tasks(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'tasks': [task.to_dict_with_goal() for task in self.tasks]
         }

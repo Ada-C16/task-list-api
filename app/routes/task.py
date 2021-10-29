@@ -48,7 +48,7 @@ def read_single_task(task_id):
     if not task:
         return make_response('', 404)
         
-    response_body = {'task': task.to_dict()}
+    response_body = {'task': task.to_dict()} if not task.goal_id else {'task': task.to_dict_with_goal()}
     return make_response(jsonify(response_body), 200)
 
 @task_bp.route('/<task_id>', methods=['PUT'])

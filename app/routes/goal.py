@@ -107,3 +107,12 @@ def post_task_ids_to_goal(goal_id):
         'task_ids': [task.id for task in goal.tasks]
     }
     return make_response(jsonify(response_body), 200)
+
+@goal_bp.route('/<goal_id>/tasks', methods=['GET'])
+def get_tasks_for_single_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return make_response('', 404)
+
+    response_body = goal.to_dict_with_tasks()
+    return make_response(jsonify(response_body), 200)

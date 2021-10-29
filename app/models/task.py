@@ -18,3 +18,12 @@ class Task(db.Model):
             'description': self.description,
             'is_complete': True if self.completed_at else False
         }
+    
+    def to_dict_with_goal(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'is_complete': True if self.completed_at else False,
+            'goal_id': self.goal_id
+        }
