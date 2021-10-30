@@ -71,7 +71,7 @@ def mark_complete_task(task_id):
     if one_task is None:
         return jsonify(one_task), 404
 
-    current_time = datetime.now()
+    current_time = datetime.now(tz=None)
     one_task.completed_at = current_time
     BOT_TOKEN = os.getenv('BOT_TOKEN')
     requests.post(PATH, headers= {"Authorization": BOT_TOKEN}, 
@@ -88,3 +88,44 @@ def mark_incomplete_task(task_id):
     one_task.completed_at = None
     db.session.commit()
     return jsonify({"task": one_task.task_dict()}), 200
+
+@goal_bp.route("", methods=["GET", "POST"])
+def handle_goals():
+    if request.method == "POST":
+        request_body = request.get_json()
+        if "title" not in request_body:
+            return jsonify({"details": "Invalid data"}), 400
+        new_goal = Goal(
+            title = request_body["title"]
+        )
+        db.session.add(new_goal)
+        db.session.commit()
+        return jsonify({"goal": new_goal.goal_dict()}), 201
+    
+    elif request.method == "GET":
+        request_body = request.get_json()
+        goals = Goal.query.all()
+        goals_response = [goal.goal_dict() for goal in goals]
+        return jsonify(goals_response), 200
+
+@goal_bp.route("/<goal_id>", methods = ["GET", "PUT", "DELETE"])
+def handle_one_goal(goal_id):
+    one_goal = Goal.query.get(goal_id)
+    if one_goal is None:
+        return jsonify(one_goal), 404
+
+    request_body = request.get_json()
+    if request.method == "GET":
+        return jsonify({"goal": one_goal.goal_dict()}), 200
+    
+    elif request.method == "PUT":
+        if "title" not in request_body:
+            return jsonify({"details": "Invalid data"}), 400
+        one_goal.title = request_body["title"]
+        db.session.commit()
+        return jsonify({"goal": one_goal.goal_dict()}), 200
+
+    elif request.method == "DELETE":
+        db.session.delete(one_goal)
+        db.session.commit()
+        return jsonify({"details": f"Goal {one_goal.goal_id} \"{one_goal.title}\" successfully deleted"})
