@@ -1,12 +1,11 @@
 from flask import Blueprint, jsonify, make_response, request
-from sqlalchemy.sql.expression import null
 from app import db
 from app.models.task import Task
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, null
 from datetime import datetime, timezone
 import requests
-
-
+import os
+from dotenv import load_dotenv
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -52,7 +51,7 @@ def handle_tasks():
 def handle_task(task_id):
     task = Task.query.get(task_id)
     if task is None:
-        return make_response(f"Task {task_id} not found", 404)
+        return ("", 404)
     if request.method == "GET":
         return {
             "task": {
@@ -91,17 +90,13 @@ def handle_task_completion(task_id, completion_status):
     if request.method == "PATCH":
         if completion_status == "complete":
             task.completed_at = datetime.now(timezone.utc)
-
-                    #     requests.POST("https://slack.com/api/chat.postMessage", text=f"Someone just completed the task {task.title}", )
-            
-        #     POST /api/conversations.create
-        #     Content-type: application/json
-        #     Authorization: Bearer os.environ.get("SLACK_API_KEY")
-            
-            
-        
-        # app.client().chatPostMessage
-        
+            requests.post(
+                "https://slack.com/api/chat.postMessage",
+                headers={"Authorization": f"Bearer {os.environ.get('SLACK_API_KEY')}"},
+                params={
+                    "channel": "task-notifications",
+                    "text": f"Someone just completed the task {task.title}"
+                })        
         elif completion_status == "incomplete":
             task.completed_at = None
         db.session.commit()
