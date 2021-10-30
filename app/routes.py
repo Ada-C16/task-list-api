@@ -2,6 +2,7 @@ import requests
 from app import db
 from flask import Blueprint, jsonify, request, make_response
 from app.models.task import Task
+from app.models.goal import Goal
 from datetime import datetime
 import os
 
@@ -184,6 +185,47 @@ def handle_tasks_not_complete(task_id):
         }
     return jsonify(updated_task_response), 200
 
+goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
+@goals_bp.route("", methods=["POST", "GET"])
+def handle_goals():
+    #POST REQUESTS
+    if request.method == "POST":
+        goal_request_body = request.get_json()
+        if "title" not in goal_request_body:
+            return jsonify(None), 404
+        
+        new_goal = Goal(title = goal_request_body["title"])
 
+        db.session.add(new_goal)
+        db.session.commit()
 
+        new_goal_response = {
+            "goal": {
+                "id": new_goal.id,
+                "title": new_goal.title
+            }
+        }
+
+        return jsonify(new_goal_response), 201
+
+    #GET REQUESTS
+    elif request.method == "GET":
+        goal_title_query = request.args.get("title")
+        if goal_title_query:
+            goals = Goal.query.filter(Goal.title.contains(goal_title_query))
+        else:
+            goals = Goal.query.all()
+
+        goal_response = []
+        for goal in goals:
+            goal_response.append(
+                {
+                "id": goal.id,
+                "title": goal.title
+                }
+            )
+        if goal_response == []:
+            return jsonify(goal_response), 200
+
+        return jsonify(goal_response), 200
