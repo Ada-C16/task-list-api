@@ -55,10 +55,11 @@ def test_get_task_not_found(client):
     # Assert
     assert response.status_code == 404
     assert response_body == {
-    "error": 404,
-    "message": "Not found",
-    "success": False
-}
+            "error": 404,
+            "message": "Not found",
+            "success": False
+            }
+
 
 
 def test_create_task_with_none_completed_at(client):
@@ -123,7 +124,11 @@ def test_update_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
+    assert response_body == {
+            "error": 404,
+            "message": "Not found",
+            "success": False
+            }
 
 
 def test_delete_task(client, one_task):
@@ -147,7 +152,11 @@ def test_delete_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
+    assert response_body == {
+            "error": 404,
+            "message": "Not found",
+            "success": False
+            }
     assert Task.query.all() == []
 
 
