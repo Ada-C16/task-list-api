@@ -2,6 +2,16 @@ from flask import Blueprint, json, jsonify, request
 from .models.task import Task
 from app import db
 from datetime import datetime
+import requests
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+slack_url_prefix = "https://slack.com/api/"
+
+task_notifications_channel = "C02K5T92807"
+
+slack_api_key = os.environ.get("SLACK_API_KEY")
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -35,8 +45,6 @@ def handle_tasks():
 
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
             return invalid_data_message()
-
-        print(request_body)
 
         new_task = Task(
             title=request_body["title"],
@@ -119,6 +127,29 @@ def handle_task_complete(task_id):
     task.completed_at = datetime.today()
 
     db.session.commit()
+
+    # notify via slack
+    # set headers
+    headers = {
+        "Authorization" : f"Bearer {slack_api_key}"
+    }
+
+    params = {
+        "channel" : task_notifications_channel,
+        "text" : f"Someone just completed the task {task.title}"
+    }
+
+    slack_api_action = "chat.postMessage"
+
+    url = slack_url_prefix + slack_api_action
+
+    try:
+        response = requests.post(url, params=params, headers=headers)
+        r_json = response.json()
+        if not r_json["ok"]:
+            return invalid_data_message()
+    except requests.exceptions.RequestException as e:
+        return "Something went wrong when posting a message to Slack.", 404
 
     return task_success_message(task, 200)
 
