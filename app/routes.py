@@ -94,13 +94,29 @@ def delete_one_task(task_id):
 
 ''' PATCH - this functions updates a task by its id'''
 
-@task_bp.route("/<task_id>", methods=["PATCH"])
+@task_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
     task = get_task_by_id(task_id)
 
+    try:
+        request_body = request.get_json()
+        if not request_body: 
+            abort(400)
 
+        if "title" in request_body:
+            task.title = request_body["title"]
+        if "description" in request_body:
+            task.description = request_body["description"]
+        
+        db.session.commit()
 
+        response_body = {
+            "task": task.to_dict()
+        }
+        return make_response(response_body, 200)
 
+    except Exception: 
+        abort(400)
 
 
 '''Error Handling'''
@@ -114,7 +130,9 @@ def not_found(error):
 def bad_request(error):
         return jsonify({"success": False, "error": 400, "message": "Bad request"}),400
 
-
+@task_bp.errorhandler(422)
+def unprocessable(error):
+    return jsonify({"success": False, "error": 422, "message": "unprocessable"}),422
 
 
 ''' Helper Functions - 
