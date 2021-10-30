@@ -1,6 +1,7 @@
 from flask import current_app
 from app import db
-import datetime
+import requests
+import os
 
 
 class Task(db.Model):
@@ -18,3 +19,13 @@ class Task(db.Model):
             "description": self.description,
             "is_complete": self.is_complete
             }
+    
+    def post_slack_message(self):
+        url = "https://slack.com/api/chat.postMessage"
+        data = {
+            'token': os.environ.get(
+            "SLACK_API_KEY"),
+            'channel': "C02J08B9S0N",
+            'text': f"Someone just completed the task: {self.title}"
+        }
+        requests.post(url, data)
