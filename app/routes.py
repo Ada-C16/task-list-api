@@ -276,5 +276,5 @@ def handle_one_goal_at_time(goal_id):
         db.session.delete(goal)
         db.session.commit()
 
-        goal_delete_response = {'details': f"Goal {goal_id} '{goal.title} \\' successfully deleted"}
+        goal_delete_response = {'details': (f'Goal {goal_id} "{goal.title}" successfully deleted')}
         return jsonify(goal_delete_response), 200
