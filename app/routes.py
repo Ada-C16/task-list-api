@@ -61,6 +61,21 @@ def create_task():
     db.session.add(new_task)
     db.session.commit()
     return jsonify({"task":new_task.to_dict()}),201
-    
+
+@tasks_bp.route("/<task_id>/mark_complete",methods=["PATCH"])
+def mark_complete_task(task_id):
+    valid_int(task_id, "task_id")
+    task = Task.query.get_or_404(task_id)
+    task.completed_at = date.today()
+    db.session.commit()
+    return jsonify({"task":task.to_dict()}),200
+
+@tasks_bp.route("/<task_id>/mark_incomplete",methods=["PATCH"])
+def mark_incomplete_task(task_id):
+    valid_int(task_id, "task_id")
+    task = Task.query.get_or_404(task_id)
+    task.completed_at = None 
+    db.session.commit()
+    return jsonify({"task":task.to_dict()}),200     
 
     
