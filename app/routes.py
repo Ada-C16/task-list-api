@@ -40,7 +40,7 @@ def handle_tasks():
                                                 "title": new_task.title,
                                                 "description": new_task.description,
                                                 "is_complete": False if new_task.completed_at is None else new_task.completed_at  
-                                                }}, 201)
+                                              }}, 201)
 
 @tasks_bp.route('/<task_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_one_task(task_id):
@@ -68,4 +68,17 @@ def handle_one_task(task_id):
         db.session.delete(task)
         db.session.commit()
         return make_response({"details": f"Task {task.task_id} \"{task.title}\" successfully deleted"})
+
+@tasks_bp.route('/<task_id>/mark_complete', methods=['PATCH'])
+def from_incomplete_to_complete(task_id):
+    task = Task.query.get(task_id)
+    updates = request
+    task.completed_at = updates["is_completed"]
+
+    db.session.commit()
+    return make_response({"task": {"id": task.task_id,
+                                   "title": task.title,
+                                   "description": task.description,
+                                   "is_complete": False if task.completed_at is None else task.completed_at
+                                  }})
     
