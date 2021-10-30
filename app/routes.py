@@ -76,13 +76,27 @@ def read_one_drink(task_id):
 ''' DELETE - this functions handles the deletion of a task by its unique id
 '''
 
-@task_bp.route("\<task_id>", methods=['DELETE'])
+@task_bp.route("/<task_id>", methods=['DELETE'])
 def delete_one_task(task_id):
     task = get_task_by_id(task_id)
+    
     try:
         db.session.delete(task)
         db.session.commit()
-        return make_response(f"Planet {planet.id} successfully deleted", 200)
+        response_body = {"details": f'Task {task.task_id} "Go on my daily walk 🏞" successfully deleted'}
+
+        return make_response(response_body, 200)
+
+    except Exception: 
+        abort(400)
+
+
+
+''' PATCH - this functions updates a task by its id'''
+
+@task_bp.route("/<task_id>", methods=["PATCH"])
+def update_task(task_id):
+    task = get_task_by_id(task_id)
 
 
 
@@ -98,16 +112,15 @@ def not_found(error):
 
 @task_bp.errorhandler(400)
 def bad_request(error):
-        return( 
-            jsonify({"success": False, "error": 400, "message": "bad request"}),
-            400)
+        return jsonify({"success": False, "error": 400, "message": "Bad request"}),400
 
 
 
 
-''' Helper Functions - '''
+''' Helper Functions - 
 
-''' get_task_by_id - handles 404 errors '''
+get_task_by_id - handles 404 errors '''
+
 def get_task_by_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description='{Task not found}')
