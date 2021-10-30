@@ -1,3 +1,4 @@
+from types import new_class
 import requests
 from app import db
 from flask import Blueprint, jsonify, request, make_response
@@ -193,7 +194,7 @@ def handle_goals():
     if request.method == "POST":
         goal_request_body = request.get_json()
         if "title" not in goal_request_body:
-            return jsonify(None), 404
+            return jsonify({"details": "Invalid data"}), 400
         
         new_goal = Goal(title = goal_request_body["title"])
 
@@ -202,10 +203,12 @@ def handle_goals():
 
         new_goal_response = {
             "goal": {
-                "id": new_goal.id,
+                "id": new_goal.goal_id,
                 "title": new_goal.title
             }
         }
+
+        response_length = len(new_goal_response)
 
         return jsonify(new_goal_response), 201
 
@@ -221,7 +224,7 @@ def handle_goals():
         for goal in goals:
             goal_response.append(
                 {
-                "id": goal.id,
+                "id": goal.goal_id,
                 "title": goal.title
                 }
             )
@@ -229,3 +232,49 @@ def handle_goals():
             return jsonify(goal_response), 200
 
         return jsonify(goal_response), 200
+
+@goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
+def handle_one_goal_at_time(goal_id):
+    if request.method == "GET":
+        goal = Goal.query.get(goal_id)
+        if goal is None:
+            return jsonify(None), 404
+        else:
+            return {
+                "goal": {
+                    "id": goal.goal_id,
+                    "title": goal.title
+                }
+            }, 200
+
+
+    elif request.method == "PUT":
+        goal = Goal.query.get(goal_id)
+        if goal is None:
+            return jsonify(None), 404
+
+        goal_request_body = request.get_json()
+
+        goal.title = goal_request_body["title"]
+
+        db.session.commit()
+
+        updated_goal_response = {
+            "goal": {
+                "id": goal.id,
+                "title": goal.title
+            }
+        }
+
+        return jsonify(updated_goal_response), 200 
+
+    elif request.method == "DELETE":
+        goal = Goal.query.get(goal_id)
+        if goal is None:
+            return jsonify(None), 404
+
+        db.session.delete(goal)
+        db.session.commit()
+
+        goal_delete_response = {'details': f"Goal {goal_id} '{goal.title} \\' successfully deleted"}
+        return jsonify(goal_delete_response), 200
