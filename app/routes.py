@@ -4,6 +4,9 @@ from app.models.task import Task
 from app.models.goal import Goal
 from sqlalchemy import desc, asc, func
 from datetime import datetime
+import requests, os
+from dotenv import load_dotenv
+load_dotenv()
 
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
@@ -62,12 +65,19 @@ def handle_one_task(task_id):
 
 @task_bp.route("/<task_id>/mark_complete", methods= ["PATCH"])
 def mark_complete_task(task_id):
+    PATH = "https://slack.com/api/chat.postMessage"
     one_task= Task.query.get(task_id)
+
     if one_task is None:
         return jsonify(one_task), 404
+
     current_time = datetime.now()
     one_task.completed_at = current_time
+    BOT_TOKEN = os.getenv('BOT_TOKEN')
+    requests.post(PATH, headers= {"Authorization": BOT_TOKEN}, 
+    data=[("channel", "slack-api-test-channel"), ("text", f"Someone just completed the task {one_task.title}")])
     db.session.commit()
+
     return jsonify({"task": one_task.task_dict()}), 200
 
 @task_bp.route("/<task_id>/mark_incomplete", methods= ["PATCH"])
