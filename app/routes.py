@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, make_response, request, abort
 from flask.helpers import make_response
 from flask.json import tojson_filter
+from flask.signals import request_tearing_down
 from werkzeug.utils import header_property
 from app.models.task import Task
 from app import db
@@ -38,7 +39,15 @@ def create_task():
 
 @task_bp.route("", methods=["GET"])
 def read_all_tasks():
-    tasks = Task.query.all()
+
+    sort_query = request.args.get("sort")
+
+    if sort_query == "asc":
+        tasks = Task.query.order_by(Task.title.asc())
+    elif sort_query == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
+    else:
+        tasks = Task.query.all()
 
     task_response = []
     for task in tasks:
