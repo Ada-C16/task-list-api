@@ -11,3 +11,13 @@ class Task(db.Model):
     # def task_dict(self):
     #     self.is_complete = False if not self.completed_at else True
     #     return f"{self.task_id} name: {self.title} description: {self.description}"
+
+    def to_json(self):
+        return {
+            "task":{
+                "id": self.task_id,
+                "title": self.title,
+                "description": self.description,
+                "is_complete": False if self.completed_at == None else True
+            }
+        }
