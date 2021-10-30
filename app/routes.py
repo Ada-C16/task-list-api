@@ -3,7 +3,7 @@ from sqlalchemy.sql.expression import null
 from app import db
 from app.models.task import Task
 from sqlalchemy import asc, desc
-from datetime import datetime
+from datetime import datetime, timezone
 import requests
 
 
@@ -13,9 +13,9 @@ task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 @task_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
     if request.method == "GET":
-        sort_query = eval(request.args.get("sort"))
+        sort_query = request.args.get("sort")
         if sort_query:
-            tasks = Task.query.order_by(sort_query(Task.title))
+            tasks = Task.query.order_by(eval(sort_query)(Task.title))
         else:
             tasks = Task.query.all()
         tasks_response = []
@@ -90,7 +90,18 @@ def handle_task_completion(task_id, completion_status):
         return ("", 404)
     if request.method == "PATCH":
         if completion_status == "complete":
-            task.completed_at = datetime.now(tz=None)
+            task.completed_at = datetime.now(timezone.utc)
+
+                    #     requests.POST("https://slack.com/api/chat.postMessage", text=f"Someone just completed the task {task.title}", )
+            
+        #     POST /api/conversations.create
+        #     Content-type: application/json
+        #     Authorization: Bearer os.environ.get("SLACK_API_KEY")
+            
+            
+        
+        # app.client().chatPostMessage
+        
         elif completion_status == "incomplete":
             task.completed_at = None
         db.session.commit()
