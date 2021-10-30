@@ -98,31 +98,35 @@ def handle_task(task_id):
 def update_task_to_complete(task_id):
     task = Task.query.get(task_id)
 
+    if task is None:
+        return make_response("", 404)
+
+    else:
     # Updating completed_at to its date
-    task.completed_at = date.today()
-
-    return {
-        "task": {
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": True
-            }
-    }, 200
+        task.completed_at = date.today()
+        return {
+            "task": {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": True
+                }
+        }, 200
     
-
 @tasks_bp.route("/<task_id>/mark_incomplete", methods =["PATCH"])
 def update_task_to_incomplete(task_id):
     task = Task.query.get(task_id)
-
-    # if task.completed_at:
-    task.completed_at = None
+    if task is None:
+        return make_response("", 404)
     
-    return {
-        "task": {
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": False
-            }
-    }, 200
+    else:
+        task.completed_at = None
+        
+        return {
+            "task": {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False
+                }
+        }, 200
