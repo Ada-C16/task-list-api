@@ -5,6 +5,7 @@ from flask.signals import request_tearing_down
 from werkzeug.utils import header_property
 from app.models.task import Task
 from app import db
+from datetime import datetime
 
 task_bp = Blueprint("task", __name__,url_prefix ="/tasks")
 
@@ -79,4 +80,11 @@ def delete_task(task_id):
 
     return make_response({"details": f"Task {task.task_id} \"{task.title}\" successfully deleted"}, 200)
 
+@task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_task_complete(task_id):
+    task = get_task_from_id(task_id)
+    task.completed_at = datetime.now()
+    
+    db.session.commit()
 
+    return make_response({"task": task.to_dict()}, 200)
