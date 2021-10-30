@@ -26,8 +26,14 @@ def new_task():
 # get tasks
 @tasks_bp.route('', methods=["GET"])
 def get_all_tasks():
-    tasks = Task.query.all()
     response_tasks = []
+    tasks = Task.query.all()
+
+    # sort ascending or descending
+    if request.args.get("sort") == "asc":
+        tasks = Task.query.order_by(Task.title)
+    elif request.args.get("sort") == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
 
     for task in tasks:
         response_tasks.append(task.to_dict())
@@ -40,26 +46,21 @@ def get_one_task(task_id):
     
     if not task:
             return make_response('', 404)
-    
-    if request.method == "GET":
+    elif request.method == "GET":
         return {"task": task.to_dict()}, 200
-
     elif request.method == "PUT":
         request_body = request.get_json()
-
         task.title = request_body["title"]
         task.description = request_body["description"]
 
         #Save Action
         db.session.commit()
-
         return {"task": task.to_dict()}, 200
-
     elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
-
         return {"details": f'Task {task_id} "{task.title}" successfully deleted'}, 200
+
 
 
 
