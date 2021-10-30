@@ -95,7 +95,7 @@ def handle_task(task_id):
         return {"details": f'Task {task.task_id} "{task.title}" successfully deleted'}
 
 @tasks_bp.route("/<task_id>/mark_complete", methods =["PATCH"])
-def update_task(task_id):
+def update_task_to_complete(task_id):
     task = Task.query.get(task_id)
 
     if task.completed_at is None:
@@ -109,5 +109,21 @@ def update_task(task_id):
                 "title": task.title,
                 "description": task.description,
                 "is_complete": True
+                }
+        }, 200
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods =["PATCH"])
+def update_task_to_incomplete(task_id):
+    task = Task.query.get(task_id)
+
+    if task.completed_at:
+        task.completed_at = None
+        
+        return {
+            "task": {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False
                 }
         }, 200
