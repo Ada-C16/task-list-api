@@ -10,12 +10,12 @@ class Task(db.Model):
 
 
     # Create Helper Function for completed_at/is_complete
-    def task_completion(self, completed_at):
-        if completed_at == datetime.utcnow():
-            "is_complete" = True
-        else:
-            "is_complete" = False
-        pass
+    # def task_completion(self, completed_at):
+    #     if completed_at == datetime.utcnow():
+    #         "is_complete" = True
+    #     else:
+    #         "is_complete" = False
+    #     pass
 
 
     

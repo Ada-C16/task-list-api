@@ -1,7 +1,9 @@
+import requests
 from app import db
 from flask import Blueprint, jsonify, request, make_response
 from app.models.task import Task
 from datetime import datetime
+import os
 
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
@@ -132,10 +134,23 @@ def handle_tasks_complete(task_id):
     task = Task.query.get(task_id)
     if task is None:
         return jsonify(None), 404
-    
+
     # setting the completed_at with a datetime
     task.completed_at = datetime.utcnow()
     db.session.commit()
+
+    # Send Slack Message Using Slack API
+    slack_url = "https://slack.com/api/chat.postMessage"
+    bearer_token = os.environ.get("BEARER_TOKEN")
+    slack_channel = 'slack-api-test-channel'
+    text = f'Someone just completed the task {task.title}'
+    slack_user_name = "Starseed's Bot"
+    
+    requests.patch(slack_url, data={
+        'token': bearer_token,
+        'channel': slack_channel,
+        'text': text,
+        'username': slack_user_name,}).json()
 
     updated_task_response =  {
             "task":   {
@@ -148,13 +163,13 @@ def handle_tasks_complete(task_id):
     
     return jsonify(updated_task_response), 200
 
-
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def handle_tasks_not_complete(task_id):
     task = Task.query.get(task_id)
     if task is None:
         return jsonify(None), 404
 
+    
     # setting the completed_at to None
     task.completed_at = None
     db.session.commit()
