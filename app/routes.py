@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request, make_response, abort
 from app.models.task import Task
 from app import db
+from sqlalchemy import desc
+from datetime import date, time, datetime
 
 # assign tasks_bp to the new Blueprint instance
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -27,15 +29,24 @@ def post_one_task():
                                         "is_complete": is_complete}}, 201)
                                     
 @tasks_bp.route("", methods=["GET"])
-def get_all_tasks():
+def working_with_all_tasks():
     title_query = request.args.get('title') #query params for wave2
+    order_by_query = request.args.get('sort')
     if title_query:
     # filter_by returns a list of objects/ records that match the query params
-        books = Task.query.filter_by(title = title_query)
-    else:
-        tasks = Task.query.all()
-    # query_all return list of objects. loop through lists and add to empt list, task_response
+    
+        tasks = Task.query.filter_by(title = title_query)
+    # what part of the Task.query is actually accessing the DB?
+    elif order_by_query == 'asc':
+        tasks = Task.query.order_by(Task.title).all()
+    # query_all return list of objects. loop through objects and add to empt list, task_response
     # as requested formatted JSON objects
+    elif order_by_query == 'desc':
+        tasks = Task.query.order_by(desc(Task.title)).all()
+    # this else covers any search for all tasks, without any query params
+    else:
+        tasks = Task.query.order_by(Task.title).all()
+    
     task_response = []
     
     for task in tasks:
@@ -48,7 +59,7 @@ def get_all_tasks():
     
     return jsonify(task_response), 200
 
-@tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
+@tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE", "PATCH"])
 def CRUD_one_task(task_id):
     task = Task.query.get(task_id) #either get Task back or None
     if task is None:
@@ -76,9 +87,46 @@ def CRUD_one_task(task_id):
                                     "title": task.title,
                                     "description": task.description,
                                     "is_complete": is_complete}}, 200)
-    elif request.method == "DELETE":
-        db.session.delete(task)
+    elif request.method == "PATCH":
+        form_data = request.get_json()
+        if "title" in form_data:
+            task.title = form_data["title"]
+        if "description" in form_data:
+            task.description = form_data["description"]
+        
         db.session.commit()
-        return make_response({'details': 
-        f'Task {task.task_id} "{task.title}" successfully deleted'}, 200)
+        return make_response({"task": {"id": task.task_id,
+                                    "title": task.title,
+                                    "description": task.description,
+                                    "is_complete": is_complete}}, 200)
+        
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_task_complete(task_id):
+    time_stamp = datetime.now()
+    task = Task.query.get(task_id) #either get Task back or None
+    if task is None:
+        abort(404) 
+    else:
+        task.completed_at = time_stamp
+    db.session.commit()
+    is_complete = task.completed_at is not None
+    return make_response({"task": {"id": task.task_id,
+                                    "title": task.title,
+                                    "description": task.description,
+                                    "is_complete": is_complete}}, 200)
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_task_incomplete(task_id):
+    task = Task.query.get(task_id) #either get Task back or None
+    if task is None:
+        abort(404) 
+    else:
+        task.completed_at = None
+    db.session.commit()
+    is_complete = task.completed_at is not None
+    return make_response({"task": {"id": task.task_id,
+                                    "title": task.title,
+                                    "description": task.description,
+                                    "is_complete": is_complete}}, 200)
+    
                                     
