@@ -12,6 +12,7 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 def handle_tasks():
     if request.method == "GET":
         sort_query = request.args.get("sort")
+
         if sort_query == "asc":
             tasks = Task.query.order_by(Task.title.asc()).all()
         elif sort_query == "desc":
@@ -21,12 +22,8 @@ def handle_tasks():
 
         tasks_response = []
         for task in tasks:
-            tasks_response.append({
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False if task.completed_at == None else True
-            })
+            tasks_response.append(task.to_json())
+            
         return jsonify(tasks_response)
         
     elif request.method == "POST":
@@ -46,15 +43,7 @@ def handle_tasks():
         db.session.add(new_task)
         db.session.commit()
 
-        return {
-            "task": {
-                "id": new_task.task_id,
-                "title": new_task.title,
-                "description": new_task.description,
-                "is_complete": False if new_task.completed_at == None \
-                    else True
-                }
-        }, 201
+        return {"task": new_task.to_json()}, 201
 
 @tasks_bp.route("/<task_id>", methods =["GET", "PUT", "DELETE"])
 def handle_task(task_id):
@@ -65,13 +54,7 @@ def handle_task(task_id):
     
     if request.method == "GET":
         return {
-            "task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False if task.completed_at == None else True
-            }
-        }
+            "task": task.to_json()}
     
     elif request.method == "PUT":
         request_data = request.get_json()
@@ -82,14 +65,7 @@ def handle_task(task_id):
 
         db.session.commit()
 
-        return {
-            "task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False if task.completed_at == None else True
-            }
-        }
+        return {"task": task.to_json()}
     
     elif request.method == "DELETE":
         db.session.delete(task)
@@ -106,14 +82,7 @@ def update_task_to_complete(task_id):
 
     else:
         task.completed_at = date.today()
-        return {
-            "task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": True
-                }
-        }, 200
+        return {"task": task.to_json()}, 200
     
 @tasks_bp.route("/<task_id>/mark_incomplete", methods =["PATCH"])
 def update_task_to_incomplete(task_id):
@@ -124,11 +93,4 @@ def update_task_to_incomplete(task_id):
     else:
         task.completed_at = None
         
-        return {
-            "task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False
-                }
-        }, 200
+        return {"task": task.to_json()}, 200
