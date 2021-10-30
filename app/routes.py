@@ -4,6 +4,9 @@ from app import db
 from app.models.task import Task
 from sqlalchemy import asc, desc
 from datetime import datetime
+import requests
+
+
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -87,7 +90,7 @@ def handle_task_completion(task_id, completion_status):
         return ("", 404)
     if request.method == "PATCH":
         if completion_status == "complete":
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(tz=None)
         elif completion_status == "incomplete":
             task.completed_at = None
         db.session.commit()
