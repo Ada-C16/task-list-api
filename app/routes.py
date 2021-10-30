@@ -115,14 +115,14 @@ def update_task_to_complete(task_id):
 def update_task_to_incomplete(task_id):
     task = Task.query.get(task_id)
 
-    if task.completed_at:
-        task.completed_at = None
-        
-        return {
-            "task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False
-                }
-        }, 200
+    # if task.completed_at:
+    task.completed_at = None
+    
+    return {
+        "task": {
+            "id": task.task_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": False
+            }
+    }, 200
