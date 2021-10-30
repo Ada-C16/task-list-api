@@ -9,7 +9,16 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 @tasks_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
     if request.method == "GET":
-        tasks = Task.query.all()
+        sort_query = request.args.get("sort")
+        if sort_query == "asc":
+            tasks = Task.query.order_by(Task.title.asc())
+            print(tasks)
+        elif sort_query == "desc":
+            tasks = Task.query.order_by(Task.title.desc())
+            print(tasks)
+        else:
+            tasks = Task.query.all()
+            print(tasks)
         tasks_response = []
 
         for task in tasks:
@@ -88,5 +97,5 @@ def handle_task(task_id):
         db.session.commit()
 
         return {
-            "details": f'Task {task.task_id} "{task.title}" successfully deleted'
+            "details": f'Task {task.task_id} \"{task.title}\" successfully deleted'
         }
