@@ -10,14 +10,13 @@ load_dotenv()
 
 def create_app(test_config=None):
     app = Flask(__name__)
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     
     if test_config is None:
-        app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
             "SQLALCHEMY_DATABASE_URI")
     else:
         app.config["TESTING"] = True
-        app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
             "SQLALCHEMY_TEST_DATABASE_URI")
 
@@ -30,10 +29,12 @@ def create_app(test_config=None):
 
     # Register Blueprints here
     from app.models.task import Task
-    # with app.app_context():
-    #     db.create_all()
 
     from .routes import tasks_bp
+    # why isn't it:
+    #from app.routes import tasks_bp
     app.register_blueprint(tasks_bp)
+
+    # Will need to register goal Blueprints 
 
     return app
