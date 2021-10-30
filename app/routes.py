@@ -1,5 +1,6 @@
 from flask import Blueprint, json, jsonify, request
 from .models.task import Task
+from .models.goal import Goal
 from app import db
 from datetime import datetime
 import requests
@@ -14,26 +15,27 @@ task_notifications_channel = "C02K5T92807"
 slack_api_key = os.environ.get("SLACK_API_KEY")
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
-def task_success_message(task, code):
+def success_message(type, db_item, status_code):
     return jsonify({
-            "task": task.to_dict()
-        }), code
+            type : db_item.to_dict()
+        }), status_code
 
 def invalid_data_message():
     return jsonify({ "details" : "Invalid data" }), 400
 
-def validate_task_id(task_id):
+def validate_id(Item, id):
 
     try:
-        int(task_id) == task_id
+        int(id) == id
 
     except ValueError:
         return invalid_data_message()
 
-    task = Task.query.get(task_id)
+    item = Item.query.get(id)
 
-    if not task:
+    if not item:
         return "", 404
 
 
@@ -55,7 +57,7 @@ def handle_tasks():
         db.session.add(new_task)
         db.session.commit()
 
-        return task_success_message(new_task, 201)
+        return success_message("task", new_task, 201)
 
     elif request.method == "GET":
 
@@ -78,7 +80,7 @@ def handle_tasks():
 @tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
 def handle_task(task_id):
 
-    id_error = validate_task_id(task_id)
+    id_error = validate_id(Task, task_id)
     if id_error:
         return id_error
 
@@ -86,7 +88,7 @@ def handle_task(task_id):
 
     if request.method == "GET":
 
-        return task_success_message(task, 200)
+        return success_message("task", task, 200)
 
     elif request.method == "DELETE":
 
@@ -113,12 +115,12 @@ def handle_task(task_id):
 
         db.session.commit()
 
-        return task_success_message(task, 200)
+        return success_message("task", task, 200)
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def handle_task_complete(task_id):
     
-    id_error = validate_task_id(task_id)
+    id_error = validate_id(Task, task_id)
     if id_error:
         return id_error
 
@@ -151,12 +153,12 @@ def handle_task_complete(task_id):
     except requests.exceptions.RequestException as e:
         return "Something went wrong when posting a message to Slack.", 404
 
-    return task_success_message(task, 200)
+    return success_message("task", task, 200)
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def handle_task_incomplete(task_id):
     
-    id_error = validate_task_id(task_id)
+    id_error = validate_id(Task, task_id)
     if id_error:
         return id_error
 
@@ -166,4 +168,61 @@ def handle_task_incomplete(task_id):
 
     db.session.commit()
 
-    return task_success_message(task, 200)
+    return success_message("task", task, 200)
+
+@goals_bp.route("", methods=["GET", "POST"])
+def handle_goals():
+
+    if request.method == "POST":
+
+        request_body = request.get_json()
+
+        if "title" not in request_body:
+            return invalid_data_message()
+        
+        new_goal = Goal(title=request_body["title"])
+
+        db.session.add(new_goal)
+        db.session.commit()
+
+        return success_message("goal", new_goal, 201)
+
+    elif request.method == "GET":
+        
+        goals = Goal.query.all()
+
+        return jsonify([goal.to_dict() for goal in goals])
+
+@goals_bp.route("/<goal_id>", methods=["DELETE", "PUT", "GET"])
+def handle_goal(goal_id):
+
+    id_error = validate_id(Goal, goal_id)
+
+    if id_error:
+        return id_error
+
+    goal = Goal.query.get(goal_id)
+
+    if request.method == "GET":
+
+        return success_message("goal", goal, 200)
+
+    elif request.method == "PUT":
+
+        request_body = request.get_json()
+
+        if "title" not in request_body:
+            return invalid_data_message
+
+        goal.title = request_body["title"]
+
+        db.session.commit()
+
+        return success_message("goal", goal, 200)
+
+    elif request.method == "DELETE":
+
+        db.session.delete(goal)
+        db.session.commit()
+
+        return jsonify({ "details" : f'Goal {goal_id} "{goal.title}" successfully deleted'})
