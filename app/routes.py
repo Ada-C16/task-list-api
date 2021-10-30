@@ -1,6 +1,7 @@
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
+from datetime import datetime
 
 
 
@@ -10,35 +11,26 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 def handle_tasks():
     # print("inside of handle task")
     if request.method == "GET":
-        title_query = request.args.get("title")
-        description_query = request.args.get("description")
+        # title_query = request.args.get("title")
+        # description_query = request.args.get("description")
+
         #add re making query more flexible and add is_completed
         sort_query = request.args.get("sort")
         
         if sort_query == "asc":
             tasks = Task.query.order_by(Task.title.asc())
-            # if :
          
 
         elif sort_query == "desc":
             tasks = Task.query.order_by(Task.title.desc())
-            # if :
-           
-            # elif:
-            #     query.order_by(desc(Task.title))
-        
-    
-            # query.order_by(Task.title.desc()) # desc
-
-
-            # query.order_by(SpreadsheetCells.y_index.asc())
             
-        elif title_query:
-            tasks = Task.query.filter(Task.title.contains(title_query))
-            # query.order_by(desc(SpreadsheetCells.y_index)) # desc
+            
+        # elif title_query:
+        #     tasks = Task.query.filter(Task.title.contains(title_query))
+            
 
-        elif description_query:
-            tasks = Task.query.filter_by(description=description_query)
+        # elif description_query:
+        #     tasks = Task.query.filter_by(description=description_query)
         else:
             tasks = Task.query.all()
 
@@ -122,4 +114,53 @@ def handle_task(task_id):
         return jsonify({
         "details": (f'Task {task.task_id} "{task.title}" successfully deleted')
         
+    })
+
+#wave 3
+
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def handle_mark_complete(task_id):
+    task = Task.query.get(task_id)
+
+    if task is None:
+        return make_response(f"Task {task_id} not found", 404)
+    
+    if request.method == "PATCH":
+        # form_data = request.get_json()
+
+        task.completed_at = datetime.now()
+        
+
+        db.session.commit()
+
+        return jsonify({
+        "task": {
+            "id": task.task_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": task.completed_at != None
+        }
+    })
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def handle_mark_incomplete(task_id):
+    task = Task.query.get(task_id)
+
+    if task is None:
+        return make_response(f"Task {task_id} not found", 404)
+    
+    if request.method == "PATCH":
+
+        task.completed_at = None
+        
+
+        db.session.commit()
+
+        return jsonify({
+        "task": {
+            "id": task.task_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": task.completed_at != None
+        }
     })
