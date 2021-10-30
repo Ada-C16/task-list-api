@@ -40,7 +40,8 @@ def handle_tasks():
         new_task = Task(
             title= request_body["title"],
             description= request_body["description"],
-            completed_at= datetime.now(timezone.utc)
+            completed_at= datetime.now(timezone.utc) if \
+                request_body["completed_at"] != None else None
         )
         db.session.add(new_task)
         db.session.commit()
@@ -50,7 +51,8 @@ def handle_tasks():
                 "id": new_task.task_id,
                 "title": new_task.title,
                 "description": new_task.description,
-                "is_complete": False if new_task.completed_at == None else True
+                "is_complete": False if new_task.completed_at == None \
+                    else True
                 }
         }, 201
 
@@ -76,7 +78,7 @@ def handle_task(task_id):
 
         task.title = request_data["title"]
         task.description = request_data["description"]
-        task.completed_at = datetime.now(timezone.utc)
+        task.completed_at = datetime.now(timezone.utc) if task.completed_at else None
 
         db.session.commit()
 
@@ -103,7 +105,6 @@ def update_task_to_complete(task_id):
         return make_response("", 404)
 
     else:
-    # Updating completed_at to its date
         task.completed_at = date.today()
         return {
             "task": {
