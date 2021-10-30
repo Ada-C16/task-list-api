@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, make_response
+from flask import Blueprint, jsonify, request, make_response, abort
 from app.models.task import Task
 from app import db
 
@@ -32,31 +32,14 @@ def create_tasks():
             task_response.append(task.to_dict())
     return jsonify(task_response), 200
 
-# Update a Task
-@task_bp.route("/<int:task_id>", methods = ["PATCH"])
-def update_task(task_id):
-    task = Task.query.get(task_id)
-    if not task:
-        return jsonify({"Error": f"Task {task.name} not found!"}), 404
-    request_body = request.get_json()
-    if "title" in request_body:
-        task.name = request_body["title"]
-    if "description" in request_body:
-        task.description = request_body["description"]
-    if "completed_at" in request_body:
-        task.completed_at = request_body["completed_at"]
-    db.session.commit()
-    return jsonify({"Message": f"Task {task.name} successfully updated!"}), 200
-
-
 # Get one Task, update one Task, delete one Task
-@task_bp.route("/<task_id>", methods = ["GET", "PATCH", "DELETE"])
+@task_bp.route("/<task_id>", methods = ["GET", "PUT", "DELETE"])
 def handle_task(task_id):
-    print(task_id)
     task_id = int(task_id)
     task = Task.query.get(task_id)
     if not task:
-        return jsonify({"Error": f"Task {task.name} not found!"}), 404
+        abort(404)
+        # return make_response("", 404)
     
     if request.method == "GET":
         return jsonify({"task": task.to_dict()}), 200
@@ -65,11 +48,11 @@ def handle_task(task_id):
         input_data = request.get_json()
         task.title = input_data["title"]
         task.description = input_data["description"]
-        task.completed_at = input_data["completed_at"]
+        #task.completed_at = input_data["completed_at"]
         db.session.commit()
-        return jsonify({"task": task.to_dict()}), 200
+        return ({"task": task.to_dict()}), 200
 
     elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
-        return jsonify({"details": f'Task {task.id} "{task.title}" successfully deleted'}), 200
+        return jsonify({"details": f'Task {task.task_id} "{task.title}" successfully deleted'}), 200

@@ -15,7 +15,7 @@ class Task(db.Model):
     def to_dict(self):
         """ Converts the task object to a dictionary """
         return {
-            "id": self.id,
+            "id": self.task_id,
             "title": self.title,
             "description": self.description,
             "is_complete": True if self.completed_at else False
