@@ -1,6 +1,9 @@
 from app import db
 from flask import Blueprint, request, abort, jsonify
 from datetime import datetime
+from dotenv import load_dotenv
+import os
+import requests
 from app.models.task import Task
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -19,7 +22,6 @@ def get_tasks():
     tasks_response = []
     for task in tasks:
         tasks_response.append(task.to_dict())
-    print(tasks_response)
 
     return jsonify(tasks_response)
 
@@ -49,8 +51,6 @@ def post_task():
 
     db.session.add(new_task)
     db.session.commit()
-
-    print(new_task.to_dict())
     return {"task": new_task.to_dict()}, 201
 
 @tasks_bp.route("/<task_id>", methods=["PUT"])
@@ -73,17 +73,33 @@ def put_task(task_id):
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def update_task_to_complete(task_id):
-    """Updates task at particular id to completed."""
+    """Updates task at particular id to completed using PATCH."""
     task = Task.query.get_or_404(task_id)
+    
+    # Make call to Slack API if task newly completed
+    if not task.check_if_completed():
+        slack_api_url = "https://slack.com/api/chat.postMessage"
+        headers = {"Authorization": "Bearer " + os.environ.get("SLACK_API_KEY")}
+        param_payload = {
+            "channel": "task-notifications", 
+            "text": f"Someone has just completed the task {task.title}"
+            }
+        
+        try:
+            r = requests.post(slack_api_url, headers=headers, params=param_payload)
+        
+        except Exception as e:
+            return f"Error posting message: {e}"
 
+    # Change task to completed in db
     task.completed_at = datetime.now()
-
     db.session.commit()
+
     return {"task": task.to_dict()}, 200
 
 @tasks_bp.route("<task_id>/mark_incomplete", methods=["PATCH"])
 def update_task_to_incomplete(task_id):
-    """ """
+    """Updates task at particular id to incomplete using PATCH."""
     task = Task.query.get_or_404(task_id)
 
     task.completed_at = None
