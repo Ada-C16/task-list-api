@@ -26,8 +26,13 @@ def create_tasks():
         return jsonify({"task": new_task.to_dict()}), 201
 
     elif request.method == "GET":
+        if request.args.get("sort") == "asc":
+            tasks = Task.query.order_by(Task.title)
+        elif request.args.get("sort") == "desc":
+            tasks = Task.query.order_by(Task.title.desc())
         tasks = Task.query.all()
         task_response = []
+        
         for task in tasks:
             task_response.append(task.to_dict())
     return jsonify(task_response), 200
@@ -48,7 +53,6 @@ def handle_task(task_id):
         input_data = request.get_json()
         task.title = input_data["title"]
         task.description = input_data["description"]
-        #task.completed_at = input_data["completed_at"]
         db.session.commit()
         return ({"task": task.to_dict()}), 200
 
