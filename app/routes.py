@@ -3,7 +3,7 @@ from app import db
 from app.models.task import Task
 from sqlalchemy import asc, desc
 import time
-from datetime import date
+from datetime import date, datetime, timezone
 
 # Create tasks blueprint
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -40,7 +40,7 @@ def handle_tasks():
         new_task = Task(
             title= request_body["title"],
             description= request_body["description"],
-            completed_at= request_body["completed_at"]
+            completed_at= datetime.now(timezone.utc)
         )
         db.session.add(new_task)
         db.session.commit()
@@ -76,6 +76,7 @@ def handle_task(task_id):
 
         task.title = request_data["title"]
         task.description = request_data["description"]
+        task.completed_at = datetime.now(timezone.utc)
 
         db.session.commit()
 
