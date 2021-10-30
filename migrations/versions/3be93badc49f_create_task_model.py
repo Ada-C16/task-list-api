@@ -1,8 +1,8 @@
-"""Create TaskModel
+"""create task model
 
-Revision ID: 7896d260d7b5
+Revision ID: 3be93badc49f
 Revises: 
-Create Date: 2021-10-29 11:41:58.398704
+Create Date: 2021-10-29 17:52:49.473934
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7896d260d7b5'
+revision = '3be93badc49f'
 down_revision = None
 branch_labels = None
 depends_on = None
