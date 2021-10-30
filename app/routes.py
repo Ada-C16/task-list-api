@@ -5,6 +5,9 @@ from flask import Blueprint, jsonify, make_response, request
 #create the blueprint for the endpoints
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
+
+#WAVE 1
+
 #Create a Task: Valid Task With null completed_at
 @tasks_bp.route("", methods=["POST"])
 def create_task():
@@ -42,11 +45,19 @@ def create_task():
 #Get Tasks: Getting Saved Tasks
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
-    tasks = Task.query.all()
+
+    sort_query = request.args.get("sort")
+    if(sort_query == "asc"):
+        tasks = Task.query.order_by(Task.title).all()
+    elif(sort_query == "desc"):
+        tasks = Task.query.order_by(Task.title.desc()).all()
+    else:
+        tasks = Task.query.all()
+    
     response = []
-    task_dict = {}
 
     for task in tasks:
+        task_dict = {}
         task_dict["id"] = task.task_id
         task_dict["title"] = task.title
         task_dict["description"] = task.description
@@ -55,7 +66,7 @@ def get_tasks():
             task_dict["is_complete"] = True
         else:
             task_dict["is_complete"] = False
-        
+
         response.append(task_dict)
 
     return jsonify(response)
@@ -130,3 +141,9 @@ def delete_task(task_id):
     db.session.commit()
 
     return make_response(response, 200)
+
+
+        
+    
+
+    
