@@ -89,38 +89,34 @@ def handle_single_task(task_id):
       {"details": f'Task {task.task_id} "{task.title}" successfully deleted'})
   
 
-@tasks_bp.route("/<task_id>", methods=["PATCH"])
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_task_complete(task_id):
   
   task = Task.query.get(task_id)
   
   if task is None :
-    return "", 404
+    return make_response("", 404)
     
   if request.method == "PATCH":
-    request_body = request.get_json()
+    task = Task.query.get(task_id)
     task.completed_at = datetime.utcnow()
-    task.completed_at=request_body["completed_at"]
-    
-    # "completed_at": datetime.utcnow()
-    
+  
     db.session.commit()
-    return jsonify(task), 200
-    
-    # {"task": {
-    #     "id": task.task_id,
-    #     "title": task.title,
-    #     "description": task.description,
-    #     "is_complete": task.is_complete()}})
+    return jsonify({"task": {
+        "id": task.task_id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": task.is_complete()}}), 200
 
-@tasks_bp.route("/<task_id>", methods=["PATCH"])
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_completed_task_incomplete(task_id):
   task = Task.query.get(task_id)
   
   if task is None:
-    return "", 404
-    
+    return make_response("", 404)
+  
   if request.method == "PATCH":
+    task = Task.query.get(task_id)  
     task.completed_at = None
     
     db.session.commit()
@@ -128,7 +124,7 @@ def mark_completed_task_incomplete(task_id):
         "id": task.task_id,
         "title": task.title,
         "description": task.description,
-        "is_complete": task.is_complete()}}), 200
+          "is_complete": task.is_complete()}}), 200
 
     
 
