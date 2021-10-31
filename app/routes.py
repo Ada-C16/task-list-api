@@ -33,14 +33,14 @@ def handle_tasks():
             else:
                 new_task = Task(title=request_body['title'],
                                 description=request_body['description'],
-                                completed_at=request_body['completed_at']
+                                completed_at= datetime.utcnow()
                                 )
                 db.session.add(new_task)
                 db.session.commit()
                 return make_response({"task": { "id": new_task.task_id,
                                                 "title": new_task.title,
                                                 "description": new_task.description,
-                                                "is_complete": False if new_task.completed_at is None else new_task.completed_at  
+                                                "is_complete": False if new_task.completed_at is None else True
                                               }}, 201)
 
 @tasks_bp.route('/<task_id>', methods=['GET', 'PUT', 'DELETE'])
@@ -58,12 +58,13 @@ def handle_one_task(task_id):
         updates = request.get_json()
         task.title = updates['title']
         task.description = updates['description']
+        task.completed_at = datetime.utcnow()
         
         db.session.commit()
         return make_response({"task": { "id": task.task_id,
                                         "title": task.title,
                                         "description": task.description,
-                                        "is_complete": False if task.completed_at is None else task.completed_at  
+                                        "is_complete": False if task.completed_at is None else True  
                                         }})
     elif request.method == 'DELETE':
         db.session.delete(task)
@@ -73,8 +74,10 @@ def handle_one_task(task_id):
 @tasks_bp.route('/<task_id>/mark_complete', methods=['PATCH'])
 def from_incomplete_to_complete(task_id):
     task = Task.query.get(task_id)
-    task.completed_at = datetime.now()
-
+    if task is None: 
+        return jsonify(task), 404
+    else: 
+        task.completed_at = datetime.now()
     db.session.commit()
     return make_response({"task": {"id": task.task_id,
                                    "title": task.title,
@@ -85,8 +88,10 @@ def from_incomplete_to_complete(task_id):
 @tasks_bp.route('/<task_id>/mark_incomplete', methods=['PATCH'])
 def from_complete_to_incomplete(task_id):
     task = Task.query.get(task_id)
-    task.completed_at = None
-
+    if task is None:
+        return jsonify(task), 404
+    else:
+        task.completed_at = None
     db.session.commit()
     return make_response({"task": {"id": task.task_id,
                                    "title": task.title,
