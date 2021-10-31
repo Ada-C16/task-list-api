@@ -26,12 +26,12 @@ def create_tasks():
         return jsonify({"task": new_task.to_dict()}), 201
 
     elif request.method == "GET":
+        tasks = Task.query.all()
+        task_response = []
         if request.args.get("sort") == "asc":
             tasks = Task.query.order_by(Task.title)
         elif request.args.get("sort") == "desc":
             tasks = Task.query.order_by(Task.title.desc())
-        tasks = Task.query.all()
-        task_response = []
         
         for task in tasks:
             task_response.append(task.to_dict())
