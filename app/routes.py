@@ -2,12 +2,15 @@ from flask import Blueprint, jsonify, make_response, request
 from app.models.task import Task
 from app import db
 from sqlalchemy import desc, asc
-import datetime
+import datetime, requests
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["GET", "POST"])
-def handle_tasks():
+def handle_all_tasks():
     if request.method == "POST":
         request_body = request.get_json()
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
@@ -52,8 +55,8 @@ def handle_tasks():
         
         return jsonify(tasks_response)
 
-@tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE", "PATCH"])
-def task_handling(task_id):
+@tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
+def tasks_by_id(task_id):
     task = Task.query.get(task_id)
     if not task:
         return jsonify(None), 404
@@ -89,10 +92,15 @@ def task_completed(task_id):
         task = Task.query.get(task_id)
         if not task:
             return jsonify(None), 404
-        request_body = request.get_json()
         
         task.completed_at = datetime.datetime.now()
         db.session.commit()
+
+        data = {"token": os.environ.get("SLACK_TOKEN"), 
+                "channel": os.environ.get("CHANNEL_ID"), 
+                "text": f"Someone just completed the task {task.title}"}
+        url = os.environ.get("SLACK_URL")
+        requests.post(url, data)
 
         task_response = {"task": task.create_dict()}
         return jsonify(task_response), 200
@@ -103,7 +111,6 @@ def task_incomplete(task_id):
         task = Task.query.get(task_id)
         if not task:
             return jsonify(None), 404
-        request_body = request.get_json()
         
         task.completed_at = None
         db.session.commit()
