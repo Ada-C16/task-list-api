@@ -26,20 +26,22 @@ def require_task(endpoint):
 
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
-    """Retrieve all stored tasks."""
-    query = request.args.get("sort")
-    if query == "asc":
-        tasks = Task.query.order_by(Task.title)
-    elif query == "desc":
-        tasks = Task.query.order_by(Task.title.desc())
-    else:
-        tasks = Task.query.all()
+    """
+    Retrieve all tasks. Allows for use of query parameters.
+    Returns JSON list of task dictionaries. """
+    query = Task.query # Base query
 
-    tasks_response = []
-    for task in tasks:
-        tasks_response.append(task.to_dict())
-
-    return jsonify(tasks_response)
+    # Query params, adding to query where indicated
+    sort = request.args.get("sort")
+    if sort == "asc":
+        query = query.order_by(Task.title)
+    elif sort == "desc":
+        query = query.order_by(Task.title.desc())
+    
+    query = query.all() # Final query
+    
+    # Returns jsonified list of task dicionaries
+    return jsonify([task.to_dict() for task in query])
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
 # @require_task
