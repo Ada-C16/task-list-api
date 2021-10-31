@@ -5,7 +5,6 @@ from sqlalchemy import desc, asc
 import datetime, requests
 import os
 from dotenv import load_dotenv
-load_dotenv()
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -16,7 +15,6 @@ def handle_all_tasks():
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
             error_dict = {"details": "Invalid data"}
             return jsonify(error_dict), 400
-        
         
         new_task = Task(title=request_body["title"],
                         description=request_body["description"],
@@ -40,7 +38,6 @@ def handle_all_tasks():
             tasks = Task.query.order_by(desc(Task.title))
         elif sort_query == "asc":
             tasks = Task.query.order_by(asc(Task.title))
-            # tasks = Task.query.order_by(Task.task_id.desc())
         else:
             tasks = Task.query.all()
             
@@ -95,6 +92,8 @@ def task_completed(task_id):
         
         task.completed_at = datetime.datetime.now()
         db.session.commit()
+        
+        load_dotenv()
 
         data = {"token": os.environ.get("SLACK_TOKEN"), 
                 "channel": os.environ.get("CHANNEL_ID"), 
