@@ -11,13 +11,14 @@ class Task(db.Model):
 
     def to_dict(self):
         is_complete = True
-        while not self.completed_at: 
+        if not self.completed_at: 
             is_complete = False
-            return({
-            "id": self.task_id, 
-            "title": self.title, 
-            "description": self.description, 
-            "is_complete": is_complete
+        
+        return({
+        "id": self.task_id, 
+        "title": self.title, 
+        "description": self.description, 
+        "is_complete": is_complete
         }) 
 
 
