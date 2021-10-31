@@ -26,7 +26,18 @@ def handle_all_tasks():
     return new_task.to_json(), 200
   
   elif request.method == "GET":
-    tasks = Task.query.all()
+    
+    if not request.args:
+      tasks = Task.query.all()
+    
+    else:
+      title_query = request.args.get("title")
+      sort_query = request.args.get("sort")
+      if sort_query == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
+      elif sort_query == "asc":
+        tasks = Task.query.order_by(Task.title.asc())
+            
     tasks_response = []
     for task in tasks:
       tasks_response.append(
@@ -60,11 +71,11 @@ def handle_single_task(task_id):
   
       db.session.commit()
       
-      return {
+      return {"task": {
         "id": task.task_id,
         "title": task.title,
         "description": task.description,
-        "is_complete": task.is_complete()}, 200
+        "is_complete": task.is_complete()}}, 200
       
   elif request.method == "DELETE":
       
