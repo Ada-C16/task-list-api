@@ -36,7 +36,7 @@ def handle_tasks():
         return "201 CREATED",201
 
 
-@tasks_bp.route("/<task_id>", methods=["GET"])
+@tasks_bp.route("/<task_id>", methods=["GET", "PUT"])
 def handle_one_task(task_id):
     task_id = int(task_id)
     task = Task.query.get_or_404(task_id)
@@ -51,6 +51,16 @@ def handle_one_task(task_id):
                 "title": task.title,
             }
         )
+    elif request.method == "PUT":
+        form_data = request.get_json()
+
+        task.title = form_data["title"]
+        task.description = form_data["description"]
+        
+
+        db.session.commit()
+
+        return make_response(f"200 OK", 200)
 
         return jsonify(task_response)
 
