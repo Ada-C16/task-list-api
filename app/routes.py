@@ -2,11 +2,27 @@ from app import db
 from flask import Blueprint, request, abort, jsonify
 from datetime import datetime
 from dotenv import load_dotenv
+from functools import wraps
 import os
 import requests
 from app.models.task import Task
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+
+def require_task(endpoint):
+    """Decorator to validate input data."""
+    @wraps(endpoint) # Makes fn look like func to return
+    def fn(*args, **kwargs):
+        task_id = kwargs.get("task_id", None)
+        task = Task.query.get(task_id)
+
+        if not task:
+            return json("null", 404) # HOW TO RETURN AN EMPTY BODY...
+
+        kwargs.pop("task_id")
+        return endpoint(*args, task=task, **kwargs)
+
+    return fn
 
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
@@ -26,6 +42,7 @@ def get_tasks():
     return jsonify(tasks_response)
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
+# @require_task
 def get_task(task_id):
     """Retrieve one stored task by id."""
     task = Task.query.get_or_404(task_id)
@@ -38,6 +55,7 @@ def post_task():
     form_data = request.get_json()
 
     #TODO: Refactor to validation decorator helper method
+    # All fields must be provided
     mandatory_fields = ["title", "description", "completed_at"]
     for field in mandatory_fields:
         if field not in form_data:
@@ -56,9 +74,7 @@ def post_task():
 @tasks_bp.route("/<task_id>", methods=["PUT"])
 def put_task(task_id):
     """Updates task by id."""
-    # Search database for task by id
     task = Task.query.get_or_404(task_id)
-    # Retrieve form data
     form_data = request.get_json()
 
     # Loops through attributes provided by user
@@ -86,10 +102,10 @@ def update_task_to_complete(task_id):
             }
         
         try:
-            r = requests.post(slack_api_url, headers=headers, params=param_payload)
+            requests.post(slack_api_url, headers=headers, params=param_payload)
         
         except Exception as e:
-            return f"Error posting message: {e}"
+            return f"Error posting message to Slack: {e}"
 
     # Change task to completed in db
     task.completed_at = datetime.now()
