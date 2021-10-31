@@ -4,6 +4,8 @@ from app.models.task import Task
 from app.models.goal import Goal
 from sqlalchemy import desc
 from datetime import date
+import slack
+import os 
 
 tasks_bp = Blueprint("task", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goal", __name__, url_prefix="/goals")
@@ -101,9 +103,15 @@ def mark_task_complete_or_incomplete(task_id, completion_mark):
 
     if completion_mark == "mark_complete":
         task.completed_at = date.today()
+        # Post slack-api-test-channel 
+        client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+        client.chat_postMessage(
+            channel='#slack-api-test-channel',
+            text=f"Someone just completed the task {task.title}" 
+        )
     elif completion_mark == "mark_incomplete":
         task.completed_at = None 
-    
+
     return { "task" : make_task_dict(task) }, 200 
 
 @goals_bp.route("", methods=["GET", "POST"])
