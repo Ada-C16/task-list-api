@@ -14,6 +14,15 @@ def create_app(test_config=None):
     app = Flask(__name__)
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
+    # import models here
+    from app.models.task import Task
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    # register blueprint here 
+    from .routes import tasks_bp
+    app.register_blueprint(tasks_bp)
+
     if test_config is None:
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
             "SQLALCHEMY_DATABASE_URI")
