@@ -30,7 +30,8 @@ def create_task():
 
     new_task = Task(
         title=request_body["title"],
-        description=request_body["description"]
+        description=request_body["description"],
+        completed_at=request_body["completed_at"]
     )
 
     db.session.add(new_task)
@@ -83,8 +84,17 @@ def delete_task(task_id):
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_task_complete(task_id):
     task = get_task_from_id(task_id)
-    task.completed_at = datetime.now()
+    task.completed_at = datetime.utcnow()
     
     db.session.commit()
 
     return make_response({"task": task.to_dict()}, 200)
+
+# @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+# def mark_task_complete(task_id):
+#     task = get_task_from_id(task_id)
+#     task.completed_at = None
+    
+#     db.session.commit()
+
+#     return make_response({"task": task.to_dict()}, 200)
