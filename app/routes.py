@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, make_response, request 
 from app import db
 from app.models.task import Task
+from datetime import datetime
 
 tasks_bp = Blueprint("task", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["POST", "GET"])
-def handle_tasks(): 
+def handle_multiple_tasks(): 
     request_body = request.get_json()
 
     if request.method == "POST": 
@@ -63,3 +64,16 @@ def handle_one_task(task_id):
             db.session.commit()
             return jsonify({'details': f'Task {task.task_id} "{task.title}" successfully deleted'}), 200
 
+@tasks_bp.route("/<task_id>/<status_mark>", methods=["PATCH"])
+def mark_test_complete(task_id, status_mark): 
+    task_id = int(task_id)
+    task = Task.query.get_or_404(task_id)
+    task_dict = {}
+
+    if status_mark == "mark_complete":
+        task.completed_at = datetime.date
+    elif status_mark == "mark_incomplete":
+        task.completed_at = None
+        
+    task_dict["task"] = task.to_dict()
+    return jsonify(task_dict), 200
