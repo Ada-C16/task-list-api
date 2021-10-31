@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, make_response, request
 from app import db
 from app.models.task import Task
+from datetime import datetime
 
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -72,13 +73,24 @@ def handle_one_task(task_id):
 @tasks_bp.route('/<task_id>/mark_complete', methods=['PATCH'])
 def from_incomplete_to_complete(task_id):
     task = Task.query.get(task_id)
-    updates = request
-    task.completed_at = updates["is_completed"]
+    task.completed_at = datetime.now()
 
     db.session.commit()
     return make_response({"task": {"id": task.task_id,
                                    "title": task.title,
                                    "description": task.description,
-                                   "is_complete": False if task.completed_at is None else task.completed_at
+                                   "is_complete": True
                                   }})
-    
+
+@tasks_bp.route('/<task_id>/mark_incomplete', methods=['PATCH'])
+def from_complete_to_incomplete(task_id):
+    task = Task.query.get(task_id)
+    task.completed_at = None
+
+    db.session.commit()
+    return make_response({"task": {"id": task.task_id,
+                                   "title": task.title,
+                                   "description": task.description,
+                                   "is_complete": False
+                                  }})
+
