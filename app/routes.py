@@ -73,20 +73,19 @@ def update_task(task_id):
     return jsonify(response_body), 200
 
 
-# @tasks_bp.route("/<task_id>", methods=["PATCH"])
-# def update_planet_parameter(planet_id):
-#     if is_parameter_valid(planet_id) is not None:
-#         return is_parameter_valid(planet_id)
-#     planet = Planet.query.get(planet_id)
-#     form_data = request.get_json()
-#     if "name" in form_data:
-#         planet.name = form_data["name"]
-#     if "description" in form_data:
-#         planet.description = form_data["description"]
-#     if "matter" in form_data:
-#         planet.matter = form_data["matter"]
-#     db.session.commit()
-#     return make_response(f"Planet {planet.name} successfully updated!", 200)
+@tasks_bp.route("/<task_id>", methods=["PATCH"])
+def update_task_parameter(task_id):
+    if is_parameter_found(task_id) is not None:
+        return is_parameter_found(task_id)
+    task = Task.query.get(task_id)
+    request_body = request.get_json()
+    if "title" in request_body:
+        task.name = request_body["title"]
+    if "description" in request_body:
+        task.description = request_body["description"]
+    
+    db.session.commit()
+    return make_response(f"Task {task_id} successfully updated!", 200)
 
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
