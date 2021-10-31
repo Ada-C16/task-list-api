@@ -43,14 +43,16 @@ def handle_one_task(task_id):
 
     if request.method == "GET":
         task_response = []
+        has_complete = task.completed_at
         task_response.append(
             {
                 "description": task.description,
                 "id": task.task_id,
-                "is_complete": task.completed_at,
+                "is_complete": False if has_complete == None else has_complete,
                 "title": task.title,
             }
         )
+        return jsonify(task_response)
     elif request.method == "PUT":
         form_data = request.get_json()
 
