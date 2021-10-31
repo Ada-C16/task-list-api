@@ -46,11 +46,11 @@ def handle_single_task(task_id):
     return "", 404
 
   if request.method == "GET":
-    return {
+    return {"task": {
         "id": task.task_id,
         "title": task.title,
         "description": task.description,
-        "is_complete": task.is_complete()}, 200
+        "is_complete": task.is_complete()}}, 200
   
   elif request.method == "PUT":
       request_body = request.get_json()
