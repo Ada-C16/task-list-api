@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify, request, make_response
+import requests
 from app import db
 from app.models.task import Task
 from sqlalchemy import asc, desc
 import time
 from datetime import date, datetime, timezone
+import os
 
 # Create tasks blueprint
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -23,7 +25,7 @@ def handle_tasks():
         tasks_response = []
         for task in tasks:
             tasks_response.append(task.to_json())
-            
+
         return jsonify(tasks_response)
         
     elif request.method == "POST":
@@ -61,7 +63,8 @@ def handle_task(task_id):
 
         task.title = request_data["title"]
         task.description = request_data["description"]
-        task.completed_at = datetime.now(timezone.utc) if task.completed_at else None
+        task.completed_at = datetime.now(timezone.utc) if \
+            task.completed_at else None
 
         db.session.commit()
 
@@ -81,6 +84,12 @@ def update_task_to_complete(task_id):
         return make_response("", 404)
 
     else:
+        API_endpoint = "https://slack.com/api/chat.postMessage"
+        my_headers = {'Authorization': f'Bearer {os.environ.get("SLACK_API_KEY")}'}
+        my_data = {"channel": "C02J08B9S0N",
+        "text": f"Someone just completed the task {task.title}"}
+
+        requests.post(API_endpoint, data= my_data, headers= my_headers)
         task.completed_at = date.today()
         return {"task": task.to_json()}, 200
     
