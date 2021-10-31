@@ -3,12 +3,39 @@ from flask import Blueprint
 from app.models.task import Task
 from app.models.goal import Goal
 from flask import Blueprint, jsonify, request, make_response
+from datetime import datetime
 
+
+# Task routes
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
-@tasks_bp.route("", methods=["POST", "GET"])
+@tasks_bp.route("", methods=["GET", "POST"])
 def handle_all_tasks():
+  
+  if request.method == "GET":
+    
+    sort_query = request.args.get("sort")
+    if sort_query == None:
+      tasks = Task.query.all()
+    elif sort_query == "desc":
+      tasks = Task.query.order_by(Task.title.desc())
+    elif sort_query == "asc":
+      tasks = Task.query.order_by(Task.title.asc())
+    else:
+      tasks = Task.query.all()
+            
+    tasks_response = []
+    for task in tasks:
+      tasks_response.append(
+       {
+        "id": task.task_id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": task.is_complete()
+        })
+    return jsonify(tasks_response), 200
+  
   if request.method == "POST":
     request_body = request.get_json()
     
@@ -23,33 +50,10 @@ def handle_all_tasks():
     db.session.add(new_task)
     db.session.commit()
     
-    return new_task.to_json(), 200
+    return jsonify(new_task), 200
   
-  elif request.method == "GET":
-    
-    if not request.args:
-      tasks = Task.query.all()
-    
-    else:
-      title_query = request.args.get("title")
-      sort_query = request.args.get("sort")
-      if sort_query == "desc":
-        tasks = Task.query.order_by(Task.title.desc())
-      elif sort_query == "asc":
-        tasks = Task.query.order_by(Task.title.asc())
-            
-    tasks_response = []
-    for task in tasks:
-      tasks_response.append(
-       {
-        "id": task.task_id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": task.is_complete()
-        })
-    return jsonify(tasks_response), 200
 
-@tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
+@tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE", "PATCH"])
 def handle_single_task(task_id):
   task = Task.query.get(task_id)
   
@@ -71,11 +75,11 @@ def handle_single_task(task_id):
   
       db.session.commit()
       
-      return {"task": {
+      return jsonify({"task": {
         "id": task.task_id,
         "title": task.title,
         "description": task.description,
-        "is_complete": task.is_complete()}}, 200
+        "is_complete": task.is_complete()}}), 200
       
   elif request.method == "DELETE":
       
@@ -83,51 +87,102 @@ def handle_single_task(task_id):
     db.session.commit()
     return jsonify(
       {"details": f'Task {task.task_id} "{task.title}" successfully deleted'})
+  
+
+@tasks_bp.route("/<task_id>", methods=["PATCH"])
+def mark_task_complete(task_id):
+  
+  task = Task.query.get(task_id)
+  
+  if task is None :
+    return "", 404
+    
+  if request.method == "PATCH":
+    request_body = request.get_json()
+    task.completed_at = datetime.utcnow()
+    task.completed_at=request_body["completed_at"]
+    
+    # "completed_at": datetime.utcnow()
+    
+    db.session.commit()
+    return jsonify(task), 200
+    
+    # {"task": {
+    #     "id": task.task_id,
+    #     "title": task.title,
+    #     "description": task.description,
+    #     "is_complete": task.is_complete()}})
+
+@tasks_bp.route("/<task_id>", methods=["PATCH"])
+def mark_completed_task_incomplete(task_id):
+  task = Task.query.get(task_id)
+  
+  if task is None:
+    return "", 404
+    
+  if request.method == "PATCH":
+    task.completed_at = None
+    
+    db.session.commit()
+    return jsonify({"task": {
+        "id": task.task_id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": task.is_complete()}}), 200
+
+    
 
 
-
-
-# Goal
+# ********************* Goal routes ******************************
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 @goals_bp.route("", methods=["POST", "GET"])
 def handle_all_goals():
-  if request.method == "POST":
-    request_body = request.get_json()
-    
-    if "title" not in request_body:
-      return jsonify({"details": "Invalid data"}), 400
-    
-    new_goal = Goal(title=request_body["title"])
-                  
-    db.session.add(new_goal)
-    db.session.commit()
-    
-    return { "id": goal.goal_id,
-        "title": goal.title}, 200
   
-  elif request.method == "GET":
+  if request.method == "GET":
     goals = Goal.query.all()
     goals_response = []
-    for goals in goals:
+    for goal in goals:
       goals_response.append(
        {
         "id": goal.goal_id,
         "title": goal.title})
-    return jsonify(goals_response)
+      
+    return jsonify(goals_response), 200
+  
+  if request.method == "POST":
+    request_body = request.get_json()
+    
+    if not request_body:
+      return jsonify({"details": "Invalid data"}), 400
+    
+    else: 
+      goal = Goal(title = request_body["title"])
+    
+      db.session.add(goal)
+      db.session.commit()
+      
+      return make_response({"goal": {
+          "id": goal.goal_id,
+          "title": goal.title}}, 201)
+  
+  
+  
+  
 
 @goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
-def handle_single_goals(goal_id):
+
+def handle_single_goal(goal_id):
   goal = Goal.query.get(goal_id)
   
   if goal is None:
     return "", 404
 
   if request.method == "GET":
-    return {
+    return {"goal": {
         "id": goal.goal_id,
-        "title": goal.title}, 200
+        "title": goal.title}}, 200
   
   elif request.method == "PUT":
       request_body = request.get_json()
@@ -135,11 +190,13 @@ def handle_single_goals(goal_id):
   
       db.session.commit()
       
-      return {
+      return jsonify({"goal": {
         "id": goal.goal_id,
-        "title": goal.title}, 200
+        "title": goal.title}}), 200
       
   elif request.method == "DELETE":
     db.session.delete(goal)
     db.session.commit()
-    return jsonify({"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
+    
+    return jsonify(
+      {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
