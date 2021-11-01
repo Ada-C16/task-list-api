@@ -149,10 +149,10 @@ def delete_task(task_id):
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
 
-    #
+    # #
     slack_token = os.environ["SLACK_API_TOKEN"]
     client = WebClient(token=slack_token)
-    #
+    # #
 
     task = Task.query.get(task_id)
     if task is None:
@@ -166,6 +166,7 @@ def mark_complete(task_id):
     # if task.completed_at is None:
     #     #update it 
     task.completed_at = datetime.now(timezone.utc)
+    db.session.commit()
     task_dict["is_complete"]= True 
 
     task_dict["id"]= task.task_id
@@ -176,7 +177,7 @@ def mark_complete(task_id):
 
     print(task.completed_at)
 
-    #
+    # 
     try:
         response = client.chat_postMessage(
             channel="task-notifications",
