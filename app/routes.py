@@ -187,7 +187,7 @@ def goals_by_id(goal_id):
         
         return jsonify(delete_message), 200
 
-@goals_bp.route("<goal_id>/tasks", methods=["GET"])
+@goals_bp.route("<goal_id>/tasks", methods=["GET", "POST"])
 def handle_goals_with_tasks(goal_id):
     goal = Goal.query.get(goal_id)
 
@@ -199,17 +199,11 @@ def handle_goals_with_tasks(goal_id):
         for task in goal.tasks:
             goal_response.append(task.create_dict())
                 
-        final_response = {"id": goal.goal_id,
-                            "title": goal.title,
-                            "tasks": goal_response}
-        return jsonify(final_response), 200
+        response = {"id": goal.goal_id,
+                    "title": goal.title,
+                    "tasks": goal_response}
+        return jsonify(response), 200
 
-@goals_bp.route("<goal_id>/tasks", methods=["POST"])
-def handle_goals_with_tasks_2(goal_id):
-    goal = Goal.query.get(goal_id)
-    if not goal:
-        return jsonify(None), 404
-    
     if request.method == "POST":
         form_data = request.get_json()
         task_ids = form_data["task_ids"]
@@ -223,5 +217,5 @@ def handle_goals_with_tasks_2(goal_id):
         response = {"id": goal.goal_id,
                     "task_ids": task_ids}
 
-    return response
+        return jsonify(response), 200
     
