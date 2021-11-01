@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, abort
+from sqlalchemy import exc
 from app import db
 from app.models.task import Task
 from datetime import datetime, timezone
@@ -54,7 +55,12 @@ def create_task():
         abort(400)
 
     db.session.add(new_task)
-    db.session.commit()
+
+    # catch error if completed_at is an invalid datetime string
+    try:
+        db.session.commit()
+    except exc.DataError:
+        abort(400)
 
     return jsonify({"task": new_task.to_dict()}), 201
 
