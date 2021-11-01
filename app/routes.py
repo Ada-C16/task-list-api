@@ -25,9 +25,9 @@ def get_task_from_id(task_id):
 def read_all_tasks():
     tasks = Task.query.all()
 
-    response_body = [task.to_dict for task in tasks]
+    response_body = [task.to_dict() for task in tasks]
 
-    return jsonify(response_body), 200
+    return jsonify(response_body)
 
 @tasks_bp.route("", methods=["POST"])
 def create_task():
