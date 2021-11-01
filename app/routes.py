@@ -55,15 +55,17 @@ def handle_task(task_id):
     if task is None:
         return ("", 404)
     if request.method == "GET":
-        return {
+        response_body = {
             "task": {
             "id": task.task_id,
             "title": task.title,
             "description": task.description,
-            "is_complete": bool(task.completed_at)  
-            }
-        }, 200
-    if request.method == "PUT":
+            "is_complete": bool(task.completed_at)    
+        }}
+        if task.goal_id:
+            response_body["task"]["goal_id"] = task.goal_id
+        return (response_body, 200)
+    elif request.method == "PUT":
         request_body = request.get_json()
         task.title = request_body["title"]
         task.description = request_body["description"]
@@ -77,7 +79,7 @@ def handle_task(task_id):
             "is_complete": bool(task.completed_at)  
             }
         }, 200
-    if request.method == "DELETE":
+    elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
         return {
@@ -167,3 +169,36 @@ def handle_goal(goal_id):
         return {
             "details": f"Goal {goal.goal_id} \"{goal.title}\" successfully deleted"
         }, 200
+
+@goal_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goal_tasks(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return ("", 404)
+    
+    if request.method == "POST":
+        request_body = request.get_json()
+        tasks_to_update = request_body["task_ids"]
+        for task in tasks_to_update:
+            task = Task.query.get(task)
+            task.goal_id = goal_id
+        db.session.commit()
+
+        return { 
+            "id": eval(goal_id),
+            "task_ids": tasks_to_update
+        }, 200
+    elif request.method == "GET":
+        tasks_response = []
+        for task in goal.tasks:
+            tasks_response.append({
+                "id": task.task_id,
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": bool(task.completed_at)
+            })
+        return {
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": tasks_response}, 200
