@@ -90,11 +90,11 @@ def mark_task_complete(task_id):
 
     return make_response({"task": task.to_dict()}, 200)
 
-# @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
-# def mark_task_complete(task_id):
-#     task = get_task_from_id(task_id)
-#     task.completed_at = None
+@task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_task_incomplete(task_id):
+    task = get_task_from_id(task_id)
+    task.completed_at = None
     
-#     db.session.commit()
+    db.session.commit()
 
-#     return make_response({"task": task.to_dict()}, 200)
+    return make_response({"task": task.to_dict()}, 200)
