@@ -24,3 +24,11 @@ class Task(db.Model):
             response["goal_id"] = self.goal_id
 
         return response
+
+    @classmethod
+    def new_from_dict(cls, task_dict):
+        return cls(
+            title=task_dict["title"],
+            description=task_dict["description"],
+            completed_at=task_dict["completed_at"]
+        )

@@ -49,8 +49,7 @@ def create_task():
     req = request.get_json()
 
     try:
-        new_task = Task(
-            title=req["title"], description=req["description"], completed_at=req["completed_at"])
+        new_task = Task.new_from_dict(req)
     except KeyError:
         abort(400)
 
