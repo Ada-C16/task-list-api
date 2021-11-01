@@ -22,8 +22,7 @@ def get_task_from_id(task_id):
 def get_tasks():
     task_response=[]
     tasks = Task.query.all()
-    
-
+ 
     for task in tasks:
         task_response.append(
             task.to_dict()
@@ -31,7 +30,6 @@ def get_tasks():
     return jsonify(task_response),200
 
 @task_bp.route("/<task_id>", methods=["GET"])
-
 def get_task(task_id):
     task = get_task_from_id(task_id)
     response_body = {"task":task.to_dict()}
@@ -44,7 +42,7 @@ def create_task():
     form_data = request.get_json()
 
     if "title" not in form_data or "description" not in form_data or "completed_at" not in form_data:
-        response_body = {"error": "incomplete request body"}
+        response_body = {"details": "Invalid data"}
         return make_response(jsonify(response_body), 400)
 
     new_task = Task(
@@ -59,7 +57,7 @@ def create_task():
     return make_response(jsonify(response_body), 201)
 
 #routes that use PATCH method
-@task_bp.route("/<task_id>", methods=["PATCH"])
+@task_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
     task = get_task_from_id(task_id)
     form_data = request.get_json()
@@ -68,17 +66,25 @@ def update_task(task_id):
         task.title = form_data["title"]
     if "description" in form_data:
         task.description = form_data["description"]
-    
+
+
+    response_body = {"task": task.to_dict()}
+  
     db.session.commit()
 
-    return make_response(jsonify(form_data), 200)
+    return make_response(jsonify(response_body), 200)
 
 
 #routes that use DELETE method
-@task_bp.route("", methods=["DELETE"])
+@task_bp.route("/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
     task = get_task_from_id(task_id)
 
     db.session.delete(task)
     db.session.commit()
-    return make_response(jsonify(task.to_dict()), 405)
+
+    response_body = {
+        "details": f'Task {task_id} "{task.title}" successfully deleted'
+    }
+    
+    return make_response(jsonify(response_body), 200)
