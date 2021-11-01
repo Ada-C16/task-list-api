@@ -27,3 +27,7 @@ class Goal(db.Model):
             response["task_ids"] = [task.id for task in self.tasks]
 
         return response
+
+    def update(self, goal_dict):
+        self.title = goal_dict["title"]
+        return self

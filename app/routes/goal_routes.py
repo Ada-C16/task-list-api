@@ -83,7 +83,7 @@ def update_goal(id):
     goal = get_goal_by_id(id)
     req = request.get_json()
     try:
-        goal.title = req["title"]
+        goal.update(req)
     except KeyError:
         abort(400)
 

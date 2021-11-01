@@ -32,6 +32,8 @@ class Task(db.Model):
         if "completed_at" in task_dict:
             self.completed_at = task_dict["completed_at"]
 
+        return self
+
     @classmethod
     def new_from_dict(cls, task_dict):
         return cls(
