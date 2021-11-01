@@ -127,6 +127,8 @@ def complete_task(task_id):
         }
         requests.get(url = slack_url, params = slack_params, headers = slack_header)
 
+        db.session.commit()
+
         return make_response({
             "task": {
             "id": task.task_id,
