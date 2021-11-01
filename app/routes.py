@@ -86,3 +86,18 @@ def handle_task(task_id):
             "details": f"Task {task.id} \"{task.title}\" successfully deleted"
         }
         return jsonify(response_body), 200
+
+@task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_complete(task_id):
+    task = Task.query.get(task_id)
+    task.is_complete = True
+    db.session.commit()
+    
+    response_body = {}
+    response_body["task"] = {
+        "id": task.id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": task.is_complete
+    }
+    return jsonify(response_body)
