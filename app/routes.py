@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, make_response, request
 from app.models.task import Task
 from app import db
+from datetime import datetime, timezone
 
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -13,7 +14,7 @@ def is_input_valid(number):
 
 
 def is_parameter_found(parameter_id):
-    if is_input_valid(parameter_id) is not None:
+    if is_input_valid(parameter_id):
         return is_input_valid(parameter_id)
     elif Task.query.get(parameter_id) is None:
         return make_response(f"{parameter_id} was not found!", 404)
@@ -23,9 +24,9 @@ def create_task():
     request_body = request.get_json()
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
         return jsonify({"details": "Invalid data"}),400
-    new_task = Task(title = request_body["title"],
+    new_task = Task(title=request_body["title"],
                     description=request_body["description"], 
-                    completed_at=None
+                    completed_at=request_body["completed_at"]
                     )
 
     db.session.add(new_task)
@@ -66,7 +67,7 @@ def read_task(task_id):
 
 @tasks_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
-    if is_parameter_found(task_id) is not None:
+    if is_parameter_found(task_id) :
         return is_parameter_found(task_id)
 
     task = Task.query.get(task_id)
@@ -82,7 +83,7 @@ def update_task(task_id):
 
 @tasks_bp.route("/<task_id>", methods=["PATCH"])
 def update_task_parameter(task_id):
-    if is_parameter_found(task_id) is not None:
+    if is_parameter_found(task_id):
         return is_parameter_found(task_id)
     task = Task.query.get(task_id)
     request_body = request.get_json()
@@ -94,10 +95,34 @@ def update_task_parameter(task_id):
     db.session.commit()
     return make_response(f"Task {task_id} successfully updated!", 200)
 
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_task_complete(task_id):
+    if is_parameter_found(task_id):
+        return is_parameter_found(task_id)
+    task = Task.query.get(task_id)
+    task.completed_at = datetime.now(timezone.utc)
+    response_body = {}
+    response_body = task.to_dict()
+
+    db.session.commit()
+    return jsonify({"task": response_body}), 200
+
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_task_incomplete(task_id):
+    if is_parameter_found(task_id):
+        return is_parameter_found(task_id)
+    task = Task.query.get(task_id)
+    task.completed_at = None
+    response_body = {}
+    response_body = task.to_dict()
+
+    db.session.commit()
+    return jsonify({"task": response_body}), 200
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
-    if is_parameter_found(task_id) is not None:
+    if is_parameter_found(task_id):
         return is_parameter_found(task_id)
     task = Task.query.get(task_id)
     task_title = task.title
