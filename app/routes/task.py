@@ -90,6 +90,7 @@ def mark_task_complete_or_incomplete(task_id, completion_mark):
 
     if completion_mark == "mark_complete":
         task.completed_at = date.today()
+        db.session.commit()
         task.post_to_slack()
     elif completion_mark == "mark_incomplete":
         task.completed_at = None 
