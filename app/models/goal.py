@@ -40,7 +40,7 @@ class Goal(db.Model):
         )
 
     @classmethod
-    def get_goal_by_id(cls, id):
+    def get_by_id(cls, id):
         """Grab one goal from the database by id and return it"""
         is_valid_int(id)
         return cls.query.get_or_404(id)

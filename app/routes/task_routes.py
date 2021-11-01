@@ -76,7 +76,7 @@ def read_task(id):
             - 200 status code
             - JSON object representing task with requested id
     """
-    task = Task.get_task_by_id(id)
+    task = Task.get_by_id(id)
     return jsonify({"task": task.to_dict()}), 200
 
 
@@ -95,7 +95,7 @@ def update_task(id):
             - 200 status code
             - JSON object representing updated task data
     """
-    task = Task.get_task_by_id(id)
+    task = Task.get_by_id(id)
     req = request.get_json()
 
     try:
@@ -119,7 +119,7 @@ def delete_task(id):
             - 200 status code
             - JSON object with a message indicating task was deleted
     """
-    task = Task.get_task_by_id(id)
+    task = Task.get_by_id(id)
     db.session.delete(task)
     db.session.commit()
 
@@ -142,7 +142,7 @@ def mark_complete(id):
             - Task's completed_at attribute is changed to the current UTC time in the db
             - 200 status code
     """
-    task = Task.get_task_by_id(id)
+    task = Task.get_by_id(id)
     task.completed_at = datetime.now(timezone.utc)
     db.session.commit()
 
@@ -164,7 +164,7 @@ def mark_incomplete(id):
             - JSON object representing updated task
             - Task's completed_at attribute is changed to None
     """
-    task = Task.get_task_by_id(id)
+    task = Task.get_by_id(id)
     task.completed_at = None
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200

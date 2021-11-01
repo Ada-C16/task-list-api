@@ -44,7 +44,7 @@ class Task(db.Model):
         )
 
     @classmethod
-    def get_task_by_id(cls, id):
+    def get_by_id(cls, id):
         """Grab one task from the database by id and return it"""
         is_valid_int(id)
         return cls.query.get_or_404(id)
