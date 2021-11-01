@@ -2,6 +2,8 @@ from flask import Blueprint
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request, abort
+# make response works well for when you want to turn a dict into json
+# otherwise jsonify is better to use bc it will always jsonify
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -15,7 +17,6 @@ def valid_int(number, parameter_type):
 def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description="{task not found}")
-
 
 # @tasks_bp.route("/<task_id>/formalize", methods=["PATCH"])
 # def formalize_task(task_id):
@@ -73,32 +74,31 @@ def create_tasks():
     #     new_task.is_complete=True
     db.session.add(new_task)
     db.session.commit()
-    return make_response(f"Task {new_task.title} has been created"), 201
+    return jsonify({"task": new_task.to_dict()}), 201
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
 def read_task(task_id):
     task = get_task_from_id(task_id)
     return {"task": task.to_dict()}
 
-@tasks_bp.route("/<task_id>", methods=["PATCH"])
+@tasks_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
     task= get_task_from_id(task_id)
     request_body=request.get_json()
 
     if "title" in request_body:
-        task.name=request_body["title"]
+        task.title=request_body["title"]
     if "description" in request_body:
         task.description=request_body["description"]
     if "completed_at" in request_body:
         task.completed_at=request_body["completed_at"]
 
     db.session.commit()
-    return jsonify({"task":task.to_dict()}), 200
-    # return jsonify(task.to_dict()), 200
+    return make_response({"task":task.to_dict()}), 200
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
     task = get_task_from_id(task_id)
     db.session.delete(task)
     db.session.commit()
-    return jsonify({"task":task}), 200
+    return make_response({"details":f'Task {task.task_id} "{task.title}" successfully deleted'}), 200
