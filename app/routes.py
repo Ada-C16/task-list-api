@@ -3,10 +3,14 @@ from flask import Blueprint
 from app.models.task import Task
 from app.models.goal import Goal
 from flask import Blueprint, jsonify, request, make_response
+import requests
+import os
+from dotenv import load_dotenv
 from datetime import datetime
+load_dotenv()
 
 
-# Task routes
+# ********************* TASK routes ******************************
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -41,16 +45,13 @@ def handle_all_tasks():
     
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
       return jsonify({"details": "Invalid data"}), 400
-    
      
-    
     new_task = Task(
       title=request_body["title"], 
       description=request_body["description"],
       completed_at=request_body["completed_at"])
     
-    
-                  
+             
     db.session.add(new_task)
     db.session.commit()
     
@@ -99,33 +100,34 @@ def mark_task_complete(task_id):
   
   task = Task.query.get(task_id)
   
-  if task is None :
+  if task is None:
     return make_response("", 404)
     
   if request.method == "PATCH":
-    task = Task.query.get(task_id)
-    task.completed_at = datetime.utcnow()
+    task.completed_at = datetime.now()
   
     db.session.commit()
     
     
-    response_body = {
-      "task": {
-        "id": task.task_id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": task.is_complete()
-      }
-    }
+   
+    # path = "https://slack.com/api/chat.postMessage"
+    # text = f"Someone completed the task {task.title}"
+    # query_params = {
+    #   "channel": "task-notification",
+    #   "text": text,}
+    # header = {
+    #   "Authorization": BOT_TOKEN}
+    # response = requests.post(path, params=query_params, headers=header)
+    # response_body = {
+    #   "task": {
+    #     "id": 1,
+    #     "title": "my beautiful tasks",
+    #     "description": "fun stuff",
+    #     "completed_at": ""
+    #   }
+    # }
+  
     
-    path = "https://slack.com/api/chat.postMessage"
-    text = f"Someone completed the task {task.title}"
-    query_params = {
-      "channel": "task-notification",
-      "text": text,}
-    header = {
-      "Authorization": f"Bearer"
-    }
     return jsonify({"task": {
         "id": task.task_id,
         "title": task.title,
@@ -140,7 +142,6 @@ def mark_completed_task_incomplete(task_id):
     return make_response("", 404)
   
   if request.method == "PATCH":
-    task = Task.query.get(task_id)  
     task.completed_at = None
     
     db.session.commit()
@@ -220,3 +221,44 @@ def handle_single_goal(goal_id):
     
     return jsonify(
       {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
+    
+
+
+
+# ********************* Task / Goal routes ******************************
+    
+@goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goal_tasks(goal_id):
+  goal = Goal.query.get(goal_id)
+  
+  if goal is None:
+    return "", 404
+  
+  if request.method == "GET":
+    tasks_with_goals = Task.query.filter_by(goal_id=goal_id)
+    
+    tasks_with_goals = []
+    
+    for task in tasks_with_goals:
+      tasks_with_goals.append(
+        {
+          "id": task.task_id,
+          "title": task.title,
+          "description": task.description,
+          "is_complete": task.is_complete()
+        })
+    return {"id": goal.goal_id,
+          "title": goal.title,}
+    
+  elif request.method == "POST":
+    request_body = request.get_json()
+    
+    for task_id in request_body["task_ids"]:
+      task = Task.query.get(task_id)
+      task.goal_id = goal.goal_id
+      
+    db.session.commit()
+    
+    return
+        
+    
