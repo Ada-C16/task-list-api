@@ -65,15 +65,27 @@ def handle_task(task_id):
     if task is None:
             return make_response("", 404)
     if request.method == "GET":
-        return {
-            "task": {
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": bool(task.completed_at)
+        if task.goal_id:
+
+            return {
+                "task": {
+                "id": task.task_id,
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": bool(task.completed_at)
+                }
             }
-        }
-    
+        else:
+            return {
+                "task": {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": bool(task.completed_at)
+                }
+            }
+
     
     elif request.method == "PUT":
         form_data = request.get_json()
@@ -152,7 +164,7 @@ def incomplete_task(task_id):
     
     if request.method == "PATCH":
         task.completed_at = None
-
+        db.session.commit()
         return make_response({
             "task": {
             "id": task.task_id,
@@ -163,8 +175,6 @@ def incomplete_task(task_id):
         }
         )
 
-#############################################
-## GOALS
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
@@ -245,3 +255,45 @@ def handle_goal(goal_id):
         return make_response({
         "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
     })
+
+
+@goals_bp.route("/<goal_id>/tasks", methods = ["GET", "POST"])
+def handle_goal_with_tasks(goal_id):
+
+    goal = Goal.query.get(goal_id)
+    
+    if goal is None:
+        return make_response("", 404)
+
+    if request.method == "POST":
+        
+        form_data = request.get_json()
+
+        for task_id in form_data["task_ids"]:
+            task = Task.query.get(task_id)
+            if task is None:
+                return make_response("", 404)
+            task.goal_id = goal_id
+            db.session.commit()
+        
+        return make_response({
+            "id": int(goal_id),
+            "task_ids": form_data["task_ids"]
+        }, 200)
+    
+    elif request.method == "GET":
+        tasks = []
+        for task in goal.tasks:
+            tasks.append({
+                "id": task.task_id,
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": bool(task.completed_at)
+            })
+
+        return {
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": tasks
+        }
