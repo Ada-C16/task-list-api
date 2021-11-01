@@ -5,6 +5,18 @@ from flask import Blueprint, request, make_response, jsonify
 import requests
 import os
 
+def record_response(table):
+    response = {
+                "id": table.task_id,
+                "title": table.title,
+                "description": table.description,
+                "is_complete": bool(table.completed_at)
+            }
+    if table.goal_id:
+        response["goal_id"] = table.goal_id
+    return response
+
+
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["GET","POST"])
@@ -26,12 +38,7 @@ def handle_tasks():
         
         tasks_response = []
         for task in tasks:
-            tasks_response.append({
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": bool(task.completed_at)
-            })
+            tasks_response.append(record_response(task))
         return make_response(jsonify(tasks_response), 200)
     
     
@@ -49,14 +56,7 @@ def handle_tasks():
         db.session.add(new_task)
         db.session.commit()
 
-        return make_response({
-            "task": {
-            "id": new_task.task_id,
-            "title": new_task.title,
-            "description": new_task.description,
-            "is_complete": bool(new_task.completed_at)
-            }
-        }, 201)
+        return make_response({ "task" : record_response(new_task) }, 201)
 
 
 @tasks_bp.route("/<task_id>", methods = ["GET", "PUT", "DELETE"])
@@ -65,26 +65,8 @@ def handle_task(task_id):
     if task is None:
             return make_response("", 404)
     if request.method == "GET":
-        if task.goal_id:
-
-            return {
-                "task": {
-                "id": task.task_id,
-                "goal_id": task.goal_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": bool(task.completed_at)
-                }
-            }
-        else:
-            return {
-                "task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": bool(task.completed_at)
-                }
-            }
+        task_return = record_response(task)
+        return { "task" : task_return }
 
     
     elif request.method == "PUT":
@@ -96,15 +78,7 @@ def handle_task(task_id):
         if form_data.get("completed_at"):
             task.completed_at = form_data["completed_at"] 
         db.session.commit()
-        return make_response({
-            "task": {
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": bool(task.completed_at)
-            }
-        }
-        )
+        return { "task" : record_response(task) }
 
 
     elif request.method == "DELETE":
@@ -141,15 +115,7 @@ def complete_task(task_id):
 
         db.session.commit()
 
-        return make_response({
-            "task": {
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": bool(task.completed_at)
-            }
-        }
-        )
+        return make_response({ "task" : record_response(task) })
 
 
 
@@ -165,15 +131,7 @@ def incomplete_task(task_id):
     if request.method == "PATCH":
         task.completed_at = None
         db.session.commit()
-        return make_response({
-            "task": {
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": bool(task.completed_at)
-            }
-        }
-        )
+        return make_response({ "task" : record_response(task) })
 
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
@@ -284,13 +242,7 @@ def handle_goal_with_tasks(goal_id):
     elif request.method == "GET":
         tasks = []
         for task in goal.tasks:
-            tasks.append({
-                "id": task.task_id,
-                "goal_id": task.goal_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": bool(task.completed_at)
-            })
+            tasks.append(record_response(task))
 
         return {
             "id": goal.goal_id,
