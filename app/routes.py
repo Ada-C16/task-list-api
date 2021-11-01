@@ -101,3 +101,18 @@ def mark_complete(task_id):
         "is_complete": task.is_complete
     }
     return jsonify(response_body)
+
+@task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_incomplete(task_id):
+    task = Task.query.get(task_id)
+    task.is_complete = False
+    db.session.commit()
+
+    response_body = {}
+    response_body["task"] = {
+        "id": task.id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": task.is_complete
+    }
+    return jsonify(response_body)
