@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, jsonify, request
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
@@ -137,17 +137,46 @@ def handle_goal(id):
     if not goal_id_exists(id):
         return "", 404
     goal = Goal.query.get(id)
+
     if request.method == "GET":
         return {"goal": goal.to_dict()}
+
     elif request.method == "PUT":
         request_body = request.get_json()
         goal.title = request_body["title"]
         db.session.commit()
         return {"goal": goal.to_dict()}, 200
+
     elif request.method == "DELETE":
         db.session.delete(goal)
         db.session.commit()
         return {"details": f"Goal {str(goal.goal_id)} \"{str(goal.title)}\" successfully deleted"}, 200
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"], strict_slashes=False)
+def handle_goals_and_tasks(goal_id):
+    goal_id = int(goal_id)
+    if not goal_id_exists(goal_id):
+        return "", 404
+
+    if request.method == "POST":
+        request_body = request.get_json()
+        task_ids = request_body["task_ids"]
+        for task_id in task_ids:
+            task = Task.query.get(task_id)
+            task.goal_id = goal_id
+            db.session.commit()
+        all_task_ids = []
+        for task in Task.query.filter(Task.goal_id == goal_id):
+            all_task_ids.append(task.task_id)
+        return {"id": goal_id, "task_ids": all_task_ids}, 200
+
+    elif request.method == "GET":
+        tasks = []
+        for task in Task.query.filter(Task.goal_id == goal_id):
+            tasks.append(task.to_dict())
+        goal_dict = Goal.query.get(goal_id).to_dict()
+        goal_dict["tasks"] = tasks
+        return goal_dict
 
 def goal_id_exists(id):
     id = int(id)

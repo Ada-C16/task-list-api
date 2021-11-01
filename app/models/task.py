@@ -7,13 +7,16 @@ class Task(db.Model):
     title = db.Column(db.String, nullable=False) # Not sure if I need to specify if these are nullable
     description = db.Column(db.String, nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'))
 
     def to_dict(self):
-        return {
+        response = {
             "id": self.task_id,
             "title": self.title,
             "description": self.description,
             "is_complete": bool(self.completed_at)
         }
-
-
+        if self.goal_id:
+            response["goal_id"] = self.goal_id
+        return response
+        
