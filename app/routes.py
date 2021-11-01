@@ -1,7 +1,8 @@
+from flask.wrappers import Response
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request, abort
-from datetime import datetime
+from datetime import date
 
 # Creates Blueprints
 
@@ -100,6 +101,37 @@ def delete_one_task(task_id):
 
     response_body = {
         "details": f'Task {task_id} "{task.title}" successfully deleted'
+    }
+
+    return jsonify(response_body)
+
+# Custom endpoints for Wave 03
+
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_task_as_complete(task_id):
+    task = get_task_from_id(task_id)
+
+    task.completed_at = date.today()
+
+    db.session.commit()
+
+    response_body = {
+        "task": task.to_dict()
+    }
+
+    return jsonify(response_body)
+
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_task_as_incomplete(task_id):
+    task = get_task_from_id(task_id)
+
+    task.completed_at = None
+
+    db.session.commit()
+
+    response_body = {
+        "task": task.to_dict()
     }
 
     return jsonify(response_body)
