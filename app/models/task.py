@@ -7,13 +7,14 @@ class Task(db.Model):
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     completed_at= db.Column(db.DateTime, nullable=True)
-
+#   create a local variable inside the function
     def to_dict(self):
-        if not self.completed_at:
-            self.completed_at = False
+
+        value = False
+
         return {
             "id": self.task_id,
             "title": self.title,
             "description": self.description,
-            "is_complete": self.completed_at,
+            "is_complete": True if self.completed_at else value
         }

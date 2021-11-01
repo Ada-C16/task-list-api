@@ -1,6 +1,6 @@
 from app import db
-from app.models import task
 from app.models.task import Task
+from datetime import datetime
 from flask import Blueprint, jsonify, make_response, request, abort
 
 task_bp = Blueprint('task', __name__, url_prefix="/tasks")
@@ -35,17 +35,21 @@ def create_task():
         abort(400)
 
 
+
 '''GET tasks - this function reads all tasks from databases
                 - this function handles searches of tasks by: title
 '''
 @task_bp.route("", methods=["GET"])
 def read_all_tasks():
 
-    task_title_query = request.args.get("title")
+    sort_by_title_query = request.args.get("sort")
     task_response = []
     try:
-        if task_title_query:
-            tasks = Task.query.filter_by(title= task_title_query)
+        if sort_by_title_query == "asc":
+            tasks = Task.query.order_by(Task.title.asc()).all()
+        elif sort_by_title_query == "desc":
+            tasks = Task.query.order_by(Task.title.desc()).all()
+        
         else:
             tasks = Task.query.all()
         for task in tasks:
@@ -119,6 +123,47 @@ def update_task(task_id):
         abort(400)
 
 
+# use a dynamic route to handle is complete and else 
+@task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_complete(task_id):
+    task =  get_task_by_id(task_id)
+    date = datetime.utcnow()
+
+    if task.completed_at == None:
+        task.completed_at = date
+
+    db.session.commit()
+
+    response_body = {
+            "task": task.to_dict()} 
+    return response_body
+    # except Exception:
+    #     abort(400)
+
+
+@task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_incomplete(task_id):
+    task =  get_task_by_id(task_id)
+    task.completed_at = None
+    
+    db.session.commit()
+
+    response_body = {
+            "task": task.to_dict()} 
+    return response_body
+    # except Exception:
+    #     abort(400)
+
+
+
+
+
+
+
+
+
+
+
 '''Error Handling'''
 
 @task_bp.errorhandler(404)
@@ -149,5 +194,3 @@ def valid_int(number, parameter_type):
         int(number)
     except:
         abort(make_response({"error": f'{parameter_type} must be an integer'}, 400))
-
-
