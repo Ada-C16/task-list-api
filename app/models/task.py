@@ -1,6 +1,6 @@
 from flask import current_app
 from app import db
-import slack 
+import requests 
 import os 
 
 class Task(db.Model):
@@ -29,8 +29,9 @@ class Task(db.Model):
         return task_dict 
 
     def post_to_slack(self):
-        client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
-        client.chat_postMessage(
-            channel='#slack-api-test-channel',
-            text=f"Someone just completed the task {self.title}" 
-        )
+        requests.post("https://slack.com/api/chat.postMessage", 
+        { "Authorization" : f"Bearer {os.environ.get('SLACK_TOKEN')}" }, 
+        { 
+            "channel" : '#slack-api-test-channel',
+            "text" : f"Someone just completed the task {self.title}",
+        })
