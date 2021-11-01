@@ -1,4 +1,6 @@
 import re
+
+from werkzeug.datastructures import HeaderSet
 from app import db
 from app.models.task import Task
 from flask import Blueprint, request, jsonify
@@ -29,7 +31,11 @@ def handle_tasks():
         }
         return jsonify(response), 201
     elif request.method == "GET":
-        tasks = Task.query.all()
+        sort_query = request.args.get("sort")
+        if sort_query:
+            tasks = Task.query.order_by(Task.title).all()
+        else: 
+            tasks = Task.query.all()
         
         response_body = []
         for task in tasks:
