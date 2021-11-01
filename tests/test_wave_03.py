@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 from datetime import datetime
-from app.models.task import Task
+from app.models.Task import Task
 
 
 def test_mark_complete_on_incomplete_task(client, one_task):

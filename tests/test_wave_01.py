@@ -1,4 +1,4 @@
-from app.models.task import Task
+from app.models.Task import Task
 
 
 def test_get_tasks_no_saved_tasks(client):
@@ -27,7 +27,6 @@ def test_get_tasks_one_saved_tasks(client, one_task):
             "is_complete": False
         }
     ]
-
 
 def test_get_task(client, one_task):
     # Act
