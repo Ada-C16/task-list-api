@@ -40,6 +40,7 @@ def test_get_task(client, one_task):
     assert response_body == {
         "task": {
             "id": 1,
+            "goal_id" : None,
             "title": "Go on my daily walk 🏞",
             "description": "Notice something new every day",
             "is_complete": False
