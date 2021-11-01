@@ -42,10 +42,14 @@ def handle_all_tasks():
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
       return jsonify({"details": "Invalid data"}), 400
     
+     
+    
     new_task = Task(
       title=request_body["title"], 
       description=request_body["description"],
       completed_at=request_body["completed_at"])
+    
+    
                   
     db.session.add(new_task)
     db.session.commit()
@@ -72,6 +76,7 @@ def handle_single_task(task_id):
   
       task.title=request_body["title"] 
       task.description=request_body["description"]
+      
   
       db.session.commit()
       
@@ -102,6 +107,25 @@ def mark_task_complete(task_id):
     task.completed_at = datetime.utcnow()
   
     db.session.commit()
+    
+    
+    response_body = {
+      "task": {
+        "id": task.task_id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": task.is_complete()
+      }
+    }
+    
+    path = "https://slack.com/api/chat.postMessage"
+    text = f"Someone completed the task {task.title}"
+    query_params = {
+      "channel": "task-notification",
+      "text": text,}
+    header = {
+      "Authorization": f"Bearer"
+    }
     return jsonify({"task": {
         "id": task.task_id,
         "title": task.title,
