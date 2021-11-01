@@ -2,6 +2,9 @@ from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
 from datetime import datetime, timezone
+import os
+from slack import WebClient
+from slack.errors import SlackApiError
 
 #create the blueprint for the endpoints
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -145,12 +148,18 @@ def delete_task(task_id):
         
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
+
+    #
+    slack_token = os.environ["SLACK_API_TOKEN"]
+    client = WebClient(token=slack_token)
+    #
+
     task = Task.query.get(task_id)
     if task is None:
         return make_response("Not Found", 404)
 
     #first get the task
-    response = {}
+    response_json = {}
     task_dict = {} 
 
     #check the competion of the task
@@ -163,11 +172,21 @@ def mark_complete(task_id):
     task_dict["title"]= task.title
     task_dict["description"]= task.description
     
-    response["task"] = task_dict
+    response_json["task"] = task_dict
 
     print(task.completed_at)
 
-    return make_response(response, 200)
+    #
+    try:
+        response = client.chat_postMessage(
+            channel="task-notifications",
+            text=f"Someone just completed the task {task_dict['title']} :tada:")
+    
+    except SlackApiError as e:
+    # You will get a SlackApiError if "ok" is False
+        assert e.response["error"]  # str like 'invalid_auth', 'channel_not_found'
+    # 
+    return make_response(response_json, 200)
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_incomplete(task_id):
