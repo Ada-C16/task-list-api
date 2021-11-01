@@ -1,12 +1,11 @@
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
+from datetime import datetime, timezone
 
 #create the blueprint for the endpoints
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
-
-#WAVE 1
 
 #Create a Task: Valid Task With null completed_at
 @tasks_bp.route("", methods=["POST"])
@@ -144,6 +143,73 @@ def delete_task(task_id):
 
 
         
-    
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_complete(task_id):
+    task = Task.query.get(task_id)
+    if task is None:
+        return make_response("Not Found", 404)
 
+    #first get the task
+    response = {}
+    task_dict = {} 
+
+    #check the competion of the task
+    # if task.completed_at is None:
+    #     #update it 
+    task.completed_at = datetime.now(timezone.utc)
+    task_dict["is_complete"]= True 
+
+    task_dict["id"]= task.task_id
+    task_dict["title"]= task.title
+    task_dict["description"]= task.description
     
+    response["task"] = task_dict
+
+    print(task.completed_at)
+
+    return make_response(response, 200)
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_incomplete(task_id):
+    task = Task.query.get(task_id)
+    if task is None:
+        return make_response("Not Found", 404)
+
+    response = {}
+    task_dict = {} 
+
+    # if task.completed_at is not None:
+    task.completed_at = None
+    
+    task_dict["id"]= task.task_id
+    task_dict["title"]= task.title
+    task_dict["description"]= task.description
+    task_dict["is_complete"]= False
+    
+    response["task"] = task_dict
+
+    print(task.completed_at)
+
+    return make_response(response, 200)
+
+# @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+# def mark_complete_on_complete_task(task_id):
+#     #first get the task
+#     task = Task.query.get(task_id)
+#     response = {}
+#     task_dict = {} 
+
+#     #check the competion of the task
+#     #update it 
+#     task.completed_at = datetime.now(timezone.utc)
+#     task_dict["is_complete"]= True 
+
+#     task_dict["id"]= task.task_id
+#     task_dict["title"]= task.title
+#     task_dict["description"]= task.description
+    
+#     response["task"] = task_dict
+
+#     print(task.completed_at)
+
+#     return make_response(response, 200)
