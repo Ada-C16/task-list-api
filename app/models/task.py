@@ -27,14 +27,3 @@ class Task(db.Model):
                     "description": self.description,
                     "is_complete": complete_status,
             }
-
-    def create_dict_with_goal(self):
-        complete_status = True if self.completed_at else False
-
-        return {
-                "id": self.task_id,
-                "goal_id": self.goal_id,
-                "title": self.title,
-                "description": self.description,
-                "is_complete": complete_status,
-        }

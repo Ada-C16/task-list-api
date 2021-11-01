@@ -144,11 +144,6 @@ def handle_all_goals():
             goals = Goal.query.filter_by(name=name_from_url).all()
             if not goals:
                 goals = Goal.query.filter(Goal.name.contains(name_from_url))
-        # sort_query = request.args.get("sort")     
-        # if sort_query == "desc":
-        #     goals = Goal.query.order_by(desc(Goal.title))
-        # elif sort_query == "asc":
-        #     goals = Goal.query.order_by(asc(Goal.title))
         else:
             goals = Goal.query.all()
             
@@ -192,21 +187,41 @@ def goals_by_id(goal_id):
         
         return jsonify(delete_message), 200
 
-@goals_bp.route("<goal_id>/tasks", methods=["GET", "POST"])
+@goals_bp.route("<goal_id>/tasks", methods=["GET"])
 def handle_goals_with_tasks(goal_id):
-    if request.method == "GET":
-        goal = Goal.query.get(goal_id)
+    goal = Goal.query.get(goal_id)
 
     if not goal:
         return jsonify(None), 404
 
-    goal_response = []
-    for task in goal.tasks:
-        goal_response.append(task.create_dict())
-            
-    final_response = {"id": goal.goal_id,
-                        "title": goal.title,
-                        "tasks": goal_response}
-    return jsonify(final_response), 200
+    if request.method == "GET":
+        goal_response = []
+        for task in goal.tasks:
+            goal_response.append(task.create_dict())
+                
+        final_response = {"id": goal.goal_id,
+                            "title": goal.title,
+                            "tasks": goal_response}
+        return jsonify(final_response), 200
 
- 
+@goals_bp.route("<goal_id>/tasks", methods=["POST"])
+def handle_goals_with_tasks_2(goal_id):
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return jsonify(None), 404
+    
+    if request.method == "POST":
+        form_data = request.get_json()
+        task_ids = form_data["task_ids"]
+        for id in task_ids:
+            task = Task.query.get(id)
+            if not task:
+                continue
+            task.goal = goal
+            db.session.commit()
+
+        response = {"id": goal.goal_id,
+                    "task_ids": task_ids}
+
+    return response
+    
