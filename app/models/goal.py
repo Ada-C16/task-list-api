@@ -1,5 +1,5 @@
-from flask import current_app
 from app import db
+from flask import request, current_app
 
 
 class Goal(db.Model):

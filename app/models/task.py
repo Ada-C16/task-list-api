@@ -1,6 +1,5 @@
-from flask import current_app
 from app import db
-
+from flask import request, current_app
 
 class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
@@ -27,3 +26,18 @@ class Task(db.Model):
                 "description": self.description,
                 "is_complete": complete_status,
             }
+
+    @classmethod
+    def from_json(cls):
+        request_body = request.get_json()
+
+        new_task = Task(title=request_body["title"],
+                        description=request_body["description"],
+                        completed_at=request_body["completed_at"]
+                        )
+        db.session.add(new_task)
+        db.session.commit()
+
+        # task_response = {"task": new_task.create_dict()}
+
+        return new_task

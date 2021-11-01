@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, jsonify, request
 from app.models.task import Task
 from app.models.goal import Goal
 from app import db
@@ -24,14 +24,7 @@ def handle_all_tasks():
             error_dict = {"details": "Invalid data"}
             return jsonify(error_dict), 400
 
-        new_task = Task(title=request_body["title"],
-                        description=request_body["description"],
-                        completed_at=request_body["completed_at"]
-                        )
-
-        db.session.add(new_task)
-        db.session.commit()
-
+        new_task = Task.from_json()
         task_response = {"task": new_task.create_dict()}
         return jsonify(task_response), 201
 
