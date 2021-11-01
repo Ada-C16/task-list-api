@@ -33,7 +33,10 @@ def handle_tasks():
     elif request.method == "GET":
         sort_query = request.args.get("sort")
         if sort_query:
-            tasks = Task.query.order_by(Task.title).all()
+            if sort_query == "asc":
+                tasks = Task.query.order_by(Task.title).all()
+            elif sort_query == "desc":
+                tasks = Task.query.order_by(Task.title.desc()).all()
         else: 
             tasks = Task.query.all()
         
