@@ -27,7 +27,7 @@ def create_goal():
     req = request.get_json()
 
     try:
-        new_goal = Goal(title=req["title"])
+        new_goal = Goal.new_from_dict(req)
     except KeyError:
         abort(400)
 

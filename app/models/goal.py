@@ -31,3 +31,9 @@ class Goal(db.Model):
     def update(self, goal_dict):
         self.title = goal_dict["title"]
         return self
+
+    @classmethod
+    def new_from_dict(cls, goal_dict):
+        return cls(
+            title=goal_dict["title"]
+        )
