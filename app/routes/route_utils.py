@@ -1,6 +1,4 @@
 from flask import abort, jsonify
-from app.models.task import Task
-from app.models.goal import Goal
 import os
 import requests
 
@@ -15,18 +13,6 @@ def is_valid_int(number):
 
 def handle_invalid_data():
     return jsonify({"details": "Invalid data"}), 400
-
-
-def get_task_by_id(id):
-    """Grab one task from the database by id and return it"""
-    is_valid_int(id)
-    return Task.query.get_or_404(id)
-
-
-def get_goal_by_id(id):
-    """Grab one goal from the database by id and return it"""
-    is_valid_int(id)
-    return Goal.query.get_or_404(id)
 
 
 def notify_slack_bot(task):

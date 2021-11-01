@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request, abort
 from app.models.goal import Goal
+from app.models.task import Task
 from app import db
-from app.routes.route_utils import get_goal_by_id, get_task_by_id, handle_invalid_data
+from app.routes.route_utils import handle_invalid_data
 
 goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
@@ -61,7 +62,7 @@ def read_goal(id):
             - 200 status code
             - JSON object representing goal with specified id
     """
-    goal = get_goal_by_id(id)
+    goal = Goal.get_goal_by_id(id)
     return jsonify({"goal": goal.to_dict()}), 200
 
 
@@ -80,7 +81,7 @@ def update_goal(id):
             - JSON object representing updated goal
     """
 
-    goal = get_goal_by_id(id)
+    goal = Goal.get_goal_by_id(id)
     req = request.get_json()
     try:
         goal.update(req)
@@ -103,7 +104,7 @@ def delete_goal(id):
             - 200 status code
             - JSON object with a message indicating goal was deleted
     """
-    goal = get_goal_by_id(id)
+    goal = Goal.get_goal_by_id(id)
     db.session.delete(goal)
     db.session.commit()
     response_body = {
@@ -126,11 +127,12 @@ def set_goal_tasks(goal_id):
             - 200 status code
             - JSON obejct representing the id of the goal and the tasks associated with it
     """
-    goal = get_goal_by_id(goal_id)
+    goal = Goal.get_goal_by_id(goal_id)
     req = request.get_json()
 
     try:
-        goal.tasks = [get_task_by_id(task_id) for task_id in req["task_ids"]]
+        goal.tasks = [Task.get_task_by_id(task_id)
+                      for task_id in req["task_ids"]]
     except KeyError:
         abort(400)
 
@@ -150,5 +152,5 @@ def get_tasks_by_goal(goal_id):
             - 200 status code
             - JSON object representing the goal and all of its specified tasks
     """
-    goal = get_goal_by_id(goal_id)
+    goal = Goal.get_goal_by_id(goal_id)
     return jsonify(goal.to_dict(include_tasks=True)), 200

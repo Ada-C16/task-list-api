@@ -3,7 +3,7 @@ from sqlalchemy import exc
 from app import db
 from app.models.task import Task
 from datetime import datetime, timezone
-from app.routes.route_utils import get_task_by_id, notify_slack_bot, handle_invalid_data
+from app.routes.route_utils import notify_slack_bot, handle_invalid_data
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -76,7 +76,7 @@ def read_task(id):
             - 200 status code
             - JSON object representing task with requested id
     """
-    task = get_task_by_id(id)
+    task = Task.get_task_by_id(id)
     return jsonify({"task": task.to_dict()}), 200
 
 
@@ -95,7 +95,7 @@ def update_task(id):
             - 200 status code
             - JSON object representing updated task data
     """
-    task = get_task_by_id(id)
+    task = Task.get_task_by_id(id)
     req = request.get_json()
 
     try:
@@ -119,7 +119,7 @@ def delete_task(id):
             - 200 status code
             - JSON object with a message indicating task was deleted
     """
-    task = get_task_by_id(id)
+    task = Task.get_task_by_id(id)
     db.session.delete(task)
     db.session.commit()
 
@@ -142,7 +142,7 @@ def mark_complete(id):
             - Task's completed_at attribute is changed to the current UTC time in the db
             - 200 status code
     """
-    task = get_task_by_id(id)
+    task = Task.get_task_by_id(id)
     task.completed_at = datetime.now(timezone.utc)
     db.session.commit()
 
@@ -164,7 +164,7 @@ def mark_incomplete(id):
             - JSON object representing updated task
             - Task's completed_at attribute is changed to None
     """
-    task = get_task_by_id(id)
+    task = Task.get_task_by_id(id)
     task.completed_at = None
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200

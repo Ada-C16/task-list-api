@@ -1,5 +1,6 @@
 from flask import current_app
 from app import db
+from app.routes.route_utils import is_valid_int
 
 
 class Goal(db.Model):
@@ -37,3 +38,9 @@ class Goal(db.Model):
         return cls(
             title=goal_dict["title"]
         )
+
+    @classmethod
+    def get_goal_by_id(cls, id):
+        """Grab one goal from the database by id and return it"""
+        is_valid_int(id)
+        return cls.query.get_or_404(id)
