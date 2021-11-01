@@ -32,19 +32,26 @@ def create_task():
     db.session.commit()
     response_body = {}
     response_body["task"] = new_task.to_dict()
-
     return jsonify(response_body), 201
 
 
 @tasks_bp.route("", methods=["GET"])
 def read_tasks():
+    tasks = Task.query.all()
+    response_body = []
+    sort_query = request.args.get("sort")
+
+    if sort_query == "asc":
+        tasks = Task.query.order_by(Task.title.asc())
+    elif sort_query == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
+    else:
         tasks = Task.query.all()
-        response_body = []
-        for task in tasks:
-            response_body.append(
-                task.to_dict())
         
-        return jsonify(response_body), 200
+    for task in tasks:
+        response_body.append(
+            task.to_dict())
+    return jsonify(response_body), 200
 
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
@@ -98,7 +105,8 @@ def delete_task(task_id):
 
     db.session.delete(task)
     db.session.commit()
-
     return jsonify({
         "details": response_str
         }), 200
+
+
