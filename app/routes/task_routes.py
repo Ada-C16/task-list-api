@@ -50,7 +50,7 @@ def create_task():
     try:
         new_task = Task(
             title=req["title"], description=req["description"], completed_at=req["completed_at"])
-    except:
+    except KeyError:
         abort(400)
 
     db.session.add(new_task)
@@ -96,7 +96,7 @@ def update_task(id):
     try:
         task.title = req["title"]
         task.description = req["description"]
-    except:
+    except KeyError:
         abort(400)
 
     db.session.commit()

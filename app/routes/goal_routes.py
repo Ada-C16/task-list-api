@@ -28,7 +28,7 @@ def create_goal():
 
     try:
         new_goal = Goal(title=req["title"])
-    except:
+    except KeyError:
         abort(400)
 
     db.session.add(new_goal)
@@ -84,7 +84,7 @@ def update_goal(id):
     req = request.get_json()
     try:
         goal.title = req["title"]
-    except:
+    except KeyError:
         abort(400)
 
     db.session.commit()
@@ -131,7 +131,7 @@ def set_goal_tasks(goal_id):
 
     try:
         goal.tasks = [get_task_by_id(task_id) for task_id in req["task_ids"]]
-    except:
+    except KeyError:
         abort(400)
 
     db.session.commit()

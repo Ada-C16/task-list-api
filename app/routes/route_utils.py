@@ -9,7 +9,7 @@ def is_valid_int(number):
     """Check for valid int and abort request with 400 if invalid"""
     try:
         int(number)
-    except:
+    except ValueError:
         abort(400)
 
 
