@@ -1,9 +1,14 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from app.models.goal import Goal
 from app import db
-from app.routes.route_utils import get_goal_by_id, get_task_by_id
+from app.routes.route_utils import get_goal_by_id, get_task_by_id, handle_invalid_data
 
 goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
+
+
+@goal_bp.errorhandler(400)
+def invalid_data(error):
+    return handle_invalid_data()
 
 
 @goal_bp.route("", methods=["POST"])
@@ -24,7 +29,7 @@ def create_goal():
     try:
         new_goal = Goal(title=req["title"])
     except:
-        return jsonify({"details": "Invalid data"}), 400
+        abort(400)
 
     db.session.add(new_goal)
     db.session.commit()
@@ -80,7 +85,7 @@ def update_goal(id):
     try:
         goal.title = req["title"]
     except:
-        return jsonify({"details": "Invalid data"}), 400
+        abort(400)
 
     db.session.commit()
     return jsonify({"goal": goal.to_dict()}), 200
@@ -127,7 +132,7 @@ def set_goal_tasks(goal_id):
     try:
         goal.tasks = [get_task_by_id(task_id) for task_id in req["task_ids"]]
     except:
-        return jsonify({"details": "Invalid data"}), 400
+        abort(400)
 
     db.session.commit()
     return jsonify(goal.to_basic_dict()), 200

@@ -1,4 +1,4 @@
-from flask import abort
+from flask import abort, jsonify
 from app.models.task import Task
 from app.models.goal import Goal
 import os
@@ -11,6 +11,10 @@ def is_valid_int(number):
         int(number)
     except:
         abort(400)
+
+
+def handle_invalid_data():
+    return jsonify({"details": "Invalid data"}), 400
 
 
 def get_task_by_id(id):

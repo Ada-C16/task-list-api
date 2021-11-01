@@ -1,12 +1,15 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from app import db
 from app.models.task import Task
 from datetime import datetime, timezone
-
-
-from app.routes.route_utils import get_task_by_id, notify_slack_bot
+from app.routes.route_utils import get_task_by_id, notify_slack_bot, handle_invalid_data
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+
+
+@task_bp.errorhandler(400)
+def invalid_data(error):
+    return handle_invalid_data()
 
 
 @task_bp.route("", methods=["GET"])
@@ -48,7 +51,7 @@ def create_task():
         new_task = Task(
             title=req["title"], description=req["description"], completed_at=req["completed_at"])
     except:
-        return jsonify({"details": "Invalid data"}), 400
+        abort(400)
 
     db.session.add(new_task)
     db.session.commit()
@@ -94,7 +97,7 @@ def update_task(id):
         task.title = req["title"]
         task.description = req["description"]
     except:
-        return jsonify({"details": "Invalid data"}), 400
+        abort(400)
 
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
