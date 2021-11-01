@@ -36,7 +36,7 @@ def handle_all_tasks():
         "id": task.task_id,
         "title": task.title,
         "description": task.description,
-        "is_complete": task.is_complete()
+        "is_complete": task.completed_at is not None
         })
     return jsonify(tasks_response), 200
   
@@ -51,11 +51,16 @@ def handle_all_tasks():
       description=request_body["description"],
       completed_at=request_body["completed_at"])
     
+    
              
     db.session.add(new_task)
     db.session.commit()
     
-    return jsonify(new_task), 200
+    return jsonify({"task": {
+        "id": new_task.task_id,
+        "title": new_task.title,
+        "description": new_task.description,
+        "is_complete": new_task.completed_at is not None}}), 201
   
 
 @tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE", "PATCH"])
@@ -95,6 +100,8 @@ def handle_single_task(task_id):
       {"details": f'Task {task.task_id} "{task.title}" successfully deleted'})
   
 
+# ********************* Tasks Mark Complete, Mark Incomplete ******************************
+
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_task_complete(task_id):
   
@@ -104,10 +111,15 @@ def mark_task_complete(task_id):
     return make_response("", 404)
     
   if request.method == "PATCH":
-    task.completed_at = datetime.now()
+    task.completed_at = datetime.utcnow()
   
     db.session.commit()
     
+    return jsonify({"task": {
+        "id": task.task_id,
+        "title": task.title,
+        "description": task.description,
+        "is_complete": task.is_complete()}}), 200
     
    
     # path = "https://slack.com/api/chat.postMessage"
@@ -127,12 +139,8 @@ def mark_task_complete(task_id):
     #   }
     # }
   
+
     
-    return jsonify({"task": {
-        "id": task.task_id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": task.is_complete()}}), 200
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_completed_task_incomplete(task_id):
@@ -187,9 +195,6 @@ def handle_all_goals():
       return make_response({"goal": {
           "id": goal.goal_id,
           "title": goal.title}}, 201)
-  
-  
-  
   
 
 @goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
