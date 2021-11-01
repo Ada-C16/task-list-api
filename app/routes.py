@@ -7,7 +7,7 @@ import requests
 import os
 from dotenv import load_dotenv
 from datetime import datetime
-load_dotenv()
+
 
 
 # ********************* TASK routes ******************************
@@ -110,37 +110,35 @@ def mark_task_complete(task_id):
   if task is None:
     return make_response("", 404)
     
-  if request.method == "PATCH":
-    task.completed_at = datetime.utcnow()
   
-    db.session.commit()
+  task.completed_at = datetime.utcnow()
+  
+  load_dotenv()
+  db.session.commit()
+  
+  # path = "https://slack.com/api/chat.postMessage"
+
+  # query_params = {
+  #   "token": os.getenv("BOT_TOKEN"),
+  #   "channel": "task-notification",
+  #   "text": f"Someone completed the task {task.title}"}
+
+  # response = requests.post(path, params=query_params)  
+
+  # response_body = {
+  #   "task": {
+  #     "id": 1,
+  #     "title": "my beautiful tasks",
+  #     "description": "fun stuff",
+  #     "completed_at": ""
+  #   }
+  # }
     
-    return jsonify({"task": {
+  return jsonify({"task": {
         "id": task.task_id,
         "title": task.title,
         "description": task.description,
         "is_complete": task.is_complete()}}), 200
-    
-   
-    # path = "https://slack.com/api/chat.postMessage"
-    # text = f"Someone completed the task {task.title}"
-    # query_params = {
-    #   "channel": "task-notification",
-    #   "text": text,}
-    # header = {
-    #   "Authorization": BOT_TOKEN}
-    # response = requests.post(path, params=query_params, headers=header)
-    # response_body = {
-    #   "task": {
-    #     "id": 1,
-    #     "title": "my beautiful tasks",
-    #     "description": "fun stuff",
-    #     "completed_at": ""
-    #   }
-    # }
-  
-
-    
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_completed_task_incomplete(task_id):
