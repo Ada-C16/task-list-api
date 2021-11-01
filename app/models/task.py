@@ -25,6 +25,13 @@ class Task(db.Model):
 
         return response
 
+    def update(self, task_dict):
+        self.title = task_dict["title"]
+        self.description = task_dict["description"]
+
+        if "completed_at" in task_dict:
+            self.completed_at = task_dict["completed_at"]
+
     @classmethod
     def new_from_dict(cls, task_dict):
         return cls(

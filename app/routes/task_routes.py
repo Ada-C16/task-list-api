@@ -99,8 +99,7 @@ def update_task(id):
     req = request.get_json()
 
     try:
-        task.title = req["title"]
-        task.description = req["description"]
+        task.update(req)
     except KeyError:
         abort(400)
 
