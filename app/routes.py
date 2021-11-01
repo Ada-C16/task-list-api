@@ -22,7 +22,16 @@ def handle_tasks():
     if request.method == "GET":
         # gets task by title
         task_title_query = request.args.get("title")
-        if task_title_query: 
+        sort_query = request.args.get("sort")
+        # sorts tasks by asc and desc title name
+        if sort_query:
+            if sort_query == "desc":
+                tasks = Task.query.order_by(Task.title.desc())
+            elif sort_query == "asc":
+                tasks = Task.query.order_by(Task.title.asc())
+        
+        # gets task by title
+        elif task_title_query: 
             tasks = Task.query.filter(title=task_title_query)
         # gets all tasks
         else: 
@@ -76,3 +85,33 @@ def handle_one_task(task_id):
         db.session.commit()
 
         return jsonify({"details": (f'Task {task.task_id} "{task.title}" successfully deleted')}), 200
+
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def handle_mark_complete(task_id):
+    task = Task.query.get(task_id)
+    # guard clause
+    if task is None:
+        return make_response("", 404)
+
+    # need to change date so it is "today's date"
+    # this is just an example date
+    task.completed_at = "09/15/2021"
+
+    return jsonify({"task": make_task_dict(task)}), 200
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def handle_mark_incomplete(task_id):
+    task = Task.query.get(task_id)
+    # guard clause
+    if task is None:
+        return make_response("", 404)
+
+    task.completed_at = None
+
+    return jsonify({"task": make_task_dict(task)}), 200
+    
+
+    
+
+
+    
