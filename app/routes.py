@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request, make_response, abort
 from app.models.task import Task
 from app import db
+from unittest.mock import Mock, patch
+from datetime import date
 
 task_bp = Blueprint("task", __name__, url_prefix="/tasks")
 
@@ -60,3 +62,24 @@ def handle_task(task_id):
         db.session.delete(task)
         db.session.commit()
         return jsonify({"details": f'Task {task.task_id} "{task.title}" successfully deleted'}), 200
+
+@task_bp.route("/<task_id>/mark_complete", methods = ["PATCH"])
+def completed_task(task_id):
+    task = Task.query.get(task_id)
+    today = date.today()
+    if not task:
+        abort(404)
+    else:
+        task.completed_at = today
+        db.session.commit()
+        return jsonify({"task": task.to_dict()}), 200
+
+@task_bp.route("/<task_id>/mark_incomplete", methods = ["PATCH"])
+def incompleted_task(task_id):
+    task = Task.query.get(task_id)
+    if not task:
+        abort(404)
+    else:
+        task.completed_at = None
+        db.session.commit()
+        return jsonify({"task": task.to_dict()}), 200
