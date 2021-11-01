@@ -2,12 +2,12 @@ from flask import Blueprint, make_response, request, jsonify
 from app.models.task import Task
 from app import db
 from datetime import date
-from slack import WebClient
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 import os
 
 # Blueprints
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
-# slack_bot_bp = Blueprint("slack_bot_bp", __name__, url_prefix="https://slack.com/api")
 
 # Helper Functions
 def get_task_with_task_id(task_id):
@@ -109,13 +109,15 @@ def delete_task(task_id):
 
     return jsonify({'details': f'Task {task.id} "{task.title}" successfully deleted'})
 
-# @slack_bot_bp("/chat.postMessage", methods = ["POST"])
 def post_slack_message(task):
-    slack_client = WebClient(token=os.environ.get("SLACK_TOKEN"))
+    slack_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 
-    slack_client.chat_postMessage(channel='#task-notifications',
-                                text=f'Someone just completed the task {task.title}')
+    try:
+        response = slack_client.chat_postMessage(channel="#task-notifications",
+                                text=f"Someone just completed the task {task.title}")
 
+    except SlackApiError as e:
+        assert e.response["error"]
 
 @task_bp.route("<task_id>/mark_complete", methods = ["PATCH"])
 def update_as_completion(task_id):
