@@ -25,7 +25,7 @@ def create_task():
         return make_response({"details" : "Invalid data"}, 400)
     
     if request_body["completed_at"] == None:
-        pass    
+        pass
     
     new_task = Task(
         title=request_body["title"],
@@ -43,7 +43,18 @@ def create_task():
 #READ
 @tasks_list_bp.route("", methods=["GET"])
 def read_all_tasks():
-    tasks = Task.query.all()
+    sort_query = request.args.get("sort")
+    
+    if sort_query == "asc":
+        tasks = Task.query.order_by(Task.title.asc())
+    
+    elif sort_query == "desc":
+        tasks = Task.query.order_by(Task.title.desc())
+    
+    else: 
+        tasks = Task.query.all()
+    
+
     tasks_response = []
     for task in tasks:
         tasks_response.append(task.to_dict())
@@ -55,7 +66,7 @@ def read_one_task(id):
     return make_response({"task" : task.to_dict()},200)
     
 
-
+#-----------------
 #UPDATE
 @tasks_list_bp.route("/<id>", methods=["PUT"]) 
 def update_task(id):
@@ -73,7 +84,7 @@ def update_task(id):
     
     return make_response({"task" : task.to_dict()},200)
 
-
+#-----------------
 #DELETE
 @tasks_list_bp.route("/<id>", methods=["DELETE"]) 
 def delete_task(id):
@@ -82,4 +93,4 @@ def delete_task(id):
     db.session.delete(task)
     db.session.commit()
     
-    return make_response({"details": f"Task {id} {task.description} successfully deleted"},200) 
+    return make_response({'details': f'Task {task.task_id} "{task.title}" successfully deleted'},200) 

@@ -13,7 +13,7 @@ class Task(db.Model):
             is_complete = False
         else:
             is_complete = True
-            #automatically makes "is_complete = False"
+            
         
         return {
             "id": self.task_id,
