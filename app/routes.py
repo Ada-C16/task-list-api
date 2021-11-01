@@ -10,6 +10,9 @@ from dotenv import load_dotenv
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
+# 
+# Start Tasks Routes
+# 
 @tasks_bp.route("", methods=["GET", "POST"])
 def handle_all_tasks():
     if request.method == "POST":
@@ -119,9 +122,9 @@ def task_incomplete(task_id):
         task_response = {"task": task.create_dict()}
         return jsonify(task_response), 200
 
-
+# 
 # Start Goals Routes
-
+# 
 @goals_bp.route("", methods=["GET", "POST"])
 def handle_all_goals():
     if request.method == "POST":
@@ -159,7 +162,7 @@ def handle_all_goals():
         return jsonify(goals_response)
 
 @goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
-def goals_by_id(goal_id):
+def handle_individual_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if not goal:
         return jsonify(None), 404
@@ -188,7 +191,7 @@ def goals_by_id(goal_id):
         return jsonify(delete_message), 200
 
 @goals_bp.route("<goal_id>/tasks", methods=["GET", "POST"])
-def handle_goals_with_tasks(goal_id):
+def handle_goal_with_tasks(goal_id):
     goal = Goal.query.get(goal_id)
 
     if not goal:
@@ -218,4 +221,3 @@ def handle_goals_with_tasks(goal_id):
                     "task_ids": task_ids}
 
         return jsonify(response), 200
-    

@@ -14,16 +14,16 @@ class Task(db.Model):
         complete_status = True if self.completed_at else False
         if self.goal_id is not None:
             return {
-                    "id": self.task_id,
-                    "goal_id": self.goal_id,
-                    "title": self.title,
-                    "description": self.description,
-                    "is_complete": complete_status,
+                "id": self.task_id,
+                "goal_id": self.goal_id,
+                "title": self.title,
+                "description": self.description,
+                "is_complete": complete_status,
             }
         else:
             return {
-                    "id": self.task_id,
-                    "title": self.title,
-                    "description": self.description,
-                    "is_complete": complete_status,
+                "id": self.task_id,
+                "title": self.title,
+                "description": self.description,
+                "is_complete": complete_status,
             }
