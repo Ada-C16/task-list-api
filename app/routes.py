@@ -191,3 +191,22 @@ def goals_by_id(goal_id):
         delete_message = {"details": delete_string}
         
         return jsonify(delete_message), 200
+
+@goals_bp.route("<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goals_with_tasks(goal_id):
+    if request.method == "GET":
+        goal = Goal.query.get(goal_id)
+
+    if not goal:
+        return jsonify(None), 404
+
+    goal_response = []
+    for task in goal.tasks:
+        goal_response.append(task.create_dict())
+            
+    final_response = {"id": goal.goal_id,
+                        "title": goal.title,
+                        "tasks": goal_response}
+    return jsonify(final_response), 200
+
+ 
