@@ -1,6 +1,7 @@
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
+from datetime import datetime
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -41,6 +42,9 @@ def handle_tasks():
 
         new_task = Task(title=title, description=description, completed_at=completed_at)
 
+        if new_task.completed_at:
+            new_task.is_complete = True
+
         db.session.add(new_task)
         db.session.commit()
 
@@ -71,6 +75,9 @@ def handle_task(task_id):
         task.title = request_body["title"]
         task.description = request_body["description"]
 
+        if request_body.get("completed_at"):
+            task.is_complete = True
+
         db.session.commit()
 
         return jsonify({"task" : {
@@ -83,3 +90,39 @@ def handle_task(task_id):
         db.session.delete(task)
         db.session.commit()
         return jsonify({"details" : f'Task {task.task_id} "{task.title}" successfully deleted'})
+
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_tasks_complete(task_id):
+    task = Task.query.get(task_id)
+
+    if task is None:
+        return jsonify(None), 404
+
+    task.is_complete = True
+    task.completed_at = datetime.utcnow()
+
+    return jsonify({ "task" : {
+        "id" : task.task_id,
+        "title" : task.title,
+        "description" : task.description,
+        "is_complete" : task.is_complete
+    }}), 200
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_tasks_incomplete(task_id):
+    task = Task.query.get(task_id)
+
+    if task is None:
+        return jsonify(None), 404
+
+    # request_body = request.get_json()
+
+    task.is_complete = False
+    task.completed_at = None
+
+    return jsonify({ "task" : {
+        "id" : task.task_id,
+        "title" : task.title,
+        "description" : task.description,
+        "is_complete" : task.is_complete
+    }}), 200
