@@ -8,6 +8,7 @@ import os
 
 # Blueprints
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
+goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
 
 # Helper Functions
 def get_task_with_task_id(task_id):
@@ -140,3 +141,4 @@ def update_as_incompletion(task_id):
 
     db.session.commit()
     return make_response({"task": task.to_dict()}, 200)
+
