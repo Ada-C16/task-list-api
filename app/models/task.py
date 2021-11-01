@@ -1,6 +1,7 @@
 from flask import current_app
 from app import db
-
+import slack 
+import os 
 
 class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -8,3 +9,24 @@ class Task(db.Model):
     description = db.Column(db.String, nullable=False)
     completed_at = db.Column(db.DateTime, default=None, nullable=True)
     goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable=True)
+
+    def to_json(self):
+        task_dict = {
+            "id": self.task_id,
+            "goal_id" : self.goal_id,
+            "title": self.title,
+            "description": self.description,
+            "is_complete": False,
+        }
+
+        if self.completed_at != None:
+            task_dict["is_complete"] = True   
+
+        return task_dict 
+
+    def post_to_slack(self):
+        client = slack.WebClient(token=os.environ.get("SLACK_TOKEN"))
+        client.chat_postMessage(
+            channel='#slack-api-test-channel',
+            text=f"Someone just completed the task {self.title}" 
+        )

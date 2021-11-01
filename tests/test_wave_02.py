@@ -9,16 +9,19 @@ def test_get_tasks_sorted_asc(client, three_tasks):
     assert response_body == [
         {
             "id": 2,
+            "goal_id" : None,
             "title": "Answer forgotten email 📧",
             "description": "",
             "is_complete": False},
         {
             "id": 3,
+            "goal_id" : None,
             "title": "Pay my outstanding tickets 😭",
             "description": "",
             "is_complete": False},
         {
             "id": 1,
+            "goal_id" : None,
             "title": "Water the garden 🌷",
             "description": "",
             "is_complete": False}
@@ -37,16 +40,19 @@ def test_get_tasks_sorted_desc(client, three_tasks):
         {
             "description": "",
             "id": 1,
+            "goal_id" : None,
             "is_complete": False,
             "title": "Water the garden 🌷"},
         {
             "description": "",
             "id": 3,
+            "goal_id" : None,
             "is_complete": False,
             "title": "Pay my outstanding tickets 😭"},
         {
             "description": "",
             "id": 2,
+            "goal_id" : None,
             "is_complete": False,
             "title": "Answer forgotten email 📧"},
     ]
