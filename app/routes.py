@@ -24,9 +24,6 @@ def create_task():
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
         return make_response({"details" : "Invalid data"}, 400)
     
-    if request_body["completed_at"] == None:
-        pass
-    
     new_task = Task(
         title=request_body["title"],
         description=request_body["description"], 
@@ -37,7 +34,7 @@ def create_task():
     db.session.commit()
 
         
-    return make_response("201 CREATED", 201) 
+    return make_response(jsonify({"task": new_task.to_dict()}), 201)
 
 #-----------------
 #READ
@@ -85,6 +82,13 @@ def update_task(id):
     return make_response({"task" : task.to_dict()},200)
 
 #-----------------
+#UPDATE
+@tasks_list_bp.route("/<id>", methods=["PATCH"])
+def mark_complete(id):
+    pass
+    
+
+#-----------------
 #DELETE
 @tasks_list_bp.route("/<id>", methods=["DELETE"]) 
 def delete_task(id):
@@ -94,3 +98,4 @@ def delete_task(id):
     db.session.commit()
     
     return make_response({'details': f'Task {task.task_id} "{task.title}" successfully deleted'},200) 
+
