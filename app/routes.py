@@ -90,6 +90,8 @@ def handle_task(task_id):
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
     task = Task.query.get(task_id)
+    if task is None:
+        return jsonify(), 404
     task.is_complete = True
     db.session.commit()
     
@@ -105,6 +107,8 @@ def mark_complete(task_id):
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_incomplete(task_id):
     task = Task.query.get(task_id)
+    if task is None:
+        return jsonify(), 404
     task.is_complete = False
     db.session.commit()
 
