@@ -5,7 +5,6 @@ from app import db
 # Blueprint
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
 
-
 # Helper functions
 def get_goal_with_goal_id(goal_id):
     return Goal.query.get_or_404(goal_id, description={"details": "Invalid data"})
@@ -62,6 +61,9 @@ def update_all_goal_info(goal_id):
     goal = get_goal_with_goal_id(goal_id)
     request_body = request.get_json()
 
+    if request_body is None:
+        return make_response({"details": "Invalid data"}, 400)
+
     if "id" in request_body:
         goal.id = request_body["id"]
 
@@ -93,4 +95,4 @@ def delete_goal(goal_id):
     db.session.delete(goal)
     db.session.commit()
 
-    return jsonify({'details': f'Task {goal.id} "{goal.title}" successfully deleted'})
+    return jsonify({'details': f'Goal {goal.id} "{goal.title}" successfully deleted'})
