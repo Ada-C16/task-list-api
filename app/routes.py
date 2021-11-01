@@ -14,8 +14,10 @@ def tasks():
     if sort_query:
         if sort_query == "asc":
             tasks = Task.query.order_by("title") 
-        else:
+        elif sort_query == "desc": 
             tasks = Task.query.order_by(desc("title")) 
+        else:
+            tasks = Task.query.all()
     else: 
         tasks = Task.query.all()
 
@@ -59,20 +61,11 @@ def update_task(task_id):
     request_data = request.get_json()
     task.title = request_data["title"]
     task.description = request_data["description"]
-    if not task.completed_at:
-        completed_or_not = False
-    else:
-        completed_or_not = True 
-
     db.session.commit()
 
-    task_dict = {
-            "id": task.task_id,
-            "goal_id" : task.goal_id,
-            "title": request_data["title"],
-            "description": request_data["description"],
-            "is_complete": completed_or_not 
-        }
+    task_dict = task.to_json(
+        title=request_data["title"], 
+        description=request_data["description"])
 
     return jsonify({ "task" : task_dict }), 200
 
@@ -99,7 +92,7 @@ def mark_task_complete_or_incomplete(task_id, completion_mark):
 
     if completion_mark == "mark_complete":
         task.completed_at = date.today()
-        task.post_to_slack()
+        # task.post_to_slack()
     elif completion_mark == "mark_incomplete":
         task.completed_at = None 
 
@@ -142,14 +135,9 @@ def update_goal(goal_id):
     
     request_data = request.get_json()
     goal.title = request_data["title"]
-
     db.session.commit()
 
-    goal_dict = {
-        "id": goal.goal_id,
-        "title": request_data["title"],
-    }
-    return jsonify({ "goal" : goal_dict }), 200
+    return jsonify({ "goal" : goal.to_json(request_data["title"]) }), 200
 
 
 @goals_bp.route("/<goal_id>", methods=["DELETE"])

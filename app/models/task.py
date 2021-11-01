@@ -10,7 +10,7 @@ class Task(db.Model):
     completed_at = db.Column(db.DateTime, default=None, nullable=True)
     goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable=True)
 
-    def to_json(self):
+    def to_json(self, title=None, description=None):
         task_dict = {
             "id": self.task_id,
             "goal_id" : self.goal_id,
@@ -19,7 +19,11 @@ class Task(db.Model):
             "is_complete": False,
         }
 
-        if self.completed_at != None:
+        if title:
+            task_dict["title"] = title
+        if description:
+            task_dict["description"] = description 
+        if self.completed_at:
             task_dict["is_complete"] = True   
 
         return task_dict 
