@@ -2,6 +2,7 @@ from flask import Blueprint
 from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request, abort
+from datetime import datetime
 # make response works well for when you want to turn a dict into json
 # otherwise jsonify is better to use bc it will always jsonify
 
@@ -102,3 +103,23 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
     return make_response({"details":f'Task {task.task_id} "{task.title}" successfully deleted'}), 200
+
+# Wave 3/new endpoints updates task as complete
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def update_task_completion(task_id):
+    task= get_task_from_id(task_id)
+    task.is_complete=True
+    task.completed_at = datetime.now()
+    db.session.commit()
+    return jsonify({"task": task.to_dict()}), 200
+
+# route that will mark item as incomplete
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def update_task_incomplete(task_id):
+    task= get_task_from_id(task_id)
+    
+    task.is_complete=False
+    task.completed_at=None
+    # db.session.add(task)
+    db.session.commit()
+    return jsonify({"task": task.to_dict()}), 200
