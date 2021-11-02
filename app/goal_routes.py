@@ -7,7 +7,7 @@ import os
 
 goal_bp = Blueprint("goal",__name__, url_prefix="/goals")
 
-#Helper Functions 
+#HELPER FUNCTIONS
 def check_for_valid_int(number, parameter_type):
     try:
         int(number)
@@ -20,7 +20,7 @@ def get_goal_from_id(goal_id):
     return Goal.query.get_or_404(goal_id, description="{goal not found}")
 
 
-#Routes
+#ROUTES
 @goal_bp.route("", methods=["GET"])
 def read_all_goals():
 
@@ -35,7 +35,7 @@ def read_all_goals():
     return jsonify(goal_response)
 
 
-# Create one goal
+# CREATE ONE GOAL
 @goal_bp.route("", methods=["POST"])
 def create_goals():
     request_body = request.get_json()
@@ -52,7 +52,7 @@ def create_goals():
     return make_response({"goal":new_goal.to_dict()}, 201)
 
 
-#Get one goal with id 
+#GET ONE GOAL WITH ID 
 @goal_bp.route("/<goal_id>", methods=["GET"])
 def read_goal(goal_id):
     goal = get_goal_from_id(goal_id)
