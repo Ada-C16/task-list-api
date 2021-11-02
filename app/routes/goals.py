@@ -30,8 +30,9 @@ def create_goal():
 
         return make_response(jsonify(response_body),201)
     
-    except Exception:
+    except:
         abort(422)
+
 
 
 #GET - read all goals 
@@ -39,11 +40,39 @@ def create_goal():
 def read_all_goals():
     goals = Goal.query.all()
     response_body = []
-    for goal in goals:
-        response_body.append(goal.to_dict())     
+    try:
+        for goal in goals:
+            response_body.append(goal.to_dict())     
         return  make_response(jsonify(response_body), 200)
+    
+    except:
+        abort(400)
+
+# GET one goal by id
+@goal_bp.route('/<goal_id>', methods = ['GET'])
+def read_one_goal(goal_id):
+    goal = get_goal_by_id(goal_id)
+
+    try:
+        response_body = {"goal": goal.to_dict() }
+        return make_response(jsonify(response_body)), 200
+
+    except Exception: 
+        abort(400)
 
 
+@goal_bp.route('/<goal_id>', methods = ['DELETE'])
+def delete_goal(goal_id):
+    goal = get_goal_by_id(goal_id)
+    try:
+        db.session.delete(goal)
+        db.session.commit()
+        response_body ={"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
+
+        return make_response(response_body), 200
+
+    except Exception:
+        abort(422)
 
 
 '''Error Handling - Handles 402/400/422 errors'''
