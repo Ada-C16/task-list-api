@@ -104,21 +104,19 @@ def mark_task_complete(task_id):
 
     db.session.commit()
 
-    response_body = {"task": task.to_dict()}
-    return jsonify(response_body), 200
-
     # Slack bot
-    bot_token = os.environ.get("BOT_API_TOKEN")
+    bot_token = os.environ.get('BOT_API_TOKEN')
     url= 'https://slack.com/api/chat.postMessage'
     channel_code = 'C02KYFE1LQH'
     payload = {
         "token":bot_token,
         "channel":channel_code,
-        "text":"Testing endpoint!"
+        "text":"Testing route! This is cool!"
     }
-    r = requests.post(url, data=payload)
+    requests.post(url, data=payload)
 
-# Q: do we need to write another route for posting the slock bot message?
+    response_body = {"task": task.to_dict()}
+    return jsonify(response_body), 200
 
 # Mark incomplete on a completed task
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
