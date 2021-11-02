@@ -1,12 +1,14 @@
 from flask import Blueprint, json, jsonify, request
 from .models.task import Task
 from .models.goal import Goal
-from app import db
+from app import db, create_app
 from datetime import datetime
 import requests
 from dotenv import load_dotenv
 import os
 from .models.messages import *
+import slack #reinstall as slackclient if import error
+
 load_dotenv()
 
 slack_url_prefix = "https://slack.com/api/"
@@ -17,6 +19,7 @@ slack_api_key = os.environ.get("SLACK_API_KEY")
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
+slack_bp = Blueprint("slack", __name__, url_prefix="/slack")
 
 @tasks_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
@@ -237,5 +240,33 @@ def handle_goal_tasks(goal_id):
             "task_ids": request_body["task_ids"]
         }, 200
 
+# respond to /task command in slack
+@slack_bp.route("/tasks", methods=["POST"])
+def handle_slack_task():
+    
+    data = request.form
+    print(data)
+    title=data.get('text')
 
+    if not title: 
+        return {
+            "response_type" : "ephemeral",
+            "text": "You forgot to enter the title of your task."
+        }, 200
+
+    new_task = Task(
+        title=title,
+        )
         
+    db.session.add(new_task)
+    db.session.commit()
+
+    # client = slack.WebClient(token=slack_api_key)
+    # client.chat_postMessage(channel=task_notifications_channel, text="You made a request to the Slack Tasks endpoint")
+
+    return {
+        "response_type" : "in_channel",
+        "text": f"New task '{title}'' created"
+    }, 200
+
+#respond to /goal command in slack
