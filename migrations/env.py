@@ -31,7 +31,7 @@ target_metadata = current_app.extensions['migrate'].db.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-postgres://imkbyricbmyqkn:8028faec410789d12135393f081dc262892cc3d3efbc8b06b9110f328d0a3f2e@ec2-54-198-252-9.compute-1.amazonaws.com:5432/dafju2isbv0ag8
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
