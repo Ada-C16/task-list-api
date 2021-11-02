@@ -121,7 +121,7 @@ def handle_goals():
             goals_list.append({"id": goal.goal_id,
                                "title": goal.title})
         return jsonify(goals_list)
-        
+
     elif request.method == 'POST':
         request_body = request.get_json()
         new_goal = Goal(title=request_body["title"])
@@ -130,3 +130,14 @@ def handle_goals():
         db.session.commit()
         return make_response({"goal": {"id": new_goal.goal_id,
                                        "title": new_goal.title}}, 201)
+
+@goals_bp.route('/<goal_id>', methods=['GET'])
+def handle_one_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return jsonify(goal), 404
+    elif request.method == 'GET':
+        return {"goal": 
+                    {"id": goal.goal_id, 
+                     "title": goal.title}
+               }
