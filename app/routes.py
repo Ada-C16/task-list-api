@@ -3,6 +3,11 @@ from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request, abort
 from datetime import date
+import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Creates Blueprints
 
@@ -110,10 +115,22 @@ def delete_one_task(task_id):
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_task_as_complete(task_id):
     task = get_task_from_id(task_id)
-
     task.completed_at = date.today()
-
     db.session.commit()
+
+    token = os.environ.get('SLACK_API_TOKEN')
+    channel_id = os.environ.get('SLACK_CHANNEL_ID')
+    slack_url = 'https://slack.com/api/chat.postMessage'
+
+    headers = {
+        'Authorization': f"Bearer {token}"
+        }
+    params = {
+        'channel': channel_id,
+        'text': f"Someone just completed the task {task.title}"
+        }
+
+    requests.post(slack_url, headers=headers, data=params)
 
     response_body = {
         "task": task.to_dict()
@@ -125,9 +142,7 @@ def mark_task_as_complete(task_id):
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_task_as_incomplete(task_id):
     task = get_task_from_id(task_id)
-
     task.completed_at = None
-
     db.session.commit()
 
     response_body = {
