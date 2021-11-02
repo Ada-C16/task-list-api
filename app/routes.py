@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, make_response, request, abort
 from werkzeug.exceptions import RequestEntityTooLarge
 from app import db
 from app.models.task import Task
+from app.models.goal import Goal
 import datetime
 import requests
 from dotenv import load_dotenv
@@ -10,6 +11,7 @@ import os
 load_dotenv()
 
 task_bp = Blueprint("task", __name__, url_prefix="/tasks")
+goal_bp = Blueprint("goals", __name__,url_prefix="/goals")
 
 # HELPER FUNCTION
 def valid_int(number, parameter_type):
@@ -22,7 +24,11 @@ def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description="{task not found}")
 
-# ROUTES
+def get_goal_from_id(goal_id):
+    valid_int(goal_id, "goal_id")
+    return Goal.query.get_or_404(goal_id)
+
+# TASK ROUTES
 
 # Create a task
 @task_bp.route("", methods=["POST"])
@@ -106,14 +112,14 @@ def mark_task_complete(task_id):
 
     # Slack bot
     bot_token = os.environ.get('BOT_API_TOKEN')
+    channel_code = os.environ.get('CHANNEL_CODE')
     url= 'https://slack.com/api/chat.postMessage'
-    channel_code = 'C02KYFE1LQH'
-    payload = {
+    param = {
         "token":bot_token,
         "channel":channel_code,
-        "text":"Testing route! This is cool!"
+        "text":"Testing route. Very cool!"
     }
-    requests.post(url, data=payload)
+    requests.post(url, data=param)
 
     response_body = {"task": task.to_dict()}
     return jsonify(response_body), 200
@@ -128,3 +134,66 @@ def mark_task_incomplete(task_id):
 
     response_body = {"task": task.to_dict()}
     return jsonify(response_body), 200
+
+# GOAL ROUTES
+
+# Create a goal
+@goal_bp.route("", methods=["POST"])
+def create_goal():
+    request_body = request.get_json()
+    if "title" not in request_body:
+        return {"details": "Invalid data"}, 400
+
+    new_goal = Goal(
+        title = request_body["title"]
+    )
+
+    db.session.add(new_goal)
+    db.session.commit()
+
+    response_body = {"goal":new_goal.to_dict_goal()}
+
+    return jsonify(response_body), 201
+
+# Read all goals
+@goal_bp.route("", methods=["GET"])
+def read_all_goals():
+    goals = Goal.query.all()
+    goals_response = []
+    for goal in goals:
+        goals_response.append(
+            goal.to_dict_goal()
+        )
+
+    return jsonify(goals_response), 200
+
+# Get one goal
+@goal_bp.route("/<goal_id>", methods=["GET"])
+def read_one_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    response_body = {"goal":goal.to_dict_goal()}
+    return jsonify(response_body),200
+
+# Update goal
+@goal_bp.route("/<goal_id>", methods=["PUT"])
+def update_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    request_body = request.get_json()
+    if "title" not in request_body:
+        return {"message":"Request requires a title"}, 400
+    else:
+        goal.title = request_body["title"]
+       
+        db.session.commit()
+
+        response_body = {"goal":goal.to_dict_goal()}
+        return jsonify(response_body), 200
+
+# Delete goal by id
+@goal_bp.route("/<goal_id>", methods=["DELETE"])
+def delete_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    db.session.delete(goal)
+    db.session.commit()
+  
+    return {'details': f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
