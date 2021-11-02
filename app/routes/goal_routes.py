@@ -62,14 +62,13 @@ def read_one_goal(goal_id):
     goal = get_goal_from_id(goal_id)
     return make_response({"goal": goal.to_dict()}, 200)
 
-# @task_bp.route("/<task_id>", methods=["PUT"])
-# def update_task(task_id):
-#     task = get_task_from_id(task_id)
-#     request_body = request.get_json()
-#     task.title=request_body["title"]
-#     task.description=request_body["description"]
-#     db.session.commit()
-#     return make_response({"task": task.to_dict()}, 200)
+@goal_bp.route("/<goal_id>", methods=["PUT"])
+def update_task(goal_id):
+    goal = get_goal_from_id(goal_id)
+    request_body = request.get_json()
+    goal.title=request_body["title"]
+    db.session.commit()
+    return make_response({"goal": goal.to_dict()}, 200)
 
 @goal_bp.route("/<goal_id>", methods=["DELETE"])
 def delete_goal(goal_id):
