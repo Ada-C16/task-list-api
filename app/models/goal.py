@@ -1,7 +1,5 @@
 from flask import current_app
 from app import db
-from .message import Message
-
 
 class Goal(db.Model):
     goal_id = db.Column(db.Integer, primary_key=True)
@@ -22,10 +20,3 @@ class Goal(db.Model):
             "title": self.title,
             "tasks": [ task.to_dict_with_relationship() for task in self.tasks ]
         }
-
-    @classmethod
-    def validate_id(cls, id):
-        return Message.validate_id(cls, id)
-
-    def success(self, status_code):
-        return Message.success(self, status_code)
