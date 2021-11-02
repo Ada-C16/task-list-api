@@ -23,7 +23,7 @@ class Task(db.Model):
             "is_complete": self.is_complete()
             }
         
-        if self.goal_id != None:
+        if self.goal_id:
             new_dict['goal_id'] = self.goal_id
         
         return new_dict

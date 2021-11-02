@@ -5,7 +5,7 @@ from app import db
 class Goal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String)
-    task_ids = db.relationship('Task', backref='goal', lazy=True)
+    tasks = db.relationship('Task', backref='goal', lazy=True)
 
     def to_dict(self):
         new_dict = {
@@ -13,7 +13,7 @@ class Goal(db.Model):
             "title": self.title
             }
         
-        if self.task_ids != []:
-            new_dict['task_ids'] = self.task_ids
+        if self.tasks:
+            new_dict['tasks'] = self.tasks
 
         return new_dict

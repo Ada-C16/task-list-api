@@ -1,6 +1,8 @@
 from flask import Blueprint, make_response, request, jsonify
 from app.models.goal import Goal
+from app.models.task import Task
 from app import db
+
 
 # Blueprint
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
@@ -101,6 +103,19 @@ def delete_goal(goal_id):
 @goal_bp.route("/<goal_id>/tasks", methods = ["POST"])
 def post_task_to_goal(goal_id):
     goal = get_goal_with_goal_id(goal_id)
-    request_body = request.get_json()
 
+    request_body = request.get_json()
+    if "task_ids" not in request_body or None in request_body:
+        return make_response({"details": "Invalid data"}, 400)
+
+    goal.task.append([request_body["task_ids"]])
+    db.session.commit()
     
+    return jsonify(goal.to_dict()), 200
+
+
+@goal_bp.route("/<goal_id>/tasks", methods = ["GET"])
+def get_task_for_goal(goal_id):
+    goal = get_goal_with_goal_id(goal_id)
+
+    return jsonify({"goal": goal.to_dict()})
