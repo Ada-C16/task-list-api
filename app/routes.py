@@ -232,4 +232,33 @@ def delete_one_goal(goal_id):
 
 # Wave 06 Nested Routes
 
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def create_tasks_for_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    request_body = request.get_json()
 
+    if "task_ids" not in request_body:
+        response_body = "Invalid data"
+        return jsonify(response_body), 400
+    
+    for task_id in request_body["task_ids"]:
+        task = get_task_from_id(task_id)
+        if task not in goal.tasks:
+            goal.tasks.append(task)
+
+    db.session.commit()
+
+    response_body = {
+        "id": goal.id,
+        "task_ids": [task.id for task in goal.tasks]
+    }
+
+    return jsonify(response_body)
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+def read_tasks_for_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+
+    response_body = goal.to_dict_with_tasks()
+
+    return jsonify(response_body)
