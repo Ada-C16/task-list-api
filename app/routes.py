@@ -1,3 +1,5 @@
+from datetime import datetime
+from operator import truediv
 from flask import Blueprint, jsonify, request, make_response
 from flask_sqlalchemy import _make_table
 from app import db
@@ -44,11 +46,17 @@ def handle_one_task(task_id):
 
     if not task: 
         return make_response("", 404)
-        
-    if request.method == "GET":
 
+    if request.method == "GET":
         response_body = create_task_body(task)
         return jsonify(response_body), 200
+
+    elif request.method == "DELETE":
+        db.session.delete(task)
+        db.session.commit()
+
+        return jsonify(create_details(f"Task {task.task_id} \"{task.title}\" successfully deleted"
+        )), 200 
 
     elif request.method == "PUT":
         updated_task_information = request.get_json()
@@ -58,14 +66,25 @@ def handle_one_task(task_id):
         db.session.commit()
 
         response_body = create_task_body(task)
-
         return jsonify(response_body), 200
 
-    elif request.method == "DELETE":
-        db.session.delete(task)
-        db.session.commit()
-        return jsonify(create_details(f"Task {task.task_id} \"{task.title}\" successfully deleted"
-        )), 200 
+@tasks_bp.route("/<task_id>/<completion_status>", methods = ["PATCH"])
+def mark_completion_status(task_id, completion_status):
+    task = Task.query.get(task_id)
+
+    if not task: 
+        return make_response("", 404)
+    
+    if completion_status == "mark_complete":
+        task.completed_at = datetime.utcnow()
+
+    elif completion_status == "mark_incomplete":
+        task.completed_at = None
+
+    db.session.commit()
+
+    response_body = create_task_body(task)
+    return jsonify(response_body), 200
 
 ### Helper functions ###
 
@@ -74,7 +93,10 @@ def is_complete(task):
 
     if not task.completed_at:
         is_complete = False
-    
+
+    else:
+        is_complete = True
+
     return is_complete
 
 def create_task_body(task):
