@@ -9,8 +9,8 @@ class Task(db.Model):
     completed_at= db.Column(db.DateTime, nullable=True)
     # one goal has many tasks - this model is the child model
     # we place the foreign key on the child model refering the parent
-    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'))
-    
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable=True)
+    goal = db.relationship("Goal", back_populates="tasks")
 
 
     def to_dict(self):

@@ -1,15 +1,13 @@
 from app import db
 from app.models.goal import Goal
+from app.models.task import Task
 from datetime import datetime
 from flask import Blueprint, jsonify, make_response, request, abort
-
-
 
 goal_bp =  Blueprint('goals', __name__, url_prefix= "/goals")
 
 
-
-# POST- create a new  goal
+# POST create a new  goal
 @goal_bp.route('', methods = ['POST'])
 def create_goal():
     request_body = request.get_json()
@@ -33,9 +31,7 @@ def create_goal():
     except:
         abort(422)
 
-
-
-#GET - read all goals 
+#GET read all goals 
 @goal_bp.route('', methods = ['GET'])
 def read_all_goals():
     goals = Goal.query.all()
@@ -60,7 +56,7 @@ def read_one_goal(goal_id):
     except Exception: 
         abort(400)
 
-
+# DELETE one goal by id
 @goal_bp.route('/<goal_id>', methods = ['DELETE'])
 def delete_goal(goal_id):
     goal = get_goal_by_id(goal_id)
@@ -74,6 +70,7 @@ def delete_goal(goal_id):
     except Exception:
         abort(422)
 
+# UPDATE one goal by id
 @goal_bp.route("/<goal_id>", methods=["PUT"])
 def update_goal(goal_id):
     goal = get_goal_by_id(goal_id)
@@ -97,12 +94,41 @@ def update_goal(goal_id):
         abort(400)
 
 
+''' -------- GOAL/TASK RELATIONSHIP --------'''
+
+
+# POST
+@goal_bp.route("/<goal_id>/tasks", methods= ['POST'])
+def handle_tasks_goals(goal_id):
+    goal = get_goal_by_id(goal_id)
+    goal_id = goal.goal_id
+
+    try:  
+        request_body =  request.get_json()
+        
+        if not request_body:
+            abort(400)
+            
+        if "task_ids" in request_body:
+            task_ids = request_body["task_ids"]
+            for item in task_ids:
+                task = Task.query.get_or_404(item)
+                task.goal_id = goal_id
+                db.session.commit()
+
+        response_body = {"id": goal_id,
+                        "task_ids": [int(item) for item in task_ids]}
+        
+        return make_response(response_body, 200)
+        
+    except Exception:
+        abort(422)
 
 
 
 
 
-'''Error Handling - Handles 402/400/422 errors'''
+'''------  Error Handling - Handles 402/400/422 errors ------- '''
 
 @goal_bp.errorhandler(404)
 def not_found(error):
@@ -118,8 +144,7 @@ def unprocessable(error):
 
 
 
-
-''' Helper functions '''
+''' --------- Helper functions ---------'''
 
 def get_goal_by_id(goal_id):
     valid_int(goal_id, "goal_id")

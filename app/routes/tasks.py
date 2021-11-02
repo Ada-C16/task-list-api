@@ -159,13 +159,6 @@ def mark_incomplete(task_id):
 
 
 
-
-
-
-
-
-
-
 '''Error Handling'''
 
 @task_bp.errorhandler(404)
