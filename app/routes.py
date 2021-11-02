@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, make_response, request
 from app.models.task import Task
+from app.models.goal import Goal
 from app import db
 from datetime import datetime, timezone
 import requests
@@ -21,7 +22,14 @@ def is_parameter_found(parameter_id):
         return is_input_valid(parameter_id)
     elif Task.query.get(parameter_id) is None:
         return make_response(f"{parameter_id} was not found!", 404)
+    
+def is_goal_parameter_found(parameter_id):
+    if is_input_valid(parameter_id):
+        return is_input_valid(parameter_id)
+    elif Goal.query.get(parameter_id) is None:
+        return make_response(f"{parameter_id} was not found!", 404)
 
+#TASK ROUTES
 @tasks_bp.route("", methods=["POST"])
 def create_task():
     request_body = request.get_json()
@@ -60,7 +68,7 @@ def read_tasks():
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
 def read_task(task_id):
-    if is_parameter_found(task_id) is not None:
+    if is_parameter_found(task_id):
         return is_parameter_found(task_id)
     task = Task.query.get(task_id)
     task_response = {}
@@ -70,7 +78,7 @@ def read_task(task_id):
 
 @tasks_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
-    if is_parameter_found(task_id) :
+    if is_parameter_found(task_id):
         return is_parameter_found(task_id)
 
     task = Task.query.get(task_id)
@@ -145,5 +153,80 @@ def delete_task(task_id):
         "details": response_str
         }), 200
 
+#GOAL ROUTES 
 
 
+@goals_bp.route("", methods=["POST"])
+def create_goal():
+    request_body = request.get_json()
+    if "title" not in request_body:
+        return jsonify({"details": "Invalid data"}), 400
+
+    new_goal = Goal(title=request_body["title"],
+                    )
+
+    db.session.add(new_goal)
+    db.session.commit()
+    response_body = {}
+    response_body["goal"] = new_goal.to_dict()
+    return jsonify(response_body), 201
+
+
+@goals_bp.route("", methods=["GET"])
+def read_goals():
+    goals = Goal.query.all()
+    response_body = []
+    sort_query = request.args.get("sort")
+
+    if sort_query == "asc":
+        goals = Goal.query.order_by(Goal.title.asc())
+    elif sort_query == "desc":
+        goals = Goal.query.order_by(Goal.title.desc())
+    else:
+        goals = Goal.query.all()
+        
+    for goal in goals:
+        response_body.append(
+            goal.to_dict())
+    return jsonify(response_body), 200
+
+
+@goals_bp.route("/<goal_id>", methods=["GET"])
+def read_goal(goal_id):
+    if is_goal_parameter_found(goal_id):
+        return is_goal_parameter_found(goal_id)
+    goal = Goal.query.get(goal_id)
+    goal_response = {}
+    goal_response["goal"] = goal.to_dict()
+    return jsonify(goal_response), 200
+
+
+@goals_bp.route("/<goal_id>", methods=["PUT"])
+def update_goal(goal_id):
+    if is_goal_parameter_found(goal_id):
+        return is_goal_parameter_found(goal_id)
+
+    goal = Goal.query.get(goal_id)
+    request_body = request.get_json()
+    goal.title = request_body["title"]
+    
+    db.session.commit()
+
+    response_body = {}
+    response_body["goal"] = goal.to_dict()
+    return jsonify(response_body), 200
+
+
+@goals_bp.route("/<goal_id>", methods=["DELETE"])
+def delete_goal(goal_id):
+    if is_goal_parameter_found(goal_id):
+        return is_goal_parameter_found(goal_id)
+    goal = Goal.query.get(goal_id)
+    goal_title = goal.title
+    response_str = f'Goal {goal_id} "{goal_title}" successfully deleted'
+
+    db.session.delete(goal)
+    db.session.commit()
+    return jsonify({
+        "details": response_str
+    }), 200
