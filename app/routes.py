@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, make_response, request
 from app import db
 from app.models.task import Task
 from datetime import datetime
+import requests
+from app import SLACK_TOKEN
 
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -72,12 +74,21 @@ def handle_one_task(task_id):
         return make_response({"details": f"Task {task.task_id} \"{task.title}\" successfully deleted"})
 
 @tasks_bp.route('/<task_id>/mark_complete', methods=['PATCH'])
-def from_incomplete_to_complete(task_id):
+def mark_complete(task_id):
     task = Task.query.get(task_id)
     if task is None: 
         return jsonify(task), 404
     else: 
         task.completed_at = datetime.now()
+        url = 'https://slack.com/api/chat.postMessage'
+        channel_id = "C02J08B9S0N"
+        data = {
+                "channel": channel_id,
+                "token": SLACK_TOKEN,
+                "text": "Monica, is that you?? You hella forgot what you named your bot -_-"
+               }
+        r = requests.post(url, data=data)
+        
     db.session.commit()
     return make_response({"task": {"id": task.task_id,
                                    "title": task.title,
@@ -86,7 +97,7 @@ def from_incomplete_to_complete(task_id):
                                   }})
 
 @tasks_bp.route('/<task_id>/mark_incomplete', methods=['PATCH'])
-def from_complete_to_incomplete(task_id):
+def mark_incomplete(task_id):
     task = Task.query.get(task_id)
     if task is None:
         return jsonify(task), 404
