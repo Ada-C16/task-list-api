@@ -270,3 +270,23 @@ def handle_slack_task():
     }, 200
 
 #respond to /goal command in slack
+@slack_bp.route("/goals", methods=["POST"])
+def handle_slack_goal():
+
+    data = request.form
+    title = data.get('text')
+
+    if not title:
+        return {
+            "response_type" : "ephemeral",
+            "text" : "You forgot to enter the title of your goal."
+        }
+
+    new_goal = Goal(title=title)
+    db.session.add(new_goal)
+    db.session.commit()
+
+    return {
+        "response_type" : "in_channel",
+        "text" : f"New goal '{title}' created"
+    }
