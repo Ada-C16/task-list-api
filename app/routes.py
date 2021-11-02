@@ -36,7 +36,7 @@ def post_tasks():
 
     db.session.add(new_task)
     db.session.commit()
-    id = new_task.task_id
+    
 
     return {"task": new_task.to_dict()
     }, 201
