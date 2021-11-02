@@ -15,8 +15,6 @@ def get_goal_with_goal_id(goal_id):
 # Routes
 @goal_bp.route("", methods = ["GET"])
 def get_all_goals():
-    """Read all goals"""
-
     sort_query = request.args.get("sort")
 
     if sort_query == "asc":
@@ -35,8 +33,6 @@ def get_all_goals():
 
 @goal_bp.route("", methods = ["POST"])
 def add_goals():
-    """Add goal to database"""
-
     request_body = request.get_json()
     if request_body is None:
         return make_response({"details": "Invalid data"}, 400)
@@ -101,21 +97,28 @@ def delete_goal(goal_id):
 
 
 @goal_bp.route("/<goal_id>/tasks", methods = ["POST"])
-def post_task_to_goal(goal_id):
+def post_task_list_to_goal(goal_id):
     goal = get_goal_with_goal_id(goal_id)
-
     request_body = request.get_json()
-    if "task_ids" not in request_body or None in request_body:
+
+    if "task_ids" not in request_body:
         return make_response({"details": "Invalid data"}, 400)
 
-    goal.task.append([request_body["task_ids"]])
+    for task_id in request_body["task_ids"]:
+        task = Task.query.get(task_id)    
+        goal.tasks.append(task)
+    
     db.session.commit()
     
-    return jsonify(goal.to_dict()), 200
+    return {
+        "id": int(goal_id),
+        "task_ids": request_body["task_ids"]}
 
 
 @goal_bp.route("/<goal_id>/tasks", methods = ["GET"])
 def get_task_for_goal(goal_id):
     goal = get_goal_with_goal_id(goal_id)
+    pass
 
-    return jsonify({"goal": goal.to_dict()})
+
+    #return jsonify({"goal": goal.to_dict()})

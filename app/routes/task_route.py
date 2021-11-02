@@ -17,8 +17,6 @@ def get_task_with_task_id(task_id):
 # Routes
 @task_bp.route("", methods = ["POST"])
 def add_books():
-    """Add new books to database"""
-
     request_body = request.get_json()
     if request_body is None:
         return make_response({"details": "Invalid data"}, 400)
@@ -40,8 +38,6 @@ def add_books():
 
 @task_bp.route("", methods = ["GET"])
 def read_all_tasks():
-    """Read all tasks"""
-
     sort_query = request.args.get("sort")
 
     if sort_query == "asc":
