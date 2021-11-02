@@ -14,3 +14,8 @@ class Goal(db.Model):
             "id" : self.goal_id,
             "title" : self.title,   
         }
+    
+        
+    def concate_goal_key_to_a_dict_with_return_code(self, code=None):
+        return {"goal": self.convert_a_goal_to_dict()}, code
+    

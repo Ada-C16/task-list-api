@@ -22,6 +22,16 @@ class Task(db.Model):
         if goal_id:
             res["goal_id"] = self.goal_id
         return res
+    
+
+    def concate_task_key_to_a_dict_with_return_code(self, code=None):
+        if self.goal_id:
+            return {"task": self.convert_a_task_to_dict(self.goal_id)}, code
+        else:
+            return {"task": self.convert_a_task_to_dict()}, code
+    
+
+
 
 
 
