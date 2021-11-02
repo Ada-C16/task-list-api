@@ -88,6 +88,7 @@ def handle_one_task_at_a_time(task_id):
             return {
                 "task":{
                 "id": task.id,
+                "goal_id": task.goal_id,
                 "title": task.title,
                 "description": task.description,
                 "is_complete": task.completed_at is not None
@@ -283,6 +284,7 @@ def handle_one_goal_at_time(goal_id):
 @goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
 def handle_goals_tasks(goal_id):
     goal = Goal.query.get(goal_id)
+
     if goal is None:
         return jsonify(None), 404
     
@@ -312,16 +314,18 @@ def handle_goals_tasks(goal_id):
     elif request.method == "GET":
         if goal.tasks is None:
             jsonify(None), 404
+        
 
         tasks = []
         for task in goal.tasks:
             tasks.append({
                 "id": task.id,
-                "goal_id": task.goal_id,
+                "goal_id": goal.goal_id,
                 "title": task.title,
                 "description": task.description,
-                "is_completed": task.completed_at is not None
+                "is_complete": task.completed_at is not None
                 })
+        
 
         goal_response = {
             "id": goal.goal_id,
@@ -329,7 +333,13 @@ def handle_goals_tasks(goal_id):
             "tasks": tasks
         }
 
+        print("*************")
+        print(goal_response)
         return jsonify(goal_response), 200
+
+
+
+
 
 
 

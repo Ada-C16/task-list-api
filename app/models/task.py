@@ -7,18 +7,14 @@ class Task(db.Model):
     title = db.Column(db.String)
     description = db.Column(db.String)
     completed_at = db.Column(db.DateTime, nullable=True)
-    goal_id = db.Column(db.Integer, db.ForeignKey("goal.goal_id"))
+    goal_id = db.Column(db.Integer, db.ForeignKey("goal.goal_id"), nullable=True)
     goal = db.relationship("Goal", back_populates="tasks")
 
 
-    # Create Helper Function for completed_at/is_complete
-    # def task_completion(self, completed_at):
-    #     if completed_at == datetime.utcnow():
-    #         "is_complete" = True
-    #     else:
-    #         "is_complete" = False
-    #     return "is_complete"
-    #     pass
+# Create helper function for task dictionary
+
+
+# Create helper function for "completed_at"
 
 
     
