@@ -12,6 +12,7 @@ load_dotenv()
 # Creates Blueprints
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 # Helper Functions
 
@@ -150,3 +151,5 @@ def mark_task_as_incomplete(task_id):
     }
 
     return jsonify(response_body)
+
+# Goal routes for wave 05
