@@ -22,29 +22,31 @@ def get_tasks():
         return jsonify([]), 200
 
     sort_query = request.args.get("sort", default="asc") 
-    if sort_query == "asc":
-        all_tasks = Task.query.order_by(asc(Task.title)).all()
-    elif sort_query == "desc":
+    if sort_query == "desc":
         all_tasks = Task.query.order_by(desc(Task.title)).all()
+    else:
+        all_tasks = Task.query.order_by(asc(Task.title)).all()
 
-    tasks_response = []
-    for task in all_tasks:
-        tasks_response.append(task.convert_a_task_to_dict())
+    tasks_response = [task.convert_a_task_to_dict()for task in all_tasks]
     return jsonify(tasks_response), 200
 
 @task_bp.route("", methods=["POST"])
 def post_a_task():
     request_body = request.get_json()
 
-    try: 
+    try:   # ** helper func ?
+        if type(request_body["completed_at"]) == str:
+            datetime_completed_at = from_str_to_datetime(request_body["completed_at"])
+        else:
+            datetime_completed_at = request_body["completed_at"]
+
         new_task = Task(title=request_body["title"],
                         description=request_body["description"],
-                        completed_at=request_body["completed_at"])
+                        completed_at=datetime_completed_at)
         
         db.session.add(new_task)
         db.session.commit()
 
-        # return {"task" : new_task.convert_a_task_to_dict()}, 201
         return new_task.concate_task_key_to_a_dict_with_return_code(201)
     except KeyError:
         return keyError_message()
@@ -100,9 +102,7 @@ def get_goals():
     if not goals:
         return jsonify([]), 200
     else:
-        response = []
-        for goal in goals:
-            response.append(goal.convert_a_goal_to_dict())
+        response = [goal.convert_a_goal_to_dict() for goal in goals]
         return jsonify(response), 200
 
 @goal_bp.route("", methods=["POST"])
@@ -134,6 +134,7 @@ def put_a_goal_with_id(goal_id):
 
         db.session.commit()
         return goal.concate_goal_key_to_a_dict_with_return_code(200)
+
     except:
         return make_response("missing require fields")
 
@@ -149,9 +150,7 @@ def delete_a_goal_with_id(goal_id):
 def relating_a_list_of_taskIDs_to_a_goal(goal_id):
     goal = Goal.query.get_or_404(goal_id)
     tasks_with_specific_goal_id = Task.query.filter_by(goal_id=goal_id).all()
-    tasks_list = []
-    for task in tasks_with_specific_goal_id:
-        tasks_list.append(task.convert_a_task_to_dict(goal_id))
+    tasks_list = [task.convert_a_task_to_dict(goal_id) for task in tasks_with_specific_goal_id]
 
     goal_dict = goal.convert_a_goal_to_dict()
     goal_dict["tasks"] = tasks_list
@@ -171,11 +170,7 @@ def post_a_list_of_taskIDs_to_a_goal(goal_id):
     goal.task = task_ids_list
     
     db.session.commit()
-    
-    return {
-        "id" : goal_id,
-        "task_ids" : task_ids_list
-    }, 200
+    return goal.goal_id_with_task_list(task_ids_list, 200)
 
 
 

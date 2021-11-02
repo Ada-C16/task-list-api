@@ -15,6 +15,13 @@ class Goal(db.Model):
             "title" : self.title,   
         }
     
+    def goal_id_with_task_list(self, task_ids_list, code):
+        return {
+        "id" : self.goal_id,
+        "task_ids" : task_ids_list
+        }, code
+
+
         
     def concate_goal_key_to_a_dict_with_return_code(self, code=None):
         return {"goal": self.convert_a_goal_to_dict()}, code
