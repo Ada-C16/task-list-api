@@ -18,6 +18,12 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 def success_message(type, db_item, status_code):
+    
+    if type=="task" and db_item.goal_id:
+        return jsonify({
+            type : db_item.to_dict_with_relationship()
+        }), status_code
+    
     return jsonify({
             type : db_item.to_dict()
         }), status_code
@@ -226,3 +232,37 @@ def handle_goal(goal_id):
         db.session.commit()
 
         return jsonify({ "details" : f'Goal {goal_id} "{goal.title}" successfully deleted'})
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goal_tasks(goal_id):
+
+    id_error = validate_id(Goal, goal_id)
+
+    if id_error:
+        return id_error
+
+    if request.method == "GET":
+
+        goal = Goal.query.get(goal_id)
+
+        return jsonify(goal.to_dict_with_relationship())
+
+    elif request.method == "POST":
+        
+        request_body = request.get_json()
+
+        if "task_ids" not in request_body:
+            return invalid_data_message()
+
+        for task_id in request_body["task_ids"]:
+            task = Task.query.get(task_id)
+            task.goal_id = goal_id
+            db.session.commit()
+
+        return {
+            "id": int(goal_id),
+            "task_ids": request_body["task_ids"]
+        }, 200
+
+
+        
