@@ -7,6 +7,7 @@ from app import slack_key
 import requests
 
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
+goals_bp = Blueprint('goals', __name__, url_prefix='/goals')
 
 @tasks_bp.route('', methods=['GET', 'POST'])
 def handle_tasks():
