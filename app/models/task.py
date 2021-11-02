@@ -7,11 +7,15 @@ class Task(db.Model):
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     completed_at= db.Column(db.DateTime, nullable=True)
-#   create a local variable inside the function
+    # one goal has many tasks - this model is the child model
+    # we place the foreign key on the child model refering the parent
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'))
+    
+
+
     def to_dict(self):
 
         value = False
-
         return {
             "id": self.task_id,
             "title": self.title,
