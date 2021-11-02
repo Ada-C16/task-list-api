@@ -41,7 +41,7 @@ def handle_tasks():
         return make_response({"task": new_task.to_dict()}, 201)
 
 
-@task_bp.route("/<task_id>", methods=["GET", "DELETE", "PUT", "PATCH"])
+@task_bp.route("/<task_id>", methods=["GET", "DELETE", "PUT"])
 def handle_task(task_id):
     task = Task.query.get(task_id)
     if request.method == "GET":
@@ -61,6 +61,7 @@ def handle_task(task_id):
         task.title = request_body["title"] if "title" in request_body else task.title
         task.description = request_body["description"] if "description" in request_body else task.description
         task.completed_at = request_body["completed_at"] if "completed_at" in request_body else task.completed_at
+        db.session.commit()
         return make_response({"task": task.to_dict()}, 200)
 
 
@@ -118,6 +119,7 @@ def handle_goal(goal_id):
             return make_response("", 404)
         request_body = request.get_json()
         goal.title = request_body["title"] if "title" in request_body else goal.title
+        db.session.commit()
         return make_response({"goal": goal.to_dict()}, 200)
 
 
