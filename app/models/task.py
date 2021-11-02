@@ -1,7 +1,5 @@
 from flask import current_app
 from app import db
-from datetime import datetime
-
 
 class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -18,11 +16,10 @@ class Task(db.Model):
             "is_complete": False
         }
         
-        
         return {
             "id": self.task_id,
             "title": self.title,
             "description": self.description,
-            "is_complete": self.completed_at
+            "is_complete": True
         }
 
