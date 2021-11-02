@@ -9,6 +9,7 @@ import requests
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
+
 @tasks_bp.route("", methods=["POST", "GET"])
 def handle_tasks():
     if request.method == "POST":
@@ -47,7 +48,10 @@ def handle_tasks():
 def handle_task(task_id):
     task = Task.query.get_or_404(task_id)
     if request.method == "GET":
-        return jsonify(task=task.to_json()), 200
+        if task.goal_id:
+            return jsonify(task=task.to_json_task()), 200
+        else:
+            return jsonify(task=task.to_json()), 200
 
     elif request.method == "PUT":
         request_body = request.get_json()
@@ -68,7 +72,6 @@ def handle_task_complete(task_id):
     task.completed_at = datetime.now()
     db.session.commit()
     return jsonify(task=task.to_json()), 200
-
 
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
@@ -93,7 +96,6 @@ def handle_task_incomplete(task_id):
 
 
 # goals
-
 @goals_bp.route("", methods=["POST", "GET"])
 def handle_goals():
     if request.method == "POST":
@@ -144,24 +146,25 @@ def handle_goals_tasks(goal_id):
     if request.method == "POST":
         request_body = request.get_json()
         task_list = request_body["task_ids"]
-        
+
         for task_id in task_list:
             task = Task.query.get(task_id)
             task.goal = goal
 
         db.session.commit()
         return {
-                "id": goal.goal_id,
-                "task_ids": task_list
+            "id": goal.id,
+            "task_ids": task_list
         }, 200
-        
+
     elif request.method == "GET":
         tasks = goal.tasks
         task_response = []
         for task in tasks:
             task_response.append(task.to_json_task())
+
         return {
-            "id":  goal.goal_id,
+            "id":  goal.id,
             "title": goal.title,
             "tasks": task_response
         }, 200
