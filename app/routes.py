@@ -115,7 +115,7 @@ def mark_tasks_complete(task_id):
         "text" : f"Someone just completed the task {task.title}"
     }
 
-    requests.get(PATH, params=query_params)
+    requests.post(PATH, params=query_params)
 
     return jsonify({ "task" : {
         "id" : task.task_id,
