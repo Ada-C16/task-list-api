@@ -36,9 +36,7 @@ def handle_tasks():
         db.session.add(new_task)
         db.session.commit()
 
-        return "succes"
-
-        # return success_message("task", new_task, 201)
+        return new_task.success(201)
 
     elif request.method == "GET":
 
@@ -69,9 +67,7 @@ def handle_task(task_id):
 
     if request.method == "GET":
         
-        return "success"
-
-        # return success_message("task", task, 200)
+        return task.success(200)
 
     elif request.method == "DELETE":
 
@@ -98,150 +94,148 @@ def handle_task(task_id):
 
         db.session.commit()
 
-        return "success"
+        return task.success(200)
 
-        # return success_message("task", task, 200)
-
-# @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
-# def handle_task_complete(task_id):
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def handle_task_complete(task_id):
     
-#     id_error = Task.validate_id(task_id)
-#     if id_error:
-#         return id_error
+    id_error = Task.validate_id(task_id)
+    if id_error:
+        return id_error
 
-#     task = Task.query.get(task_id)
+    task = Task.query.get(task_id)
 
-#     task.completed_at = datetime.today()
+    task.completed_at = datetime.today()
 
-#     db.session.commit()
+    db.session.commit()
 
-#     # notify via slack
-#     # set headers
-#     headers = {
-#         "Authorization" : f"Bearer {slack_api_key}"
-#     }
+    # notify via slack
+    # set headers
+    headers = {
+        "Authorization" : f"Bearer {slack_api_key}"
+    }
 
-#     params = {
-#         "channel" : task_notifications_channel,
-#         "text" : f"Someone just completed the task {task.title}"
-#     }
+    params = {
+        "channel" : task_notifications_channel,
+        "text" : f"Someone just completed the task {task.title}"
+    }
 
-#     slack_api_action = "chat.postMessage"
+    slack_api_action = "chat.postMessage"
 
-#     url = slack_url_prefix + slack_api_action
+    url = slack_url_prefix + slack_api_action
 
-#     try:
-#         response = requests.post(url, params=params, headers=headers)
-#         r_json = response.json()
-#         if not r_json["ok"]:
-#             return Message.invalid_data()
-#     except requests.exceptions.RequestException as e:
-#         return "Something went wrong when posting a message to Slack.", 404
+    try:
+        response = requests.post(url, params=params, headers=headers)
+        r_json = response.json()
+        if not r_json["ok"]:
+            return Message.invalid_data()
+    except requests.exceptions.RequestException as e:
+        return "Something went wrong when posting a message to Slack.", 404
 
-#     return success_message("task", task, 200)
+    return task.success(200)
 
-# @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
-# def handle_task_incomplete(task_id):
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def handle_task_incomplete(task_id):
     
-#     id_error = Task.validate_id(task_id)
-#     if id_error:
-#         return id_error
+    id_error = Task.validate_id(task_id)
+    if id_error:
+        return id_error
 
-#     task = Task.query.get(task_id)
+    task = Task.query.get(task_id)
 
-#     task.completed_at = None
+    task.completed_at = None
 
-#     db.session.commit()
+    db.session.commit()
 
-#     return success_message("task", task, 200)
+    return task.success(200)
 
-# @goals_bp.route("", methods=["GET", "POST"])
-# def handle_goals():
+@goals_bp.route("", methods=["GET", "POST"])
+def handle_goals():
 
-#     if request.method == "POST":
+    if request.method == "POST":
 
-#         request_body = request.get_json()
+        request_body = request.get_json()
 
-#         if "title" not in request_body:
-#             return Message.invalid_data()
+        if "title" not in request_body:
+            return Message.invalid_data()
         
-#         new_goal = Goal(title=request_body["title"])
+        new_goal = Goal(title=request_body["title"])
 
-#         db.session.add(new_goal)
-#         db.session.commit()
+        db.session.add(new_goal)
+        db.session.commit()
 
-#         return success_message("goal", new_goal, 201)
+        return new_goal.success(201)
 
-#     elif request.method == "GET":
+    elif request.method == "GET":
         
-#         goals = Goal.query.all()
+        goals = Goal.query.all()
 
-#         return jsonify([goal.to_dict() for goal in goals])
+        return jsonify([goal.to_dict() for goal in goals])
 
-# @goals_bp.route("/<goal_id>", methods=["DELETE", "PUT", "GET"])
-# def handle_goal(goal_id):
+@goals_bp.route("/<goal_id>", methods=["DELETE", "PUT", "GET"])
+def handle_goal(goal_id):
 
-#     id_error = Goal.validate_id(goal_id)
+    id_error = Goal.validate_id(goal_id)
 
-#     if id_error:
-#         return id_error
+    if id_error:
+        return id_error
 
-#     goal = Goal.query.get(goal_id)
+    goal = Goal.query.get(goal_id)
 
-#     if request.method == "GET":
+    if request.method == "GET":
 
-#         return success_message("goal", goal, 200)
+        return goal.success(200)
 
-#     elif request.method == "PUT":
+    elif request.method == "PUT":
 
-#         request_body = request.get_json()
+        request_body = request.get_json()
 
-#         if "title" not in request_body:
-#             return Message.invalid_data()
+        if "title" not in request_body:
+            return Message.invalid_data()
 
-#         goal.title = request_body["title"]
+        goal.title = request_body["title"]
 
-#         db.session.commit()
+        db.session.commit()
 
-#         return success_message("goal", goal, 200)
+        return goal.success(200)
 
-#     elif request.method == "DELETE":
+    elif request.method == "DELETE":
 
-#         db.session.delete(goal)
-#         db.session.commit()
+        db.session.delete(goal)
+        db.session.commit()
 
-#         return jsonify({ "details" : f'Goal {goal_id} "{goal.title}" successfully deleted'})
+        return jsonify({ "details" : f'Goal {goal_id} "{goal.title}" successfully deleted'})
 
-# @goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
-# def handle_goal_tasks(goal_id):
+@goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goal_tasks(goal_id):
 
-#     id_error = Goal.validate_id(goal_id)
+    id_error = Goal.validate_id(goal_id)
 
-#     if id_error:
-#         return id_error
+    if id_error:
+        return id_error
 
-#     if request.method == "GET":
+    if request.method == "GET":
 
-#         goal = Goal.query.get(goal_id)
+        goal = Goal.query.get(goal_id)
 
-#         return jsonify(goal.to_dict_with_relationship())
+        return jsonify(goal.to_dict_with_relationship())
 
-#     elif request.method == "POST":
+    elif request.method == "POST":
         
-#         request_body = request.get_json()
+        request_body = request.get_json()
 
-#         if "task_ids" not in request_body:
-#             return Message.invalid_data()
+        if "task_ids" not in request_body:
+            return Message.invalid_data()
 
-#         for task_id in request_body["task_ids"]:
-#             task = Task.query.get(task_id)
-#             task.goal_id = goal_id
-#             db.session.commit()
+        for task_id in request_body["task_ids"]:
+            task = Task.query.get(task_id)
+            task.goal_id = goal_id
+            db.session.commit()
 
-#         return {
-#             "id": int(goal_id),
-#             "task_ids": request_body["task_ids"]
-#         }, 200
+        return {
+            "id": int(goal_id),
+            "task_ids": request_body["task_ids"]
+        }, 200
 
 
         

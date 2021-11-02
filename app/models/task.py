@@ -32,3 +32,6 @@ class Task(db.Model):
     @classmethod
     def validate_id(cls, id):
         return Message.validate_id(cls, id)
+
+    def success(self, status_code):
+        return Message.success(self, status_code)

@@ -3,17 +3,17 @@ from flask import jsonify
 class Message():
 
     @staticmethod
-    def success_message(self, status_code):
+    def success(item, status_code):
 
-        class_name = str(type(self).__name__)
+        class_name = str(type(item).__name__).lower()
 
-        if class_name=="task" and self.goal_id:
+        if class_name=="task" and item.goal_id:
             return jsonify({
-                class_name : self.to_dict_with_relationship()
+                class_name : item.to_dict_with_relationship()
             }), status_code
         
         return jsonify({
-                class_name : self.to_dict()
+                class_name : item.to_dict()
             }), status_code
 
     @staticmethod
