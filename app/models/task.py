@@ -11,10 +11,6 @@ class Task(db.Model):
 
 
     def to_dict(self):
-        # if self.completed_at.null():
-        # self.is_complete = False
-        # self.is_complete = True
-
         return {
                 "id": self.task_id,
                 "title": self.title,
