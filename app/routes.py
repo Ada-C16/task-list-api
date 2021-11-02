@@ -19,7 +19,7 @@ def record_response(table):
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
-@tasks_bp.route("", methods=["GET","POST"])
+@tasks_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
     if request.method == "GET":
         title_query = request.args.get("title")
@@ -56,7 +56,7 @@ def handle_tasks():
         db.session.add(new_task)
         db.session.commit()
 
-        return make_response({ "task" : record_response(new_task) }, 201)
+        return make_response({ "task": record_response(new_task) }, 201)
 
 
 @tasks_bp.route("/<task_id>", methods = ["GET", "PUT", "DELETE"])
@@ -78,7 +78,7 @@ def handle_task(task_id):
         if form_data.get("completed_at"):
             task.completed_at = form_data["completed_at"] 
         db.session.commit()
-        return { "task" : record_response(task) }
+        return { "task": record_response(task) }
 
 
     elif request.method == "DELETE":
@@ -105,8 +105,8 @@ def complete_task(task_id):
         
         slack_url = 'https://slack.com/api/chat.postMessage'
         slack_params = {
-            "channel" : "task-notifications",
-            "text" : f"Someone just completed the task {task.title}"
+            "channel": "task-notifications",
+            "text": f"Someone just completed the task {task.title}"
         }
         slack_header = {
             "Authorization": f"Bearer {os.environ.get('SLACK_API_TOKEN')}"
@@ -115,7 +115,7 @@ def complete_task(task_id):
 
         db.session.commit()
 
-        return make_response({ "task" : record_response(task) })
+        return make_response({ "task": record_response(task) })
 
 
 
@@ -131,12 +131,12 @@ def incomplete_task(task_id):
     if request.method == "PATCH":
         task.completed_at = None
         db.session.commit()
-        return make_response({ "task" : record_response(task) })
+        return make_response({ "task": record_response(task) })
 
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
-@goals_bp.route("", methods=["GET","POST"])
+@goals_bp.route("", methods=["GET", "POST"])
 def handle_goals():
     if request.method == "GET":
         title_query = request.args.get("title")
