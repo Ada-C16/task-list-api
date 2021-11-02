@@ -11,3 +11,18 @@ class Goal(db.Model):
             'goal_id': self.goal_id,
             'title': self.title
         }
+
+goal_schema = {
+    "title": "Goal Information",
+    "description": "Contains goal related information",
+    "required": ["title"],
+    "type": ["object"],
+    "properties": {
+        "title": {
+            "type": "string"
+        },
+        "goal_id": {
+            "type": "number"
+        }
+    }
+}
