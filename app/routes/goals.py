@@ -54,7 +54,7 @@ def read_one_goal(goal_id):
     goal = get_goal_by_id(goal_id)
 
     try:
-        response_body = {"goal": goal.to_dict() }
+        response_body = {"goal": goal.to_dict()}
         return make_response(jsonify(response_body)), 200
 
     except Exception: 
@@ -73,6 +73,33 @@ def delete_goal(goal_id):
 
     except Exception:
         abort(422)
+
+@goal_bp.route("/<goal_id>", methods=["PUT"])
+def update_goal(goal_id):
+    goal = get_goal_by_id(goal_id)
+
+    try:
+        request_body = request.get_json()
+        if not request_body: 
+            abort(400)
+
+        if "title" in request_body:
+            goal.title = request_body["title"]
+        
+        db.session.commit()
+
+        response_body = {
+            "goal": goal.to_dict()
+        }
+        return make_response(response_body, 200)
+
+    except Exception: 
+        abort(400)
+
+
+
+
+
 
 
 '''Error Handling - Handles 402/400/422 errors'''
