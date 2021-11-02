@@ -1,5 +1,6 @@
 from app import db
 from app.models.task import Task
+from app.models.goal import Goal
 from flask import Blueprint, jsonify, make_response, request
 from datetime import datetime, timezone
 import os
@@ -8,7 +9,7 @@ from slack.errors import SlackApiError
 
 #create the blueprint for the endpoints
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
-
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 #Create a Task: Valid Task With null completed_at
 @tasks_bp.route("", methods=["POST"])
@@ -145,7 +146,7 @@ def delete_task(task_id):
     return make_response(response, 200)
 
 
-        
+#Mark Complete        
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
 
@@ -189,6 +190,7 @@ def mark_complete(task_id):
     # 
     return make_response(response_json, 200)
 
+#Mark Incomplete 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_incomplete(task_id):
     task = Task.query.get(task_id)
@@ -211,6 +213,107 @@ def mark_incomplete(task_id):
     print(task.completed_at)
 
     return make_response(response, 200)
+
+###########
+
+#Create a Goal
+@goals_bp.route("", methods=["POST"])
+def create_goal():
+    request_body = request.get_json()
+
+    if "title" not in request_body:
+        return make_response({"details": "Invalid data"}, 400)
+
+    new_goal = Goal(title=request_body["title"])
+    db.session.add(new_goal)
+    db.session.commit()
+
+    response = {}
+    goal = {}
+    goal['id'] = new_goal.goal_id
+    goal['title'] = request_body["title"]
+
+    response["goal"] = goal
+    
+    return make_response(response, 201)
+
+#Get Goals
+@goals_bp.route("", methods=["GET"])
+def get_goals():
+
+    sort_query = request.args.get("sort")
+    if(sort_query == "asc"):
+        goals = Goal.query.order_by(Goal.title).all()
+    elif(sort_query == "desc"):
+        goals = Goal.query.order_by(Goal.title.desc()).all()
+    else:
+        goals = Goal.query.all()
+    
+    response = []
+
+    for goal in goals:
+        goal_dict = {}
+        goal_dict["id"] = goal.goal_id
+        goal_dict["title"] = goal.title
+        
+        response.append(goal_dict)
+
+    return jsonify(response)
+
+#Get a Goal
+@goals_bp.route("/<goal_id>", methods=["GET"])
+def get_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    
+    if goal is None:
+        return make_response("Not Found", 404)
+    
+    response = {}
+    goal_dict = {}
+
+    goal_dict["id"] = goal.goal_id
+    goal_dict["title"] = goal.title
+    
+    response["goal"] = goal_dict
+    return response
+
+#Update One Goal
+@goals_bp.route("/<goal_id>", methods=["PUT"])
+def update_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    
+    if goal is None:
+        return make_response(f"Goal {goal_id} not found", 404)
+    
+    form_data = request.get_json()
+    goal.title = form_data["title"]
+
+    db.session.commit()
+    
+    response = {}
+    goal_dict = {}
+
+    goal_dict["id"] = goal.goal_id
+    goal_dict["title"] = goal.title
+
+    response["goal"] = goal_dict
+    return make_response(response, 200)
+
+
+# Delete One Goal
+@goals_bp.route("/<goal_id>", methods=["DELETE"])
+def delete_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    
+    if goal is None:
+        return make_response(f"Goal {goal_id} not found", 404)
+
+    response = {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted' }
+    db.session.delete(goal)
+    db.session.commit()
+
+    return make_response(response, 200)
+
 
 # @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 # def mark_complete_on_complete_task(task_id):
