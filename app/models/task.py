@@ -7,7 +7,7 @@ class Task(db.Model):
     title = db.Column(db.String)
     description = db.Column(db.String)
     completed_at = db.Column(db.DateTime, default=None)
-
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable = True)
 
     def to_dict(self):
         return {
