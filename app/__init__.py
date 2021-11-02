@@ -30,10 +30,8 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
 
     # Register Blueprints here
-    from .routes import task_bp
+    from .routes.task_routes import task_bp
     app.register_blueprint(task_bp)
 
-    # from .routes import slack_bot_bp
-    # app.register_blueprint(slack_bot_bp)
     
     return app
