@@ -1,10 +1,13 @@
 from flask import Blueprint, jsonify, request, make_response, abort
 from app.models.task import Task
 from app import db
-from unittest.mock import Mock, patch
 from datetime import date
+import requests
+import os
+from dotenv import load_dotenv
 
 task_bp = Blueprint("task", __name__, url_prefix="/tasks")
+load_dotenv()
 
 # Make a Task, Get all Tasks
 @task_bp.route("", methods = ["POST", "GET"])
@@ -72,6 +75,16 @@ def completed_task(task_id):
     else:
         task.completed_at = today
         db.session.commit()
+
+        PATH = "https://slack.com/api/chat.postMessage"
+        params = {
+            "token": os.environ.get("IGOR"),
+            "channel": "task-notifications",
+            "text": f"Someone just completed the task {task.title}"
+        }
+
+        requests.post(PATH, data=params)
+
         return jsonify({"task": task.to_dict()}), 200
 
 @task_bp.route("/<task_id>/mark_incomplete", methods = ["PATCH"])
