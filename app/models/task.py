@@ -1,7 +1,7 @@
 from flask import current_app
 from sqlalchemy.orm import relation
 from app import db
-
+from .message import Message
 
 class Task(db.Model):
     __tablename__ = "tasks"
@@ -28,3 +28,7 @@ class Task(db.Model):
             "description": self.description,
             "is_complete": bool(self.completed_at)
         }
+
+    @classmethod
+    def validate_id(cls, id):
+        return Message.validate_id(cls, id)

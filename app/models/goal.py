@@ -1,5 +1,6 @@
 from flask import current_app
 from app import db
+from .message import Message
 
 
 class Goal(db.Model):
@@ -21,4 +22,10 @@ class Goal(db.Model):
             "title": self.title,
             "tasks": [ task.to_dict_with_relationship() for task in self.tasks ]
         }
+
+    @classmethod
+    def validate_id(cls, id):
+        return Message.validate_id(cls, id)
+
+    
 
