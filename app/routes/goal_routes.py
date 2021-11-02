@@ -63,7 +63,7 @@ def read_one_goal(goal_id):
     return make_response({"goal": goal.to_dict()}, 200)
 
 @goal_bp.route("/<goal_id>", methods=["PUT"])
-def update_task(goal_id):
+def update_goal(goal_id):
     goal = get_goal_from_id(goal_id)
     request_body = request.get_json()
     goal.title=request_body["title"]
