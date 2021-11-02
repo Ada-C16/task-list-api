@@ -3,12 +3,21 @@ from app import db
 
 
 class Goal(db.Model):
-    goal_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String)
+    tasks = db.relationship("Task", back_populates="goal")
 
     def to_dict(self):
-        # is_complete = False if not self.completed_at else True
         return {
-            "id": self.goal_id,
+            "id": self.id,
             "title": self.title
         }
+
+    def dict_with_tasks(self):
+        tasks = [task.to_dict() for task in self.tasks]
+        return {
+                "id": self.id,
+                "title": self.title,
+                "tasks": tasks
+                }
+    

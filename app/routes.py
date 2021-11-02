@@ -8,12 +8,14 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 import requests
-import json
+
 
 load_dotenv()
 
+
 task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 goal_bp = Blueprint("goal_bp", __name__, url_prefix="/goals")
+
 
 @task_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
@@ -38,6 +40,7 @@ def handle_tasks():
         db.session.commit()
         return make_response({"task": new_task.to_dict()}, 201)
 
+
 @task_bp.route("/<task_id>", methods=["GET", "DELETE", "PUT", "PATCH"])
 def handle_task(task_id):
     task = Task.query.get(task_id)
@@ -60,6 +63,7 @@ def handle_task(task_id):
         task.completed_at = request_body["completed_at"] if "completed_at" in request_body else task.completed_at
         return make_response({"task": task.to_dict()}, 200)
 
+
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def handle_task_complete(task_id):
         task = Task.query.get(task_id)
@@ -69,6 +73,7 @@ def handle_task_complete(task_id):
         initiate_slack_message(task)
         return make_response({"task": task.to_dict()}, 200)
 
+
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def handle_task_incomplete(task_id):
         task = Task.query.get(task_id)
@@ -76,6 +81,7 @@ def handle_task_incomplete(task_id):
             return make_response(f"Book {task_id} not found", 404)
         task.completed_at = None
         return make_response({"task": task.to_dict()}, 200)
+
 
 @goal_bp.route("", methods=["GET", "POST"])
 def handle_goals():
@@ -93,6 +99,7 @@ def handle_goals():
         db.session.commit()
         return make_response({"goal": new_goal.to_dict()}, 201)
 
+
 @goal_bp.route("/<goal_id>", methods=["GET", "DELETE", "PUT", "PATCH"])
 def handle_goal(goal_id):
     goal = Goal.query.get(goal_id)
@@ -105,7 +112,7 @@ def handle_goal(goal_id):
             return make_response("", 404)
         db.session.delete(goal)
         db.session.commit()
-        return {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
+        return {"details": f'Goal {goal.id} "{goal.title}" successfully deleted'}
     elif request.method == "PUT":
         if not goal:
             return make_response("", 404)
@@ -114,16 +121,30 @@ def handle_goal(goal_id):
         return make_response({"goal": goal.to_dict()}, 200)
 
 
+@goal_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goal_tasks(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return make_response("", 404)
+    if request.method == "POST":
+        request_body = request.get_json()
+        goal_tasks = request_body["task_ids"]
+        for task_id in goal_tasks:
+            task = Task.query.get(task_id)
+            task.goal_id = goal_id 
+        db.session.commit()
+        return make_response({"id": int(goal_id), "task_ids": goal_tasks}, 200)
+    elif request.method == "GET":
+        return goal.dict_with_tasks(), 200
+
+
 def initiate_slack_message(task):
     SLACKBOT_KEY = os.environ.get("SLACK_BOT")
     CHANNEL = os.environ.get("CHANNEL")
+    url = "https://slack.com/api/chat.postMessage"
     message = f"Someone just completed the task {task.title}"
     query_params = {"token":SLACKBOT_KEY, "channel": CHANNEL, "text": message}
-    url = "https://slack.com/api/chat.postMessage"
-    response = requests.post(url, data=query_params)
-    
-
-
+    requests.post(url, data=query_params)
 
 
 
