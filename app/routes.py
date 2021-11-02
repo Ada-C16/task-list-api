@@ -8,6 +8,7 @@ import requests
 import os
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix=("/tasks"))
+goals_bp = Blueprint("goals_bp", __name__, url_prefix=("/goals"))
 
 @tasks_bp.route("", methods=["GET", "POST"])
 #any time we make a request to our api and call localhost5000, we are going to run the function.
@@ -143,7 +144,7 @@ def mark_complete(task_id):
     
     title_of_task =  f"Someone just completed the task {task.title}" 
     
-    requests.post("https://slack.com/api/chat.postMessage", data={"channel": "task-notifications", "text": title_of_task}, headers={"authorization": os.environ.get("SLACK_API_TOKEN")})
+    requests.post("https://slack.com/api/chat.postMessage", data={"channel": "task-notifications", "channelid": "C02K8MA17KR", "text": title_of_task}, headers={"authorization": os.environ.get("SLACK_API_TOKEN")})
     #we have to use the os.environ.get to get the value of the variable becacuse this is an environment variable. We know it's an environment variable because we created it in env file - 
     #variable whose value is set outside of the regular program files and refers to something that has to do with operating system.
 
@@ -185,3 +186,87 @@ def mark_incomplete(task_id):
         }
     }
 
+
+# goals_bp = Blueprint("goals_bp", __name__, url_prefix=("/goals"))
+@goals_bp.route("", methods=["GET", "POST"])
+#any time we make a request to our api and call localhost5000, we are going to run the function.
+#what will run depends on if the client calls GET or POST
+def handle_goals(): #view function names should be unique
+    if request.method == "GET":
+        goals = Goal.query.all() #Task is a child of SQLA so we can use the query method, 
+        #query is method from sqla, paired with .all, retrieves all rows from task table in database, from there SQLA will turn all those rows into instances
+        #of the task class, and all method will return all instances of the Task class into a list, and that list is assigned to variable task
+        #Task.query.all.sort?? we can order the result the result of our selection
+        goals_response = []
+        for goal in goals: #<Task 2342> - returns object, if we want to see attributes we have to 
+            #access the attributes. So we break down objhects in that list in dictionary so we can see each instance's attributes
+            goals_response.append({
+                "id": goal.goal_id,
+                "title": goal.title
+            })
+        return jsonify(goals_response)
+        #put response in JSON format to be used by rest of Flask, include headers, etc
+        #help turn raw data into response that Flask can use
+        #Flask develops web applications and includes features that helps you interface more easily with interfaces and defining APIs, ie glue code that helps our app
+        #application that work with other libraries that work with website
+
+    elif request.method == "POST":
+        request_body = request.get_json()
+        if "title" not in request_body:
+            # return make_response("400 Bad Request")
+            return {"details": "Invalid data"}, 400
+
+        new_goal = Goal(
+            title= request_body["title"]
+        )
+        db.session.add(new_goal)
+        db.session.commit()
+
+        return {
+            "goal": {
+                "id": new_goal.goal_id,
+                "title": new_goal.title
+            }
+        }, 201
+
+@goals_bp.route("/<goal_id>", methods= ["GET", "PUT", "DELETE"])
+def handle_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if request.method == "GET":
+        if goal is None:
+            return jsonify(None), 404
+        else:
+             return {
+                "goal": {
+                    "id": goal.goal_id,
+                    "title": goal.title
+                }
+            }
+
+    elif request.method == "PUT":
+        if goal is None:
+            return jsonify(None), 404
+        else:
+            form_data = request.get_json()
+
+            goal.title = form_data["title"]
+
+            db.session.commit()
+
+        # return make_response(f"Book #{book.id} successfully updated")
+            return {
+                    "goal": {
+                        "id": goal.goal_id,
+                        "title": goal.title
+                    }
+                }
+   
+    if request.method == "DELETE":
+        if goal is None:
+            return jsonify(None), 404
+        # request_body = request.get_json() request body contains information to help conduct the actual request
+        # ie post request requires data to determines how to actually create the task
+        db.session.delete(goal)
+        db.session.commit()
+
+        return {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
