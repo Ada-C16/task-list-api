@@ -17,17 +17,13 @@ def is_input_valid(number):
         return make_response(f"{number} is not an int!", 400)
 
 
-def is_parameter_found(parameter_id):
+def is_parameter_found(model, parameter_id):
     if is_input_valid(parameter_id):
         return is_input_valid(parameter_id)
-    elif Task.query.get(parameter_id) is None:
+    elif model.query.get(parameter_id) is None:
         return make_response(f"{parameter_id} was not found!", 404)
     
-def is_goal_parameter_found(parameter_id):
-    if is_input_valid(parameter_id):
-        return is_input_valid(parameter_id)
-    elif Goal.query.get(parameter_id) is None:
-        return make_response(f"{parameter_id} was not found!", 404)
+
 
 #TASK ROUTES
 @tasks_bp.route("", methods=["POST"])
@@ -68,8 +64,9 @@ def read_tasks():
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
 def read_task(task_id):
-    if is_parameter_found(task_id):
-        return is_parameter_found(task_id)
+    check_not_found = is_parameter_found(Task, task_id)
+    if check_not_found:
+        return check_not_found
     task = Task.query.get(task_id)
     task_response = {}
     task_response["task"] = task.to_dict()
@@ -78,8 +75,9 @@ def read_task(task_id):
 
 @tasks_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
-    if is_parameter_found(task_id):
-        return is_parameter_found(task_id)
+    check_not_found = is_parameter_found(Task, task_id)
+    if check_not_found:
+        return check_not_found
 
     task = Task.query.get(task_id)
     request_body = request.get_json()
@@ -94,8 +92,10 @@ def update_task(task_id):
 
 @tasks_bp.route("/<task_id>", methods=["PATCH"])
 def update_task_parameter(task_id):
-    if is_parameter_found(task_id):
-        return is_parameter_found(task_id)
+    check_not_found = is_parameter_found(Task, task_id)
+    if check_not_found:
+        return check_not_found
+
     task = Task.query.get(task_id)
     request_body = request.get_json()
     if "title" in request_body:
@@ -108,8 +108,10 @@ def update_task_parameter(task_id):
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_task_complete(task_id):
-    if is_parameter_found(task_id):
-        return is_parameter_found(task_id)
+    check_not_found = is_parameter_found(Task, task_id)
+    if check_not_found:
+        return check_not_found
+
     task = Task.query.get(task_id)
     task.completed_at = datetime.now(timezone.utc)
     response_body = {}
@@ -129,8 +131,10 @@ def mark_task_complete(task_id):
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_task_incomplete(task_id):
-    if is_parameter_found(task_id):
-        return is_parameter_found(task_id)
+    check_not_found = is_parameter_found(Task, task_id)
+    if check_not_found:
+        return check_not_found
+
     task = Task.query.get(task_id)
     task.completed_at = None
     response_body = {}
@@ -141,8 +145,10 @@ def mark_task_incomplete(task_id):
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
-    if is_parameter_found(task_id):
-        return is_parameter_found(task_id)
+    check_not_found = is_parameter_found(Task, task_id)
+    if check_not_found:
+        return check_not_found
+
     task = Task.query.get(task_id)
     task_title = task.title
     response_str = f'Task {task_id} "{task_title}" successfully deleted'
@@ -153,8 +159,9 @@ def delete_task(task_id):
         "details": response_str
         }), 200
 
-#GOAL ROUTES 
 
+
+#GOAL ROUTES 
 
 @goals_bp.route("", methods=["POST"])
 def create_goal():
@@ -193,8 +200,10 @@ def read_goals():
 
 @goals_bp.route("/<goal_id>", methods=["GET"])
 def read_goal(goal_id):
-    if is_goal_parameter_found(goal_id):
-        return is_goal_parameter_found(goal_id)
+    check_not_found = is_parameter_found(Goal, goal_id)
+    if check_not_found:
+        return check_not_found
+
     goal = Goal.query.get(goal_id)
     goal_response = {}
     goal_response["goal"] = goal.to_dict()
@@ -203,8 +212,9 @@ def read_goal(goal_id):
 
 @goals_bp.route("/<goal_id>", methods=["PUT"])
 def update_goal(goal_id):
-    if is_goal_parameter_found(goal_id):
-        return is_goal_parameter_found(goal_id)
+    check_not_found = is_parameter_found(Goal, goal_id)
+    if check_not_found:
+        return check_not_found
 
     goal = Goal.query.get(goal_id)
     request_body = request.get_json()
@@ -219,8 +229,10 @@ def update_goal(goal_id):
 
 @goals_bp.route("/<goal_id>", methods=["DELETE"])
 def delete_goal(goal_id):
-    if is_goal_parameter_found(goal_id):
-        return is_goal_parameter_found(goal_id)
+    check_not_found = is_parameter_found(Goal, goal_id)
+    if check_not_found:
+        return check_not_found
+        
     goal = Goal.query.get(goal_id)
     goal_title = goal.title
     response_str = f'Goal {goal_id} "{goal_title}" successfully deleted'
