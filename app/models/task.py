@@ -1,5 +1,9 @@
 from app import db
 from flask import request, current_app
+from dotenv import load_dotenv
+import requests
+import os
+
 
 class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
@@ -7,7 +11,7 @@ class Task(db.Model):
     description = db.Column(db.String, nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)
     goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'))
-    goal = db.relationship("Goal", back_populates="tasks")
+    # goal = db.relationship("Goal", back_populates="tasks")
 
     def create_dict(self):
         complete_status = True if self.completed_at else False
@@ -27,6 +31,15 @@ class Task(db.Model):
                 "is_complete": complete_status,
             }
 
+    def send_slack_message(self):
+        load_dotenv()
+
+        data = {"token": os.environ.get("SLACK_TOKEN"),
+                "channel": os.environ.get("CHANNEL_ID"),
+                "text": f"Someone just completed the task {self.title}"}
+        url = os.environ.get("SLACK_URL")
+        requests.post(url, data)
+
     @classmethod
     def from_json(cls):
         request_body = request.get_json()
@@ -37,7 +50,5 @@ class Task(db.Model):
                         )
         db.session.add(new_task)
         db.session.commit()
-
-        # task_response = {"task": new_task.create_dict()}
 
         return new_task

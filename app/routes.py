@@ -4,9 +4,6 @@ from app.models.goal import Goal
 from app import db
 from sqlalchemy import desc, asc
 import datetime
-import requests
-import os
-from dotenv import load_dotenv
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
@@ -80,8 +77,8 @@ def tasks_by_id(task_id):
         db.session.delete(task)
         db.session.commit()
 
-        delete_string = f'Task {task.task_id} "{task.title}" successfully deleted'
-        delete_message = {"details": delete_string}
+        delete_message = {
+            "details": f'Task {task.task_id} "{task.title}" successfully deleted'}
 
         return jsonify(delete_message), 200
 
@@ -96,13 +93,7 @@ def task_completed(task_id):
         task.completed_at = datetime.datetime.now()
         db.session.commit()
 
-        load_dotenv()
-
-        data = {"token": os.environ.get("SLACK_TOKEN"),
-                "channel": os.environ.get("CHANNEL_ID"),
-                "text": f"Someone just completed the task {task.title}"}
-        url = os.environ.get("SLACK_URL")
-        requests.post(url, data)
+        task.send_slack_message()
 
         task_response = {"task": task.create_dict()}
         return jsonify(task_response), 200
@@ -187,8 +178,8 @@ def handle_individual_goal(goal_id):
         db.session.delete(goal)
         db.session.commit()
 
-        delete_string = f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
-        delete_message = {"details": delete_string}
+        delete_message = {
+            "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
 
         return jsonify(delete_message), 200
 
