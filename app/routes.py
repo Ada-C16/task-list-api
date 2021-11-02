@@ -71,6 +71,7 @@ def handle_task_complete(task_id):
         if not task:
             return make_response(f"Book {task_id} not found", 404)
         task.completed_at = datetime.utcnow()
+        db.session.commit()
         initiate_slack_message(task)
         return make_response({"task": task.to_dict()}, 200)
 
@@ -81,6 +82,7 @@ def handle_task_incomplete(task_id):
         if not task:
             return make_response(f"Book {task_id} not found", 404)
         task.completed_at = None
+        db.session.commit()
         return make_response({"task": task.to_dict()}, 200)
 
 
