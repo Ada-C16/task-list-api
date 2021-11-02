@@ -2,6 +2,10 @@ from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request
 from datetime import datetime
+import os
+import requests
+from dotenv import load_dotenv
+load_dotenv()
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -100,6 +104,18 @@ def mark_tasks_complete(task_id):
 
     task.is_complete = True
     task.completed_at = datetime.utcnow()
+
+    # Slack API Call
+    PATH = "https://slack.com/api/chat.postMessage"
+    API_KEY = os.environ.get("API_KEY")
+
+    query_params = {
+        "token" : API_KEY,
+        "channel" : "task-notifications",
+        "text" : f"Someone just completed the task {task.title}"
+    }
+
+    requests.get(PATH, params=query_params)
 
     return jsonify({ "task" : {
         "id" : task.task_id,
