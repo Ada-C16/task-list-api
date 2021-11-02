@@ -110,7 +110,7 @@ def test_update_task(client, one_task):
     task = Task.query.get(1)
     assert task.title == "Updated Task Title"
     assert task.description == "Updated Test Description"
-    assert task.completed_at == None#!line change from None to False - check if it is ok
+    assert task.completed_at == None
 
 
 def test_update_task_not_found(client):
