@@ -3,7 +3,7 @@ from flask.helpers import make_response
 from flask.json import tojson_filter
 from flask.signals import request_tearing_down
 from werkzeug.utils import header_property
-from app.models.task import Task
+from app.models.goal import Goal
 from app import db
 from datetime import datetime
 
@@ -20,7 +20,6 @@ def valid_int(number, parameter_type):
 def get_goal_from_id(goal_id):
     valid_int(goal_id, "goal_id")
     return Goal.query.get_or_404(goal_id, description="{goal not found}")
-
 
 
 # Routes
