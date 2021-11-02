@@ -15,14 +15,22 @@ class Task(db.Model):
     #due_date = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
-        return {
+        if self.goal_id is None:
+            return {
+                'id': self.task_id,
+                'title': self.title,
+                'description': self.description,
+                'is_complete': True if self.completed_at else False,
+                #'completed_at': self.completed_at
+                #'created_date': self.created_date
+            }
+        else:
+            return {
             'id': self.task_id,
             'title': self.title,
             'description': self.description,
             'is_complete': True if self.completed_at else False,
-            #'goal_id': self.goal_id
-            #'completed_at': self.completed_at
-            #'created_date': self.created_date
+            'goal_id': self.goal_id
         }
 
 task_schema = {
@@ -45,6 +53,9 @@ task_schema = {
         },
         "created_date": {
             "type": "string"
+        },
+        "goal_id": {
+            "type": "number"
         }
     }
 }

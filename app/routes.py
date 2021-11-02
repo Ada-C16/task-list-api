@@ -185,7 +185,7 @@ def create_goal_task_relationship(id_num):
         return jsonify({
             "id": goal.goal_id,
             "title": goal.title,
-            "tasks": [task.task_id for task in goal.tasks]
+            "tasks": [task.to_dict() for task in goal.tasks]
             }), 200
 
 '''HELPER FUNCTIONS'''
