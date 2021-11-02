@@ -8,7 +8,7 @@ class Goal(db.Model):
 
     def to_dict(self):
         return {
-            'goal_id': self.goal_id,
+            'id': self.goal_id,
             'title': self.title
         }
 
