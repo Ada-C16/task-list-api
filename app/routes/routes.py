@@ -20,14 +20,22 @@ def get_task_from_id(task_id):
 #routes that use GET method
 @task_bp.route("", methods=["GET"])
 def get_tasks():
+
+    sort_query = request.args.get('sort')
+    #sorting sorterer
+
+    if sort_query == 'asc':
+            tasks = Task.query.order_by(Task.title.asc())
+    elif sort_query == 'desc':
+            tasks= Task.query.order_by(Task.title.desc())
+    else:
+        tasks = Task.query.all()
+            
     task_response=[]
-    tasks = Task.query.all()
- 
     for task in tasks:
-        task_response.append(
-            task.to_dict()
-        )
-    return jsonify(task_response),200
+        task_response.append(task.to_dict())
+
+    return jsonify(task_response)
 
 @task_bp.route("/<task_id>", methods=["GET"])
 def get_task(task_id):
@@ -67,10 +75,8 @@ def update_task(task_id):
     if "description" in form_data:
         task.description = form_data["description"]
 
-
-    response_body = {"task": task.to_dict()}
-  
     db.session.commit()
+    response_body = {"task": task.to_dict()}
 
     return make_response(jsonify(response_body), 200)
 
