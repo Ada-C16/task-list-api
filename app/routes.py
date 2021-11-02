@@ -198,3 +198,36 @@ def delete_goal(goal_id):
         {"details": f"Goal {goal.goal_id} \"{goal.title}\" successfully deleted"}, 200
     )
 
+# send a list of Task IDs to a Goal
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"], strict_slashes=False)
+def post_tasks_to_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    request_body = request.get_json()
+    task_ids = request_body["task_ids"]
+
+    # loops through task_ids list, which are the IDs of Tasks that client want to associate with this specific goal 
+    for task in task_ids: 
+        # uses each task_id to query the Task object that needs to be updated with match_goal_id foreign key 
+        task_to_add_to_goal = Task.query.get_or_404(task)
+        # uses goal_id from Goal queried above, assigns value to the goal_id foreign key of each task to add
+        # loops through given task_ids until each task in the post request has been updated
+        task_to_add_to_goal.match_goal_id = goal.goal_id 
+        
+    db.session.commit()
+
+    return make_response({"id": goal.goal_id, "task_ids": task_ids}, 200)
+
+# getting Tasks of one Goal
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"], strict_slashes=False)
+def read_tasks_for_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    goal_and_tasks = []
+
+    tasks = Task.query.filter_by(match_goal_id=goal_id)
+
+    for task in tasks:
+        goal_and_tasks.append(task.to_dict())
+
+    response_body = goal.to_dict(goal_and_tasks)
+
+    return make_response(response_body, 200)
