@@ -7,10 +7,19 @@ import datetime
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
-
+home_bp = Blueprint("home_bp", __name__, url_prefix="/")
 #
 # Start Tasks Routes
 #
+
+
+@home_bp.route("", methods=["GET"])
+def home_page():
+    if request.method == "GET":
+        welcome = {"project": "task list",
+                   "student": "kaitlyn",
+                   "class": "spruce"}
+        return jsonify(welcome), 200
 
 
 @tasks_bp.route("", methods=["GET", "POST"])
