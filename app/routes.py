@@ -1,6 +1,7 @@
 from flask.wrappers import Response
 from app import db
 from app.models.task import Task
+from app.models.goal import Goal
 from flask import Blueprint, jsonify, make_response, request, abort
 from datetime import date
 import requests
@@ -25,6 +26,10 @@ def valid_int(number, parameter_type):
 def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id)
+
+def get_goal_from_id(goal_id):
+    valid_int(goal_id, "goal_id")
+    return Goal.query.get_or_404(goal_id)
 
 # Tasks Routes
 
@@ -139,7 +144,6 @@ def mark_task_as_complete(task_id):
 
     return jsonify(response_body)
 
-
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_task_as_incomplete(task_id):
     task = get_task_from_id(task_id)
@@ -156,4 +160,72 @@ def mark_task_as_incomplete(task_id):
 
 @goals_bp.route("", methods=["GET"])
 def read_all_goals():
-    pass
+    goals = Goal.query.all()
+
+    response_body = [goal.to_dict() for goal in goals]
+
+    return jsonify(response_body)
+
+@goals_bp.route("", methods=["POST"])
+def create_one_goal():
+    request_body = request.get_json()
+
+    if "title" not in request_body:
+        response_body = {
+            "details": "Invalid data"
+        }
+        return jsonify(response_body), 400
+
+    new_goal = Goal(
+        title=request_body["title"]
+    )
+
+    db.session.add(new_goal)
+    db.session.commit()
+
+    response_body = {
+        "goal": new_goal.to_dict()
+    }
+
+    return jsonify(response_body), 201
+
+@goals_bp.route("/<goal_id>", methods=["GET"])
+def read_one_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+
+    response_body = {
+        "goal": goal.to_dict()
+    }
+
+    return jsonify(response_body)
+
+@goals_bp.route("/<goal_id>", methods=["PUT"])
+def update_one_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    request_body = request.get_json()
+
+    if "title" not in request_body:
+        response_body = "Invalid data"
+        return jsonify(response_body), 400
+
+    goal.title = request_body["title"]
+
+    db.session.commit()
+
+    response_body = {
+        "goal": goal.to_dict()
+    }
+
+    return jsonify(response_body)
+
+@goals_bp.route("/<goal_id>", methods=["DELETE"])
+def delete_one_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    db.session.delete(goal)
+    db.session.commit()
+
+    response_body = {
+        "details": f'Goal {goal_id} "{goal.title}" successfully deleted'
+    }
+
+    return jsonify(response_body)
