@@ -27,3 +27,11 @@ class Task(db.Model):
             "description": self.description,
             "is_complete": bool(self.completed_at)
         }
+
+    def to_string_markdown(self):
+
+        completion_status = f"_Completed on {self.completed_at.date()}_." if self.completed_at else "_Incomplete._"
+
+        goal_connection = f"This task belongs to the goal '{self.goals.title}'" if self.goal_id else ""
+
+        return f"*Task:* {self.title.capitalize()}. {completion_status} {goal_connection}"
