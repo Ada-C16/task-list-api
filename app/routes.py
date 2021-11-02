@@ -103,7 +103,7 @@ def handle_goals():
         return make_response({"goal": new_goal.to_dict()}, 201)
 
 
-@goal_bp.route("/<goal_id>", methods=["GET", "DELETE", "PUT", "PATCH"])
+@goal_bp.route("/<goal_id>", methods=["GET", "DELETE", "PUT"])
 def handle_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if request.method == "GET":
