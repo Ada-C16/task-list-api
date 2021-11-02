@@ -53,7 +53,7 @@ def add_goals():
 @goal_bp.route("/<goal_id>", methods = ["GET"])
 def read_one_goal(goal_id):
     goal = get_goal_with_goal_id(goal_id)
-    return jsonify({"details": goal.to_dict()})
+    return jsonify({"goal": goal.to_dict()})
 
 
 @goal_bp.route("/<goal_id>", methods = ["PUT"])
