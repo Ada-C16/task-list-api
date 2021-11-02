@@ -83,8 +83,8 @@ def delete_goal(goal_id):
     return ({"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
 
 
-#GATHERING ALL TASKS ASSOCIATED WITH ONE GOAL
 
+#GATHERING ALL TASKS ASSOCIATED WITH ONE GOAL
 @goal_bp.route("/<goal_id>/tasks", methods=["POST"])
 def post_task_ids_to_goal(goal_id):
     goal = Goal.query.get(goal_id)
@@ -95,7 +95,6 @@ def post_task_ids_to_goal(goal_id):
 
     if 'task_ids' not in request_body:
         return make_response('Tasks were not given data', 400)
-
 
     goal_tasks = request_body["task_ids"]
     for task_id in goal_tasks:
@@ -116,7 +115,7 @@ def post_task_ids_to_goal(goal_id):
 @goal_bp.route("/<goal_id>/tasks", methods=["GET"])
 def get_tasks_for_specific_goal(goal_id):  
     goal = Goal.query.get(goal_id)
-    
+
     if goal is None:
         return make_response("Goal not found", 404)
     return goal.to_dict_with_tasks(),200
