@@ -99,5 +99,8 @@ def delete_goal(goal_id):
 
 
 @goal_bp.route("/<goal_id>/tasks", methods = ["POST"])
-def post_task_to_goal(goal_id, task_id):
-    pass
+def post_task_to_goal(goal_id):
+    goal = get_goal_with_goal_id(goal_id)
+    request_body = request.get_json()
+
+    
