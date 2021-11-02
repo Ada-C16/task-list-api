@@ -185,7 +185,7 @@ def handle_goal_tasks(goal_id):
 
         return { 
             "id": eval(goal_id),
-            "task_ids": tasks_to_update
+            "task_ids": [task.task_id for task in Task.query.filter_by(goal_id=goal_id)]
         }, 200
     elif request.method == "GET":
         tasks_response = []
