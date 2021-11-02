@@ -8,7 +8,11 @@ class Task(db.Model):
     description = db.Column(db.String)
     completed_at = db.Column(db.DateTime, nullable=True)
 
-    def to_json_w1(self):
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable=True)
+    goal = db.relationship("Goal", back_populates="tasks")
+
+
+    def to_json(self):
         return {
                 "id": self.id,
                 "title": self.title,
@@ -16,20 +20,3 @@ class Task(db.Model):
                 "is_complete": bool(self.completed_at)
         }
 
-    def to_json_w3_complete(self):
-        return {
-                "id": self.id,
-                "title": self.title,
-                "description": self.description,
-                "is_complete": True
-
-        }
-
-    def to_json_w3_incomplete(self):
-        return {
-                "id": self.id,
-                "title": self.title,
-                "description": self.description,
-                "is_complete": False
-
-        }
