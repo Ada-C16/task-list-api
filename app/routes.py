@@ -6,6 +6,10 @@ from werkzeug.utils import header_property
 from app.models.task import Task
 from app import db
 from datetime import datetime
+from dotenv import load_dotenv
+import requests, os 
+
+load_dotenv()
 
 task_bp = Blueprint("task", __name__,url_prefix ="/tasks")
 
@@ -19,6 +23,19 @@ def valid_int(number, parameter_type):
 def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description="{task not found}")
+
+def post_slack_message(message):
+    token = os.environ.get('SLACK_TOKEN')
+    CHANNEL_ID = "C02KD4B5A07"
+
+    Headers = {"Authorization": "Bearer xoxb-" + token}
+    data = {
+        "channel": CHANNEL_ID,
+        "text": message
+    }
+    response = requests.post("https://slack.com/api/chat.postMessage", headers=Headers, json=data)
+    return response
+
 
 # Routes
 @task_bp.route("", methods=["POST"])
@@ -87,6 +104,8 @@ def mark_task_complete(task_id):
     task.completed_at = datetime.utcnow()
     
     db.session.commit()
+    message = f"Someone just completed the task {task.title}"
+    post_slack_message(message)
 
     return make_response({"task": task.to_dict()}, 200)
 
@@ -94,7 +113,7 @@ def mark_task_complete(task_id):
 def mark_task_incomplete(task_id):
     task = get_task_from_id(task_id)
     task.completed_at = None
-    
     db.session.commit()
 
     return make_response({"task": task.to_dict()}, 200)
+
