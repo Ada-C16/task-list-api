@@ -2,6 +2,7 @@ from re import T
 from flask import Blueprint, json, jsonify, make_response, request, abort
 from app import db
 from app.models.task import Task
+from datetime import datetime
 
 
 task_bp = Blueprint("task", __name__,url_prefix="/tasks")
@@ -64,7 +65,7 @@ def create_task():
     response_body ={"task":new_task.to_dict()}
     return make_response(jsonify(response_body), 201)
 
-#routes that use PATCH method
+#routes that use PATCH or PUT method
 @task_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
     task = get_task_from_id(task_id)
@@ -75,6 +76,27 @@ def update_task(task_id):
     if "description" in form_data:
         task.description = form_data["description"]
 
+    db.session.commit()
+    response_body = {"task": task.to_dict()}
+
+    return make_response(jsonify(response_body), 200)
+
+@task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_complete(task_id):
+    task = get_task_from_id(task_id)
+    task.completed_at = datetime.now()
+    db.session.commit()
+    response_body = {"task": task.to_dict()}
+
+    return make_response(jsonify(response_body), 200)
+
+@task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_incomplete(task_id):
+    task = get_task_from_id(task_id)
+
+    task.is_complete = False
+    task.completed_at = None
+    
     db.session.commit()
     response_body = {"task": task.to_dict()}
 
