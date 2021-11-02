@@ -153,3 +153,7 @@ def mark_task_as_incomplete(task_id):
     return jsonify(response_body)
 
 # Goal routes for wave 05
+
+@goals_bp.route("", methods=["GET"])
+def read_all_goals():
+    pass
