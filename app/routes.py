@@ -141,20 +141,13 @@ def handle_goal_task(goal_id):
 
     if request.method=="POST":
         request_body = request.get_json()
-
         for num in request_body["task_ids"]:
             task = Task.query.get(num)
             print(task.task_dict_with_goal())
             task.goal_id = goal_id
             goal.tasks.append(task)
             db.session.commit()
-        # print(goal)
-        return jsonify({"id": goal.goal_id, "task_ids": request_body["task_ids"]}), 200
+        return jsonify({"id": goal.goal_id, "task_ids": [task["id"] for task in goal.goal_task_dict()["tasks"]]}), 200
     
     elif request.method == "GET":
-        
-        print(goal.tasks)
-
         return jsonify(goal.goal_task_dict()), 200
-        
-# task.goal_id main_goal = goal_id
