@@ -8,6 +8,8 @@ import datetime
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 home_bp = Blueprint("home_bp", __name__, url_prefix="/")
+
+
 #
 # Start Tasks Routes
 #
@@ -93,7 +95,7 @@ def tasks_by_id(task_id):
 
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
-def task_completed(task_id):
+def task_complete(task_id):
     if request.method == "PATCH":
         task = Task.query.get(task_id)
         if not task:
@@ -120,6 +122,7 @@ def task_incomplete(task_id):
 
         task_response = {"task": task.create_dict()}
         return jsonify(task_response), 200
+
 
 #
 # Start Goals Routes
