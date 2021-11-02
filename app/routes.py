@@ -2,13 +2,14 @@ from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify,request, make_response, abort
 from datetime import date
+from app.models.goal import Goal
 
 tasks_bp = Blueprint("tasks",__name__,url_prefix="/tasks")
 def valid_int(number,parameter_type):
     try:
         int(number)
     except:
-        abort(make_response({"error":f"{parameter_type} must be an int"}, 400))
+        abort(make_response({"error":f"{parameter_type} must be an int"},400))
         
 @tasks_bp.route("",methods=["GET"])
 def handle_tasks():
@@ -34,7 +35,7 @@ def get_task(task_id):
     elif request.method == "PUT":
         request_body = request.get_json()
         if "title" in request_body:
-            task.title = request_body["title"],
+            task.title = request_body["title"]
         if "description" in request_body:
             task.description = request_body["description"]
         if "completed_at" in request_body:
@@ -78,4 +79,18 @@ def mark_incomplete_task(task_id):
     db.session.commit()
     return jsonify({"task":task.to_dict()}),200     
 
+
+
+goals_bp = Blueprint("goals", __name__,url_prefix="/goals")
+
+@goals_bp.route("", methods=["POST"])
+def create_goal():
+    request_body = request.get_json()
+    if "title" not in request_body:
+        return jsonify({'details': "Invalid data"}),400
+    new_goal = Goal(title = request_body["title"])
+    db.session.add(new_goal)
+    db.session.commit()
+    return jsonify({"goal":new_goal.to_dict()}),201
+    
     
