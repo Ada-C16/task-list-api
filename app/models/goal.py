@@ -13,3 +13,12 @@ class Goal(db.Model):
             "id": self.goal_id,
             "title": self.title
         }
+
+    def to_dict_with_relationship(self):
+
+        return {
+            "id": self.goal_id,
+            "title": self.title,
+            "tasks": [ task.to_dict_with_relationship() for task in self.tasks ]
+        }
+

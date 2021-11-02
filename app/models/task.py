@@ -15,6 +15,14 @@ class Task(db.Model):
     def to_dict(self):
         return {
             "id": self.task_id,
+            "title": self.title,
+            "description": self.description,
+            "is_complete": bool(self.completed_at)
+        }
+
+    def to_dict_with_relationship(self):
+        return {
+            "id": self.task_id,
             "goal_id": self.goal_id,
             "title": self.title,
             "description": self.description,
