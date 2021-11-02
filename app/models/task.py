@@ -1,6 +1,5 @@
 from flask import current_app
 from app import db
-from app.routes.route_utils import is_valid_int
 
 
 class Task(db.Model):
@@ -42,9 +41,3 @@ class Task(db.Model):
             description=task_dict["description"],
             completed_at=task_dict["completed_at"]
         )
-
-    @classmethod
-    def get_by_id(cls, id):
-        """Grab one task from the database by id and return it"""
-        is_valid_int(id)
-        return cls.query.get_or_404(id)

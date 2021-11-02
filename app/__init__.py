@@ -3,9 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
+from app.models.item import Item
 
 
-db = SQLAlchemy()
+db = SQLAlchemy(model_class=Item)
 migrate = Migrate()
 load_dotenv()
 

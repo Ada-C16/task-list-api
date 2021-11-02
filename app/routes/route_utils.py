@@ -1,14 +1,6 @@
-from flask import abort, jsonify
+from flask import jsonify
 import os
 import requests
-
-
-def is_valid_int(number):
-    """Check for valid int and abort request with 400 if invalid"""
-    try:
-        int(number)
-    except ValueError:
-        abort(400)
 
 
 def handle_invalid_data():
