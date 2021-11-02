@@ -229,3 +229,7 @@ def delete_one_goal(goal_id):
     }
 
     return jsonify(response_body)
+
+# Wave 06 Nested Routes
+
+
