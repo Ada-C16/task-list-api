@@ -12,8 +12,7 @@ task_list_bp = Blueprint("task-list", __name__,url_prefix="/tasks")
 # Helper Functions
 def valid_int(number):
     try:
-        number = int(number)
-        return number
+        return int(number)     
     except:
         abort(make_response({"error": f"{number} must be an int"}, 400))
 
