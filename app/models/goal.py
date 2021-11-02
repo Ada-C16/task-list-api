@@ -15,8 +15,4 @@ class Goal(db.Model):
                 "title": self.title
         }
 
-    # def to_json_goal_task(self):
-    #     return {
-    #             "id": self.goal_id,
-    #             "title": self.title
-    #     }
+

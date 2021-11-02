@@ -1,7 +1,7 @@
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
-from flask import request, Blueprint, make_response, jsonify
+from flask import request, Blueprint, jsonify
 from sqlalchemy import desc
 from datetime import datetime
 import requests
@@ -147,7 +147,7 @@ def handle_goals_tasks(goal_id):
         
         for task_id in task_list:
             task = Task.query.get(task_id)
-            db.session.add(task)
+            task.goal = goal
 
         db.session.commit()
         return {
@@ -156,12 +156,12 @@ def handle_goals_tasks(goal_id):
         }, 200
         
     elif request.method == "GET":
+        tasks = goal.tasks
         task_response = []
-        for task in goal.tasks:
-            task_response.append(task.to_json())
+        for task in tasks:
+            task_response.append(task.to_json_task())
         return {
             "id":  goal.goal_id,
             "title": goal.title,
             "tasks": task_response
-
         }, 200
