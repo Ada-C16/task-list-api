@@ -1,14 +1,17 @@
 from flask import jsonify
 
-def success_message(type, db_item, status_code):
-    
-    if type=="task" and db_item.goal_id:
+def success_message(db_item, status_code):
+
+    # class_name = str(type(db_item).__name__).lower()
+    class_name = db_item.__class__.__name__.lower()
+
+    if class_name=="task" and db_item.goal_id:
         return jsonify({
-            type : db_item.to_dict_with_relationship()
+            class_name : db_item.to_dict_with_relationship()
         }), status_code
     
     return jsonify({
-            type : db_item.to_dict()
+            class_name : db_item.to_dict()
         }), status_code
 
 def invalid_data_message():
