@@ -10,6 +10,7 @@ import requests
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 goals_bp = Blueprint('goals', __name__, url_prefix='/goals')
 
+'''TASK ROUTES'''
 @tasks_bp.route('', methods=['GET', 'POST'])
 def handle_tasks():
     if request.method == 'GET':
@@ -103,6 +104,7 @@ def mark_incomplete(id_num):
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
 
+'''GOAL ROUTES'''
 @goals_bp.route('', methods=['GET', 'POST'])
 def handle_goals():
     if request.method == 'GET':
