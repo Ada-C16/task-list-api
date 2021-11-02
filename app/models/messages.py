@@ -1,4 +1,5 @@
 from flask import jsonify
+from app import db
 
 def success_message(db_item, status_code):
 
@@ -28,3 +29,24 @@ def validate_id(Item, id):
 
     if not item:
         return "", 404
+
+def handle_slash_command(class_name, data):
+    
+    item = class_name.__name__.lower()
+
+    title = data.get('text')
+
+    if not title:
+        return {
+            "response_type" : "ephemeral",
+            "text" : f"You forgot to enter the title of your {item}"
+        }
+
+    new_item = class_name(title=title)
+    db.session.add(new_item)
+    db.session.commit()
+
+    return {
+        "response_type" : "in_channel",
+        "text" : f"New {item} '{title}' has been added."
+    }

@@ -9,6 +9,9 @@ import os
 from .models.messages import *
 import slack #reinstall as slackclient if import error
 
+# client = slack.WebClient(token=slack_api_key)
+# client.chat_postMessage(channel=task_notifications_channel, text="You made a request to the Slack Tasks endpoint")
+
 load_dotenv()
 
 slack_url_prefix = "https://slack.com/api/"
@@ -245,48 +248,14 @@ def handle_goal_tasks(goal_id):
 def handle_slack_task():
     
     data = request.form
-    print(data)
-    title=data.get('text')
 
-    if not title: 
-        return {
-            "response_type" : "ephemeral",
-            "text": "You forgot to enter the title of your task."
-        }, 200
-
-    new_task = Task(
-        title=title,
-        )
-        
-    db.session.add(new_task)
-    db.session.commit()
-
-    # client = slack.WebClient(token=slack_api_key)
-    # client.chat_postMessage(channel=task_notifications_channel, text="You made a request to the Slack Tasks endpoint")
-
-    return {
-        "response_type" : "in_channel",
-        "text": f"New task '{title}'' created"
-    }, 200
+    return handle_slash_command(Task, data)
 
 #respond to /goal command in slack
 @slack_bp.route("/goals", methods=["POST"])
 def handle_slack_goal():
 
     data = request.form
-    title = data.get('text')
 
-    if not title:
-        return {
-            "response_type" : "ephemeral",
-            "text" : "You forgot to enter the title of your goal."
-        }
+    return handle_slash_command(Goal, data)
 
-    new_goal = Goal(title=title)
-    db.session.add(new_goal)
-    db.session.commit()
-
-    return {
-        "response_type" : "in_channel",
-        "text" : f"New goal '{title}' created"
-    }
