@@ -10,8 +10,6 @@ class Task(db.Model):
     completed_at = db.Column(db.DateTime, nullable = True)
     # difficulty = db.Column(db.Integer)
     
-
-
     def to_dict(self):
         """ Converts the task object to a dictionary """
         return {
