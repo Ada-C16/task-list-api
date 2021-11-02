@@ -98,7 +98,7 @@ def slack_bot(title):
     slack_post = (f"Someone just completed the task {title}")
     url_slack ="https://slack.com/api/chat.postMessage"
     authentication=os.environ.get("SLACK_TOKEN")
-    query_params={ #customize data
+    query_params={
         "channel":'C02J08B9S0N',
         "text":slack_post
     }
