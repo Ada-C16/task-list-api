@@ -7,3 +7,4 @@ class Goal(db.Model):
     title = db.Column(db.String)
     tasks = db.relationship("Task", back_populates="goal", lazy=True)
     
+    # Guard Clause Function (Catch None)

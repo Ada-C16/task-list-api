@@ -17,4 +17,7 @@ class Task(db.Model):
 # Create helper function for "completed_at"
 
 
+# Guard Clause Function (Catch None) - Utiities File
+
+
     

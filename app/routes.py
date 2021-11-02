@@ -333,8 +333,6 @@ def handle_goals_tasks(goal_id):
             "tasks": tasks
         }
 
-        print("*************")
-        print(goal_response)
         return jsonify(goal_response), 200
 
 
