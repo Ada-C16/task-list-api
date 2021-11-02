@@ -38,24 +38,24 @@ def create_goal():
 
     return make_response({"goal": new_goal.to_dict()}, 201)
 
-# @task_bp.route("", methods=["GET"])
-# def read_all_tasks():
+@goal_bp.route("", methods=["GET"])
+def read_all_goals():
 
-#     sort_query = request.args.get("sort")
+    sort_query = request.args.get("sort")
 
-#     if sort_query == "asc":
-#         tasks = Task.query.order_by(Task.title.asc())
-#     elif sort_query == "desc":
-#         tasks = Task.query.order_by(Task.title.desc())
-#     else:
-#         tasks = Task.query.all()
+    if sort_query == "asc":
+        goals = Goal.query.order_by(Goal.title.asc())
+    elif sort_query == "desc":
+        goals = Goal.query.order_by(Goal.title.desc())
+    else:
+        goals = Goal.query.all()
 
-#     task_response = []
-#     for task in tasks:
-#         task_response.append(
-#             task.to_dict()
-#         )
-#     return make_response(jsonify(task_response), 200)
+    goal_response = []
+    for goal in goals:
+        goal_response.append(
+            goal.to_dict()
+        )
+    return make_response(jsonify(goal_response), 200)
 
 # @task_bp.route("/<task_id>", methods=["GET"])
 # def read_one_task(task_id):
