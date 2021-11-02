@@ -3,6 +3,9 @@ from app.models.task import Task
 from app.models.goal import Goal
 from flask import Blueprint, jsonify, make_response, request
 from datetime import datetime
+import requests
+import os
+from dotenv import load_dotenv
 
 
 
@@ -133,6 +136,22 @@ def handle_mark_complete(task_id):
         
 
         db.session.commit()
+
+
+        SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
+
+        header={"Authorization": SLACK_API_KEY} 
+
+        path = "https://slack.com/api/chat.postMessage"
+
+        query_params= {
+            "channel": "slack-api-test-channel",
+            "text": f"Someone just completed the task {task.title}"
+        }
+
+        requests.post(path, data=query_params, headers=header)  
+
+
 
         return jsonify({
         "task": {
