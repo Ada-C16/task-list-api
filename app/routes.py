@@ -1,6 +1,7 @@
 from app import db
 from flask import Blueprint, request, make_response, jsonify, abort
 from app.models.task import Task
+from datetime import datetime
 
 # DEFINE BLUEPRINT
 tasks_list_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -22,7 +23,7 @@ def create_task():
     request_body = request.get_json()
     
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-        return make_response({"details" : "Invalid data"}, 400)
+        return make_response(jsonify({"details" : "Invalid data"}), 400)
     
     new_task = Task(
         title=request_body["title"],
@@ -60,7 +61,7 @@ def read_all_tasks():
 @tasks_list_bp.route("/<id>", methods=["GET"])
 def read_one_task(id):
     task = get_task_from_id(id)
-    return make_response({"task" : task.to_dict()},200)
+    return make_response(jsonify({"task" : task.to_dict()}),200)
     
 
 #-----------------
@@ -79,13 +80,23 @@ def update_task(id):
     
     db.session.commit()
     
-    return make_response({"task" : task.to_dict()},200)
+    return make_response(jsonify({"task" : task.to_dict()}),200)
 
 #-----------------
-#UPDATE
-@tasks_list_bp.route("/<id>", methods=["PATCH"])
-def mark_complete(id):
-    pass
+#UPDATE COMPLETION STATUS
+@tasks_list_bp.route("/<id>/<completion_status>", methods=["PATCH"])
+def mark_complete(id, completion_status):
+    task = get_task_from_id(id)
+    #task_dict = {}
+    
+    if completion_status == "mark_complete":
+        task.completed_at = datetime.date
+    if completion_status == "mark_incomplete":
+        task.completed_at = None
+
+
+    #task_dict["task"] = task.to_dict()
+    return jsonify({"task" : task.to_dict()})
     
 
 #-----------------
@@ -97,5 +108,5 @@ def delete_task(id):
     db.session.delete(task)
     db.session.commit()
     
-    return make_response({'details': f'Task {task.task_id} "{task.title}" successfully deleted'},200) 
+    return make_response(jsonify({'details': f'Task {task.task_id} "{task.title}" successfully deleted'}),200) 
 
