@@ -2,7 +2,6 @@ from flask import jsonify
 
 def success_message(db_item, status_code):
 
-    # class_name = str(type(db_item).__name__).lower()
     class_name = db_item.__class__.__name__.lower()
 
     if class_name=="task" and db_item.goal_id:
