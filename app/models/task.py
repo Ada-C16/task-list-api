@@ -21,6 +21,7 @@ class Task(db.Model):
             "title": self.title,
             "description": self.description,
             "is_complete": self.is_complete(),
+            "goal_id" : self.goal_id
             }
         
         return new_dict

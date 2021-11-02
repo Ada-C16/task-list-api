@@ -11,6 +11,7 @@ class Goal(db.Model):
         new_dict = {
             "id": self.id,
             "title": self.title,
+            "task_ids" : self.task_ids
             }
         
         return new_dict
