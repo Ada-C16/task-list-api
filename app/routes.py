@@ -2,9 +2,12 @@ from flask import Blueprint, jsonify, make_response, request
 from app.models.task import Task
 from app import db
 from datetime import datetime, timezone
+import requests
+import os
 
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 def is_input_valid(number):
     try:
@@ -105,6 +108,14 @@ def mark_task_complete(task_id):
     response_body = task.to_dict()
 
     db.session.commit()
+    slack_url = "https://slack.com/api/chat.postMessage"
+    slack_bot_data = {"token": os.environ.get("ADA_BOT_TOKEN"),
+                        "channel": "task-notifications", 
+                        "text": (f"Someone just completed the task {task.title}") 
+                        }
+    requests.post(slack_url, slack_bot_data)
+    
+
     return jsonify({"task": response_body}), 200
 
 
@@ -133,5 +144,6 @@ def delete_task(task_id):
     return jsonify({
         "details": response_str
         }), 200
+
 
 
