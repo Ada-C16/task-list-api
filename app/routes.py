@@ -154,6 +154,39 @@ def handle_single_goal(id_num):
         db.session.commit()
         return jsonify({'details': f'Goal {goal_id} "{goal_title}" successfully deleted'}), 200
 
+@goals_bp.route('/<id_num>/tasks', methods=['GET', 'POST'])
+def create_goal_task_relationship(id_num):
+    goal = Goal.query.get_or_404(id_num)
+    request_body = request.get_json()
+
+    if not goal:
+        return make_response(jsonify({'message': 'Goal not found'}), 404)
+    
+    if request.method == 'POST':
+        task_ids = request_body['task_ids']
+
+        if not task_ids:
+            return make_response(jsonify({'message': 'No task ids provided'}), 400)
+
+        for task_id in task_ids:
+            task = Task.query.get_or_404(task_id)
+            if not task:
+                return make_response(jsonify({'message': 'Task not found'}), 404)
+            #task.goal_id = goal.goal_id
+            goal.tasks.append(task)
+            db.session.commit()
+        
+        return jsonify({
+            "id": goal.goal_id,
+            "task_ids": [task.task_id for task in goal.tasks]
+            }), 200
+
+    elif request.method == 'GET':
+        return jsonify({
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": [task.task_id for task in goal.tasks]
+            }), 200
 
 '''HELPER FUNCTIONS'''
 def validate_json(json_data, comparison):

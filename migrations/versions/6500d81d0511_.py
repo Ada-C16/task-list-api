@@ -1,8 +1,8 @@
-"""create relationship between task and goal
+"""empty message
 
-Revision ID: 9ca296f3d9e4
+Revision ID: 6500d81d0511
 Revises: 
-Create Date: 2021-11-01 20:17:00.259188
+Create Date: 2021-11-01 22:54:11.671357
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9ca296f3d9e4'
+revision = '6500d81d0511'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,7 +27,7 @@ def upgrade():
     sa.Column('task_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('title', sa.String(length=100), nullable=False),
     sa.Column('description', sa.String(length=200), nullable=False),
-    sa.Column('goal_id', sa.Integer(), nullable=False),
+    sa.Column('goal_id', sa.Integer(), nullable=True),
     sa.Column('created_date', sa.DateTime(), nullable=True),
     sa.Column('completed_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['goal_id'], ['goal.goal_id'], ),

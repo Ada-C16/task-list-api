@@ -1,4 +1,3 @@
-from flask import current_app
 from app import db
 
 class Task(db.Model):
@@ -20,7 +19,8 @@ class Task(db.Model):
             'id': self.task_id,
             'title': self.title,
             'description': self.description,
-            'is_complete': True if self.completed_at else False
+            'is_complete': True if self.completed_at else False,
+            #'goal_id': self.goal_id
             #'completed_at': self.completed_at
             #'created_date': self.created_date
         }
