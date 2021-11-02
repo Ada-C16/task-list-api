@@ -1,4 +1,4 @@
-from types import new_class
+from types import new_class 
 import requests
 from app import db
 from flask import Blueprint, jsonify, request, make_response
@@ -235,6 +235,7 @@ def handle_goals():
 
 @goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
 def handle_one_goal_at_time(goal_id):
+    # GET & POST REQUEST; ONE TO MANY RELATIONSHIP
     if request.method == "GET":
         goal = Goal.query.get(goal_id)
         if goal is None:
@@ -261,7 +262,7 @@ def handle_one_goal_at_time(goal_id):
 
         updated_goal_response = {
             "goal": {
-                "id": goal.id,
+                "id": goal.goal_id,
                 "title": goal.title
             }
         }
@@ -278,3 +279,58 @@ def handle_one_goal_at_time(goal_id):
 
         goal_delete_response = {'details': (f'Goal {goal_id} "{goal.title}" successfully deleted')}
         return jsonify(goal_delete_response), 200
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
+def handle_goals_tasks(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return jsonify(None), 404
+    
+    if request.method == "POST":    
+        request_body = request.get_json()
+
+        tasks = []
+        for task_id in request_body["task_ids"]:
+            tasks.append(Task.query.get(task_id))
+
+        goal.tasks = tasks
+
+        db.session.commit()
+
+        task_ids = []
+        for task in goal.tasks:
+            task_ids.append(task.id)
+
+        goal_tasks_response = {
+            "id": goal.goal_id,
+            "task_ids": task_ids
+        }
+
+        return jsonify(goal_tasks_response), 200
+
+
+    elif request.method == "GET":
+        if goal.tasks is None:
+            jsonify(None), 404
+
+        tasks = []
+        for task in goal.tasks:
+            tasks.append({
+                "id": task.id,
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_completed": task.completed_at is not None
+                })
+
+        goal_response = {
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": tasks
+        }
+
+        return jsonify(goal_response), 200
+
+
+
+
