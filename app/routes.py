@@ -3,7 +3,8 @@ from app.models.goal import Goal
 from app.models.task import Task
 from datetime import datetime 
 from flask import Blueprint, json, jsonify, request 
-import re 
+import os
+import requests  
 
 tasks_bp = Blueprint("tasks",__name__, url_prefix=("/tasks" ))
 
@@ -93,23 +94,40 @@ def handle_task_id(task_id):
             }), 200
 
 
+def slack_bot(title):
+    slack_post = (f"Someone just completed the task {title}")
+    url_slack ="https://slack.com/api/chat.postMessage"
+    authentication=os.environ.get("SLACK_TOKEN")
+    query_params={ #customize data
+        "channel":'C02J08B9S0N',
+        "text":slack_post
+    }
+    header = {
+        "Authorization": authentication
+    }
+    message=requests.post(url_slack,params=query_params,headers=header)
+    # print("slack test")
+    return message.json()
+
+    
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def handle_task_mark_complete(task_id):
-    task = Task.query.get(task_id)
-    if task is not None:
-        if request.method == "PATCH":
-            task.completed_at = datetime.now()
+    task = Task.query.get(task_id) 
 
+    if task is not None: 
+        task.completed_at = datetime.now()
+        slack_bot(task.title) # added a helper function 
         return jsonify({
-            "task" : {
-                "id" : task.task_id,
-                "title" : task.title,
-                "description" : task.description,
-                "is_complete" : bool(task.completed_at)
+            "task":{
+                "id":task.task_id,
+                "title":task.title,
+                "description":task.description,
+                "is_complete":bool(task.completed_at)
             }
-        }), 200
-    else:
-        return(""), 404
+        }),200
+
+    else: 
+        return (""), 404
 
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
