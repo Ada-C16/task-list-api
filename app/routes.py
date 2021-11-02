@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request, make_response
 from app.models.task import Task, task_schema
+from app.models.goal import Goal, goal_schema
 from app import db
 import jsonschema
 from jsonschema import validate
@@ -53,7 +54,7 @@ def handle_tasks():
             return jsonify({"task": new_task.to_dict()}), 201
 
 @tasks_bp.route('/<int:id_num>', methods=['GET', "PUT", "DELETE"])
-def get_task(id_num):
+def handle_single_task(id_num):
     task = Task.query.get_or_404(id_num)
     if not task:
         return make_response(jsonify({'message': 'Task not found'}), 404)
@@ -101,6 +102,57 @@ def mark_incomplete(id_num):
 
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
+
+@goals_bp.route('', methods=['GET', 'POST'])
+def handle_goals():
+    if request.method == 'GET':
+        goals = Goal.query.all()
+        return jsonify([goal.to_dict() for goal in goals]), 200
+
+    elif request.method == 'POST':
+        request_body = request.get_json()
+        if not validate_json(request_body, goal_schema):
+            return make_response(jsonify({"details": "Invalid data"}), 400)
+        
+        if isinstance(request_body, list):
+            for goal in request_body:
+                new_goal = Goal(
+                    title=goal['title']
+                )
+                db.session.add(new_goal)
+                return jsonify({"goal": goal.to_dict()} for goal in request_body), 201
+        else:
+            new_goal = Goal(
+                title=request_body['title']
+            )
+            db.session.add(new_goal)
+            db.session.commit()
+            return jsonify({"goal": new_goal.to_dict()}), 201
+
+@goals_bp.route('/<int:id_num>', methods=['GET', "PUT", "DELETE"])
+def handle_single_goal(id_num):
+    goal = Goal.query.get_or_404(id_num)
+    if not goal:
+        return make_response(jsonify({'message': 'Goal not found'}), 404)
+    
+    if request.method == 'GET':
+        return jsonify({"goal": goal.to_dict()}), 200
+
+    elif request.method == 'PUT':
+        request_body = request.get_json()
+        for key, value in request_body.items():
+            if key in Goal.__table__.columns.keys():
+                setattr(goal, key, value)
+        db.session.commit()
+        return jsonify({"goal": goal.to_dict()}), 200
+
+    elif request.method == "DELETE":
+        goal_id = goal.to_dict()['id']
+        goal_title = goal.to_dict()['title']
+
+        db.session.delete(goal)
+        db.session.commit()
+        return jsonify({'details': f'Goal {goal_id} "{goal_title}" successfully deleted'}), 200
 
 
 '''HELPER FUNCTIONS'''
