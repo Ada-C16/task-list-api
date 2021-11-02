@@ -87,7 +87,7 @@ def delete_one_task(task_id):
     try:
         db.session.delete(task)
         db.session.commit()
-        response_body = {"details": f'Task {task.task_id} "Go on my daily walk 🏞" successfully deleted'}
+        response_body = {"details": f'Task {task.task_id} "{task.title}" successfully deleted'}
 
         return make_response(response_body, 200)
 
