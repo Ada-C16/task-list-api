@@ -30,7 +30,7 @@ def validate_id(Item, id):
     if not item:
         return "", 404
 
-def handle_slash_command(class_name, data):
+def create_item_slash_command(class_name, data):
     
     item = class_name.__name__.lower()
 
@@ -48,5 +48,54 @@ def handle_slash_command(class_name, data):
 
     return {
         "response_type" : "in_channel",
-        "text" : f"New {item} '{title}' has been added."
+        "blocks" : [{
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"New {item} *{title}* has been added.",
+                }
+            }]
+        }
+
+def get_items_slash_command(class_name, data, filter=None):
+
+    item = class_name.__name__.lower()
+
+    if filter == "incomplete":
+        items = class_name.query.filter(class_name.completed_at == None)
+        qualifier = "incomplete "
+    elif filter == "complete":
+        items = class_name.query.filter(class_name.completed_at != None)
+        qualifier = "completed "
+    elif filter and (filter != "incomplete") and (filter != "complete"):
+        return {
+        "response_type" : "ephemeral",
+        "text": "Type 'complete' or 'incomplete' after the /see-tasks command."
+        }
+    else:
+        items = class_name.query.all()
+        qualifier = ""
+
+    blocks = [{
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": f"Here are your {qualifier}{item}s",
+                }
+            }]
+
+    for item in items:
+        if item.title:
+            item_text = {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": item.to_markdown()
+                    }
+                }
+            blocks.append(item_text)
+
+    return {
+        "response_type" : "in_channel",
+        "blocks": blocks
     }

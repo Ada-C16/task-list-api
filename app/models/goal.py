@@ -20,3 +20,17 @@ class Goal(db.Model):
             "title": self.title,
             "tasks": [ task.to_dict_with_relationship() for task in self.tasks ]
         }
+
+    def to_markdown(self):
+
+        goal_string = f"*Goal:* {self.title.capitalize()}." 
+
+        if self.tasks:
+            goal_string += """
+            *Related tasks*:"""
+            for task in self.tasks:
+                goal_string += """
+                - """
+                goal_string += task.title
+
+        return goal_string

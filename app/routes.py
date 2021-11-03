@@ -1,7 +1,7 @@
 from flask import Blueprint, json, jsonify, request
 from .models.task import Task
 from .models.goal import Goal
-from app import db, create_app
+from app import db
 from datetime import datetime
 import requests
 from dotenv import load_dotenv
@@ -252,41 +252,30 @@ def handle_slack_task():
 
     if command == '/task':
 
-        return handle_slash_command(Task, data)
+        return create_item_slash_command(Task, data)
     
     elif command == '/see-tasks':
 
-        tasks = Task.query.all()
+        filter = data.get("text")
 
-        blocks = [{
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Here are your tasks",
-                }
-            }]
+        return get_items_slash_command(Task, data, filter=filter)
 
-        for task in tasks:
-            if task.title: # filter out the completely empty tasks...how did those get in there?
-                task_text = {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": task.to_string_markdown()
-                    }
-                }
-            blocks.append(task_text)
-
-    return {
-        "response_type" : "in_channel",
-        "blocks": blocks
-    }
 
 #respond to /goal command in slack
 @slack_bp.route("/goals", methods=["POST"])
 def handle_slack_goal():
 
     data = request.form
+    print(data)
 
-    return handle_slash_command(Goal, data)
+    command = data.get("command")
+    print("Command is", command)
+
+    if command == '/goals':
+
+        return create_item_slash_command(Goal, data)
+    
+    elif command == '/see-goals':
+
+        return get_items_slash_command(Goal, data)
 
