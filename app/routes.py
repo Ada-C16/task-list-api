@@ -21,16 +21,14 @@ def handle_tasks():
         else:
             tasks = Task.query.all()
 
-        tasks_response = []
-        for task in tasks:
-            tasks_response.append(task.to_json())
+        tasks_response = [task.to_json() for task in tasks]
 
         return jsonify(tasks_response)
         
     elif request.method == "POST":
         request_body = request.get_json()
-        if "title" not in request_body or "description" not in \
-            request_body or "completed_at" not in request_body:
+        if "title" not in request_body or "description" not in request_body or \
+            "completed_at" not in request_body:
             return {
                 "details": "Invalid data"
             }, 400
@@ -38,8 +36,7 @@ def handle_tasks():
         new_task = Task(
             title= request_body["title"],
             description= request_body["description"],
-            completed_at= datetime.now(timezone.utc) if \
-                request_body["completed_at"] != None else None
+            completed_at= datetime.now(timezone.utc) if request_body["completed_at"] != None else None
         )
         db.session.add(new_task)
         db.session.commit()
@@ -65,8 +62,7 @@ def handle_task(task_id):
 
         task.title = request_data["title"]
         task.description = request_data["description"]
-        task.completed_at = datetime.now(timezone.utc) if \
-            task.completed_at else None
+        task.completed_at = datetime.now(timezone.utc) if task.completed_at else None
         db.session.commit()
 
         return {"task": task.to_json()}
@@ -161,8 +157,7 @@ def handle_goal_tasks(goal_id):
     elif request.method == "POST":
         request_body = request.get_json()
 
-        goal.tasks = [Task.query.get(task_id) for task_id in \
-            request_body["task_ids"]]      
+        goal.tasks = [Task.query.get(task_id) for task_id in request_body["task_ids"]]      
         db.session.commit()
 
         task_ids = [task.task_id for task in goal.tasks]
