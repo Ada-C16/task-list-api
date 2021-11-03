@@ -1,10 +1,22 @@
 from app.models.task import Task
 from flask import jsonify
-from flask import Blueprint, make_response, request, jsonify
+from flask import Blueprint, make_response, request, jsonify, abort
 from app import db
+from datetime import datetime
 
+#helper functions
 task_bp = Blueprint("task", __name__,url_prefix="/tasks")
+def valid_int(number, parameter_type):
+    try:
+        int(number)
+    except:
+        abort(make_response({"error": f"{parameter_type} must be an int"})), 400
+
+def get_task_from_id(task_id):
+    valid_int(task_id, "task_id")
+    return Task.query.get_or_404(task_id, description="{task not found}")
 # get all tasks
+
 @task_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
     if request.method == "GET":
@@ -61,6 +73,23 @@ def handle_task(task_id):
         db.session.commit()
         return jsonify({"details":f'Task {task.task_id} "{task.title}" successfully deleted'}), 200
 
+
+@task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+#completed_at if null/None update with a date and change is_complete to True
+def update_task_completion(task_id):
+    task= get_task_from_id(task_id)
+    task.is_complete=True
+    task.completed_at = datetime.now()
+    db.session.commit()
+    return jsonify({"task": task.to_dict()}), 200    
+
+@task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def update_task_incomplete(task_id):
+    task= get_task_from_id(task_id)
+    task.is_complete=False
+    task.completed_at = None
+    db.session.commit()
+    return jsonify({"task": task.to_dict()}), 200 
 
 # @task_bp.route("/<task_id>", methods=["GET"])
 # def handle_task(task_id):

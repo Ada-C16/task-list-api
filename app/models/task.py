@@ -7,6 +7,7 @@ class Task(db.Model):
     title = db.Column(db.String)
     description = db.Column(db.String)
     completed_at = db.Column(db.DateTime, nullable=True) 
+    is_complete = db.Column(db.Boolean)
     # completed_at can be empty/null which means that a task is not completed
     
     def to_dict(self):
