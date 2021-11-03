@@ -66,8 +66,10 @@ def get_tasks():
 def get_one_task(task_id):
     request_task = get_task_from_id(task_id)
     return {"task": 
-        request_task.to_dict()
-     }
+              request_task.to_dict()
+    }
+   
+
 
 @task_list_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
