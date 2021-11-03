@@ -9,7 +9,7 @@ from datetime import datetime
 @pytest.fixture
 def app():
     # create the app with a test config dictionary
-    app = create_app({"TESTING": True})
+    app = create_app({"TESTING": True}) #activates the test config that allows fixtures to see practice data 
 
     with app.app_context():
         db.create_all()
