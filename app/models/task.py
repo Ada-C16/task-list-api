@@ -29,7 +29,11 @@ class Task(db.Model):
         return task_dict 
 
     def post_to_slack(self):
-        requests.post("https://slack.com/api/chat.postMessage", 
-            headers={"Authorization": os.getenv('SLACK_TOKEN')},
-            data={"channel": "slack-api-test-channel",
-            "text": f"Someone just completed the task {self.title}"})
+        path = "https://slack.com/api/chat.postMessage"
+        slack_token = os.environ.get('SLACK_TOKEN')
+        query_params = {
+        "token": slack_token,
+        "channel": "slack-api-test-channel",
+        "text": f"Someone just completed the task {self.title}."
+        }
+        requests.post(path, data=query_params)
