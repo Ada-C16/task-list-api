@@ -1,13 +1,21 @@
-from app.routes.route_utils import get_model_and_label
-from flask import request, jsonify, abort, Blueprint
+from flask import request, jsonify, abort, Blueprint, g
 from app import db
 from sqlalchemy import exc
-from datetime import datetime, timezone
 from app.models.task import Task
 from app.models.goal import Goal
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
+
+
+@goal_bp.before_request
+@task_bp.before_request
+def get_model_and_label():
+    bps = {
+        "tasks": (Task, "task"),
+        "goals": (Goal, "goal")
+    }
+    g.model, g.label = bps[request.blueprint]
 
 
 @goal_bp.errorhandler(400)
@@ -27,7 +35,7 @@ def read_items():
         - JSON array of tasks or goals represented as objects, optionally sorted by title
         - 200 status code
     """
-    model = get_model_and_label(request.blueprint, no_label=True)
+    model = g.model
     sort_query = request.args.get("sort")
     if sort_query == 'asc':
         items = model.query.order_by(model.title).all()
@@ -56,7 +64,7 @@ def create_item():
             - JSON error message
             - 400 status code
     """
-    model, label = get_model_and_label(request.blueprint)
+    model, label = g.model, g.label
     req = request.get_json()
 
     try:
@@ -88,7 +96,7 @@ def read_item(id):
             - 200 status code
             - JSON object representing task with requested id
     """
-    model, label = get_model_and_label(request.blueprint)
+    model, label = g.model, g.label
     item = model.get_by_id(id)
     return jsonify({f"{label}": item.to_dict()}), 200
 
@@ -112,7 +120,7 @@ def update_item(id):
             - 200 status code
             - JSON object representing updated task data
     """
-    model, label = get_model_and_label(request.blueprint)
+    model, label = g.model, g.label
     item = model.get_by_id(id)
     req = request.get_json()
 
@@ -138,7 +146,7 @@ def delete_item(id):
             - 200 status code
             - JSON object with a message indicating task or goal was deleted
     """
-    model, label = get_model_and_label(request.blueprint)
+    model, label = g.model, g.label
     item = model.get_by_id(id)
     db.session.delete(item)
     db.session.commit()
