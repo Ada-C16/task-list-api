@@ -8,7 +8,4 @@ class Goal(db.Model):
     tasks = db.relationship("Task", backref="goal", lazy=True)
 
     def to_json(self, title=None):
-        goal_dict = { "id": self.goal_id, "title": self.title }
-        if title:
-            goal_dict["title"] = title
-        return goal_dict
+        return { "id": self.goal_id, "title": self.title }
