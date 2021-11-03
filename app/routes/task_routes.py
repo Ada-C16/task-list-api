@@ -1,6 +1,6 @@
 from app.models.task import Task
 from flask import jsonify
-from flask import Blueprint, make_response, request
+from flask import Blueprint, make_response, request, jsonify
 from app import db
 
 task_bp = Blueprint("task", __name__,url_prefix="/tasks")
@@ -8,8 +8,16 @@ task_bp = Blueprint("task", __name__,url_prefix="/tasks")
 @task_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
     if request.method == "GET":
+        
     #write query to fetch all tasks 
-        tasks = Task.query.all()
+        sort_query = request.args.get("sort") ###WAVE 2###
+
+        if sort_query == "asc":
+            tasks = Task.query.order_by(Task.title.asc())
+        elif sort_query == "desc": 
+            tasks = Task.query.order_by(Task.title.desc())
+        else:    
+            tasks = Task.query.all()    
         tasks_response = [task.to_dict() for task in tasks]
         return jsonify(tasks_response), 200
     
