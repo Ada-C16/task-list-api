@@ -19,6 +19,8 @@ class Task(db.Model):
             "is_complete": False,
         }
 
+        if task_dict["goal_id"] == None:
+            del task_dict["goal_id"]
         if title:
             task_dict["title"] = title
         if description:
