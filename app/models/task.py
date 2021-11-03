@@ -28,7 +28,7 @@ class Task(db.Model):
             "is_complete": bool(self.completed_at)
         }
 
-    def to_string_markdown(self):
+    def to_markdown(self):
 
         completion_status = f"_Completed on {self.completed_at.date()}_." if self.completed_at else "_Incomplete._"
 

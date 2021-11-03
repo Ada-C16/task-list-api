@@ -1,7 +1,7 @@
 from flask import Blueprint, json, jsonify, request
 from .models.task import Task
 from .models.goal import Goal
-from app import db, create_app
+from app import db
 from datetime import datetime
 import requests
 from dotenv import load_dotenv
@@ -245,55 +245,37 @@ def handle_goal_tasks(goal_id):
 def handle_slack_task():
     
     data = request.form
+    print(data)
 
-    return handle_slash_command(Task, data)
+    command = data.get("command")
+    print("Command is", command)
+
+    if command == '/task':
+
+        return create_item_slash_command(Task, data)
+    
+    elif command == '/see-tasks':
+
+        filter = data.get("text")
+
+        return get_items_slash_command(Task, data, filter=filter)
+
 
 #respond to /goal command in slack
 @slack_bp.route("/goals", methods=["POST"])
 def handle_slack_goal():
 
     data = request.form
-
-    return handle_slash_command(Goal, data)
-
-# response to /see-tasks command in Slack
-@slack_bp.route('/tasks/all', methods=["POST"])
-def handle_slack_all_tasks():
-
-    data=request.form
     print(data)
+
+    command = data.get("command")
+    print("Command is", command)
+
+    if command == '/goals':
+
+        return create_item_slash_command(Goal, data)
     
-    channel_id = data['channel_id']
-    client = slack.WebClient(token=slack_api_key)
+    elif command == '/see-goals':
 
-    blocks = [
-		{
-			"type": "header",
-			"text": {
-				"type": "plain_text",
-				"text": "Here are your tasks",
-			}
-        }
-        ]
-
-    tasks = Task.query.all()
-
-    for task in tasks:
-        if task.title:
-            task_text = {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": task.to_string_markdown()
-                }
-            }
-        blocks.append(task_text)
-
-    # client.chat_postMessage(channel=channel_id, blocks=blocks)
-
-    return {
-        "response_type" : "in_channel",
-        "blocks": blocks
-    }
-
+        return get_items_slash_command(Goal, data)
 
