@@ -14,7 +14,7 @@ def create_new_task():
 
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
         return {"details": "Invalid data"}, 400
-        
+
     new_task = Task(title=request_body["title"],
                     description=request_body["description"],
                     completed_at=request_body["completed_at"]
@@ -82,3 +82,22 @@ def delete_planet(task_id):
         return {"details": "Task 1 \"Go on my daily walk 🏞\" successfully deleted"}
     else:
         return jsonify(None), 404
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def task_incomplete(task_id):
+    task = Task.query.get(task_id)
+    if task == None:
+        return "", 404
+    task.completed_at = None
+    return {"task": task.to_dict()}
+
+
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def task_complete(task_id):
+    task = Task.query.get(task_id)
+    
+    if task == None:
+        return "", 404
+    task.completed_at = datetime.now()
+
+    return {"task": task.to_dict()}
