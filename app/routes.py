@@ -4,15 +4,25 @@ from app.models.task import Task
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
-@tasks_bp.route("", methods = ["POST"])
+@tasks_bp.route("", methods = ["POST", "GET"])
 def handle_tasks():
-    request_body = request.get_json()
-    new_task = Task(
-        title = request_body["title"],
-        description = request_body["description"],
-        completed_at = request_body["completed_at"]
-    )
-    db.session.add(new_task)
-    db.session.commit()
+    if request.method == "POST":
+        request_body = request.get_json()
+        new_task = Task(
+            title = request_body["title"],
+            description = request_body["description"],
+            completed_at = request_body["completed_at"]
+        )
+        db.session.add(new_task)
+        db.session.commit()
 
-    return make_response({"task": new_task.to_dict()}, 201)
+        return make_response({"task": new_task.to_dict()}, 201)
+    elif request.method == "GET":
+        task_response = []
+        tasks = Task.query.all()
+        for task in tasks:
+            task_response.append(task.to_dict())
+        return jsonify(task_response), 200
+
+
+    
