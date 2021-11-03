@@ -16,18 +16,12 @@ class Task(db.Model):
             "goal_id" : self.goal_id,
             "title": self.title,
             "description": self.description,
-            "is_complete": False,
+            'is_complete': True if self.completed_at else False,
         }
 
         if task_dict["goal_id"] == None:
             del task_dict["goal_id"]
-        if title:
-            task_dict["title"] = title
-        if description:
-            task_dict["description"] = description 
-        if self.completed_at:
-            task_dict["is_complete"] = True   
-
+            
         return task_dict 
 
     def post_to_slack(self):
