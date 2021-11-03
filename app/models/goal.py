@@ -3,8 +3,9 @@ from app import db
 
 
 class Goal(db.Model):
-    goal_id = db.Column(db.Integer, primary_key=True)
-    title=db.Column(db.String)
+    goal_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String)
+    tasks = db.relationship("Task", back_populates="goal")
 
     def to_json(self):
         return {

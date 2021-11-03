@@ -1,3 +1,4 @@
+from flask.helpers import make_response
 from app import db
 from app.models.goal import Goal
 from app.models.task import Task
@@ -53,7 +54,7 @@ def post_task():
         }, 201
 
 
-@tasks_bp.route("/<task_id>",methods=["GET","PUT","DELETE"])
+@tasks_bp.route("/<task_id>", methods=["GET","PUT","DELETE"])
 def handle_task_id(task_id):
     task = Task.query.get(task_id)
     if task == None:
@@ -150,7 +151,6 @@ def handle_task_mark_incomplete(task_id):
         return (""), 404
 
 
-# Wave 5
 @goals_bp.route("", methods=["GET"])
 def get_goals():
     goal = Goal.query.all()
@@ -179,7 +179,7 @@ def post_goal():
             }
         }, 201
 
-@goals_bp.route("/<goal_id>",methods=["GET","PUT","DELETE"])
+@goals_bp.route("/<goal_id>", methods=["GET","PUT","DELETE"])
 def handle_goal_id(goal_id):
     goal = Goal.query.get(goal_id)
     if goal == None:
@@ -209,3 +209,46 @@ def handle_goal_id(goal_id):
         return jsonify({
             "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
             }), 200
+
+
+# Wave 6
+@goals_bp.route("/goals/<goal_id>/tasks", methods=["GET","PUT","DELETE"])
+def handle_goals_tasks(goal_id):
+    goal = Goal.query.get(id=goal_id)
+    if goal == None:
+        return ("", 404)
+
+    if request.method == "POST":
+        request_body = request.get_json()
+        new_task = Task(
+            title=request_body["title"],
+            description=request_body["description"],
+            completed_at = request_body["completed_at"],
+            goal=goal
+        )
+
+        db.session.add(new_task)
+        db.session.commit()
+        return {
+            "task":{
+                "id": new_task.task_id,
+                "title": new_task.title,
+                "description": new_task.description,
+                "is_complete": False if new_task.completed_at == None else True
+            }
+        }, 201
+
+    elif request.method == "GET":
+        goal = Goal.query.get(goal_id=goal_id)
+        tasks_response = []
+        for task in goal.tasks:
+            tasks_response.append(
+                {
+                    "id": task.task_id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": False if task.completed_at == None else True
+                }
+            )
+            
+        return jsonify(tasks_response), 200
