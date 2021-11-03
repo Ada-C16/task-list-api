@@ -48,7 +48,6 @@ def handle_tasks():
                                                 "is_complete": False if new_task.completed_at is None else True
                                               }}, 201)
 
-
 @tasks_bp.route('/<task_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_one_task(task_id):
     task = Task.query.get(task_id)
@@ -159,3 +158,20 @@ def handle_one_goal(goal_id):
         db.session.delete(goal)
         db.session.commit()
         return make_response({"details": f"Goal {goal.goal_id} \"{goal.title}\" successfully deleted"})
+
+@goals_bp.route('/<goal_id>/tasks', methods=['POST'])
+def handle_one_goal_to_many_tasks(goal_id):
+    goal = Goal.query.get(goal_id)
+    updates = request.get_json()
+    
+    # Accessing list of task ids from updates.
+    new_task_ids= updates['task_ids']
+    
+    # Adding task objects to a specific goal object
+    for new_task_id in new_task_ids:
+        task = Task.query.get(new_task_id)
+        goal.tasks.append(task)
+
+    db.session.commit()
+    return make_response({"id": goal.goal_id,
+                          "task_ids": new_task_ids})
