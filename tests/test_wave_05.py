@@ -41,7 +41,7 @@ def test_get_goal(client, one_goal):
         }
     }
 
-# @pytest.mark.skip(reason="test to be completed by student")
+
 def test_get_goal_not_found(client):
     pass
     # Act
@@ -71,7 +71,7 @@ def test_create_goal(client):
         }
     }
 
-# @pytest.mark.skip(reason="test to be completed by student")
+
 def test_update_goal(client, one_goal):
     pass
     # Act
@@ -125,7 +125,7 @@ def test_delete_goal(client, one_goal):
     response = client.get("/goals/1")
     assert response.status_code == 404
 
-# @pytest.mark.skip(reason="test to be completed by student")
+
 def test_delete_goal_not_found(client):
     pass
 
