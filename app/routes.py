@@ -180,15 +180,11 @@ def create_goal_task_relationship(id_num):
         
         return jsonify({
             "id": goal.goal_id,
-            "task_ids": [task.task_id for task in goal.tasks]
+            "task_ids": goal.task_ids()
             }), 200
 
     elif request.method == 'GET':
-        return jsonify({
-            "id": goal.goal_id,
-            "title": goal.title,
-            "tasks": [task.to_dict() for task in goal.tasks]
-            }), 200
+        return jsonify(goal.to_dict(True)), 200
 
 '''HELPER FUNCTIONS'''
 def validate_json(json_data, comparison):

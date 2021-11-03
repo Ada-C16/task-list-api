@@ -5,11 +5,17 @@ class Goal(db.Model):
     title = db.Column(db.String(100), nullable=False)
     tasks = db.relationship('Task', backref='goal', lazy=True)
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_tasks=False):
+        result = {
             'id': self.goal_id,
             'title': self.title
         }
+        if include_tasks:
+            result['tasks'] = [task.to_dict() for task in self.tasks]
+        return result
+    
+    def task_ids(self):
+        return [task.task_id for task in self.tasks]
 
 goal_schema = {
     "title": "Goal Information",
