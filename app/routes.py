@@ -148,3 +148,64 @@ def handle_task_mark_incomplete(task_id):
         }), 200
     else:
         return (""), 404
+
+
+# Wave 5
+@goals_bp.route("", methods=["GET"])
+def get_goals():
+    goal = Goal.query.all()
+    goal_response = [goal.to_json() for goal in goal]
+    return jsonify(goal_response), 200
+
+@goals_bp.route("", methods=["POST"])
+def post_goal():
+    if request.method == "POST":
+        request_body = request.get_json()
+        
+        if "title" not in request_body:
+            return {
+                "details": "Invalid data"
+            }, 400
+
+        new_goal = Goal(title=request_body["title"])
+
+        db.session.add(new_goal)
+        db.session.commit()
+
+        return {
+            "goal":{
+                "id": new_goal.goal_id,
+                "title": new_goal.title,
+            }
+        }, 201
+
+@goals_bp.route("/<goal_id>",methods=["GET","PUT","DELETE"])
+def handle_goal_id(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal == None:
+        return ("", 404)
+
+    if request.method == "GET":
+        return {
+            "goal" : {
+                "id" : goal.goal_id,
+                "title" : goal.title,}}, 200
+
+    if request.method == "PUT":
+        form_data = request.get_json()
+
+        goal.title = form_data["title"]
+        db.session.commit()
+
+        return {
+            "goal" : {
+                "id" : goal.goal_id,
+                "title" : goal.title,}}, 200
+
+    elif request.method == "DELETE":
+        db.session.delete(goal)
+        db.session.commit()
+
+        return jsonify({
+            "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
+            }), 200
