@@ -15,7 +15,7 @@ def create_task():
 
     try:
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-            response_body = {"details": "Invalid data"} 
+            response_body = {"details": "Invalid data. itle', 'description', 'completed_at' are required"} 
             return make_response(jsonify(response_body), 400)
 
 
@@ -129,6 +129,7 @@ def update_task(task_id):
 
 
 # use a dynamic route to handle is complete and else 
+# SLACK API
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
     task =  get_task_by_id(task_id)
@@ -152,16 +153,12 @@ def mark_incomplete(task_id):
 
     try:
         task.completed_at = None
-        
         db.session.commit()
-
         response_body = {
                 "task": task.to_dict()} 
         return response_body
     except Exception:
         abort(400)
-
-
 
 
 '''Error Handling'''

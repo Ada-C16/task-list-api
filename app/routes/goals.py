@@ -13,7 +13,7 @@ def create_goal():
     request_body = request.get_json()
 
     if "title" not in request_body:
-        response_body = {"details": "Invalid data"} 
+        response_body = {"details": "Invalid data. Title is required"} 
         return make_response(response_body, 400)
 
     try:
