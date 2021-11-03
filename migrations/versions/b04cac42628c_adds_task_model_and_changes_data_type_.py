@@ -1,8 +1,8 @@
-"""empty message
+"""Adds task model and changes data type for completed_at
 
-Revision ID: c6f1561d7f15
+Revision ID: b04cac42628c
 Revises: 
-Create Date: 2021-10-27 17:29:41.251418
+Create Date: 2021-11-02 18:47:19.804249
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c6f1561d7f15'
+revision = 'b04cac42628c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,7 +26,7 @@ def upgrade():
     sa.Column('task_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('title', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=True),
-    sa.Column('completed_at', sa.Integer(), nullable=True),
+    sa.Column('completed_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('task_id')
     )
     # ### end Alembic commands ###

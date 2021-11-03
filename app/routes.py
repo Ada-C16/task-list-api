@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request, make_response
 from app import db
 from app.models.task import Task
+import datetime
+import requests
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -92,13 +94,21 @@ def handle_mark_complete(task_id):
     # guard clause
     if task is None:
         return make_response("", 404)
+    else: 
+        task.completed_at = datetime.datetime.now()
+    
+        data = {
+                "channel": "task-notifications",
+                "token": "xoxb-2158298111270-2670798559349-0agYHWOZ4uYPH4XJljZjLKGS",
+                "text": f"Someone just completed the task {task.title}"
+               }
 
-    # need to change date so it is "today's date"
-    # this is just an example date
-    task.completed_at = "09/15/2021"
+        requests.post('https://slack.com/api/chat.postMessage', data=data)
+        
+        db.session.commit()
 
     return jsonify({"task": make_task_dict(task)}), 200
-
+    
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def handle_mark_incomplete(task_id):
     task = Task.query.get(task_id)
