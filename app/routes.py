@@ -53,13 +53,16 @@ def handle_one_task(task_id):
     task = Task.query.get(task_id)
     if task is None:
         return jsonify(task), 404
-    elif request.method == 'GET':
-        return {"task": {"id": task.task_id,
+    one_task = {"task": {"id": task.task_id,
                             "title": task.title,
                             "description": task.description,
                             "is_complete": False if task.completed_at is None else task.completed_at
                         }}
-        
+    if request.method == 'GET' and task.goal_id is None:
+        return one_task
+    elif request.method == 'GET':
+        one_task['task']['goal_id'] = task.goal_id
+        return one_task
     elif request.method == 'PUT':
         updates = request.get_json()
         task.title = updates['title']
