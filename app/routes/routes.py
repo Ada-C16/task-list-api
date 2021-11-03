@@ -1,20 +1,24 @@
-from flask import Blueprint, jsonify, request, abort
-from sqlalchemy import exc
+from app.routes.route_utils import handle_invalid_data, get_model_and_label, notify_slack_bot
+from flask import request, jsonify, abort, Blueprint
 from app import db
-from app.models.task import Task
+from sqlalchemy import exc
 from datetime import datetime, timezone
-from app.routes.route_utils import notify_slack_bot, handle_invalid_data
+from app.models.task import Task
+from app.models.goal import Goal
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 
+@goal_bp.errorhandler(400)
 @task_bp.errorhandler(400)
 def invalid_data(error):
     return handle_invalid_data()
 
 
+@goal_bp.route("", methods=["GET"])
 @task_bp.route("", methods=["GET"])
-def read_tasks():
+def read_items():
     """This is a route to get all saved tasks
     Optional query parameter:
         - sort: can be "asc" or "desc" to sort tasks by title
@@ -22,19 +26,21 @@ def read_tasks():
         - JSON array of tasks represented as objects, optionally sorted by title
         - 200 status code
     """
+    model = get_model_and_label(request.blueprint, no_label=True)
     sort_query = request.args.get("sort")
     if sort_query == 'asc':
-        tasks = Task.query.order_by(Task.title).all()
+        items = model.query.order_by(model.title).all()
     elif sort_query == 'desc':
-        tasks = Task.query.order_by(Task.title.desc()).all()
+        items = model.query.order_by(model.title.desc()).all()
     else:
-        tasks = Task.query.all()
-    tasks = [task.to_dict() for task in tasks]
-    return jsonify(tasks), 200
+        items = model.query.all()
+    items = [item.to_dict() for item in items]
+    return jsonify(items), 200
 
 
+@goal_bp.route("", methods=["POST"])
 @task_bp.route("", methods=["POST"])
-def create_task():
+def create_item():
     """This is a route to create a new task
     Required request body:
         - JSON object with title (string), description (string), and completed_at (datetime or null) keys
@@ -46,26 +52,28 @@ def create_task():
             - JSON error message
             - 400 status code
     """
+    model, label = get_model_and_label(request.blueprint)
     req = request.get_json()
 
     try:
-        new_task = Task.new_from_dict(req)
+        new_item = model.new_from_dict(req)
     except KeyError:
         abort(400)
 
-    db.session.add(new_task)
+    db.session.add(new_item)
 
-    # catch error if completed_at is an invalid datetime string
+    # catch error if completed_at for tasks is an invalid datetime string
     try:
         db.session.commit()
     except exc.DataError:
         abort(400)
 
-    return jsonify({"task": new_task.to_dict()}), 201
+    return jsonify({f"{label}": new_item.to_dict()}), 201
 
 
+@goal_bp.route("/<id>", methods=["GET"])
 @task_bp.route("/<id>", methods=["GET"])
-def read_task(id):
+def read_item(id):
     """This is a route to get one task of a specified id
     Returns:
         - If valid id provided but no task found:
@@ -76,12 +84,14 @@ def read_task(id):
             - 200 status code
             - JSON object representing task with requested id
     """
-    task = Task.get_by_id(id)
-    return jsonify({"task": task.to_dict()}), 200
+    model, label = get_model_and_label(request.blueprint)
+    item = model.get_by_id(id)
+    return jsonify({f"{label}": item.to_dict()}), 200
 
 
+@goal_bp.route("/<id>", methods=["PUT"])
 @task_bp.route("/<id>", methods=["PUT"])
-def update_task(id):
+def update_item(id):
     """This is a route to update one task of a specified id
     Required request body:
         - JSON object with title (string) and description (string)
@@ -95,20 +105,22 @@ def update_task(id):
             - 200 status code
             - JSON object representing updated task data
     """
-    task = Task.get_by_id(id)
+    model, label = get_model_and_label(request.blueprint)
+    item = model.get_by_id(id)
     req = request.get_json()
 
     try:
-        task.update(req)
+        item.update(req)
     except KeyError:
         abort(400)
 
     db.session.commit()
-    return jsonify({"task": task.to_dict()}), 200
+    return jsonify({f"{label}": item.to_dict()}), 200
 
 
+@goal_bp.route("/<id>", methods=["DELETE"])
 @task_bp.route("/<id>", methods=["DELETE"])
-def delete_task(id):
+def delete_item(id):
     """This is a route to delete a task of a specified id
     Returns:
         - If invalid id is provided:
@@ -119,12 +131,13 @@ def delete_task(id):
             - 200 status code
             - JSON object with a message indicating task was deleted
     """
-    task = Task.get_by_id(id)
-    db.session.delete(task)
+    model, label = get_model_and_label(request.blueprint)
+    item = model.get_by_id(id)
+    db.session.delete(item)
     db.session.commit()
 
     response_body = {
-        "details": f'Task {task.id} "{task.title}" successfully deleted'
+        "details": f'{label.capitalize()} {item.id} "{item.title}" successfully deleted'
     }
     return jsonify(response_body), 200
 
@@ -168,3 +181,46 @@ def mark_incomplete(id):
     task.completed_at = None
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
+
+
+@goal_bp.route("/<goal_id>/tasks", methods=["POST"])
+def set_goal_tasks(goal_id):
+    """This is a route to associate tasks with a goal of a specific id
+    Required request body:
+        - JSON object with a task_ids key containing an array of valid task id integers
+    Returns:
+        - If invalid goal id or any invalid task ids:
+            - 400 status code
+        - If valid goal id provided but no goal is found (or valid task id but no task is found):
+            - 404 status code
+        - If goal and all tasks found:
+            - 200 status code
+            - JSON obejct representing the id of the goal and the tasks associated with it
+    """
+    goal = Goal.get_by_id(goal_id)
+    req = request.get_json()
+
+    try:
+        goal.tasks = [Task.get_by_id(task_id)
+                      for task_id in req["task_ids"]]
+    except KeyError:
+        abort(400)
+
+    db.session.commit()
+    return jsonify(goal.to_basic_dict()), 200
+
+
+@goal_bp.route("/<goal_id>/tasks", methods=["GET"])
+def get_tasks_by_goal(goal_id):
+    """This is a route to get all tasks associated with a goal
+    Returns:
+        - If invalid goal id:
+            - 400 status code
+        - If valid goal id but not goal found:
+            - 404 status code
+        - If goal found:
+            - 200 status code
+            - JSON object representing the goal and all of its specified tasks
+    """
+    goal = Goal.get_by_id(goal_id)
+    return jsonify(goal.to_dict(include_tasks=True)), 200
