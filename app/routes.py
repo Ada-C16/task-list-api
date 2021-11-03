@@ -2,6 +2,11 @@ from flask import Blueprint, jsonify, make_response, request
 from app import db
 from app.models.task import Task
 from datetime import datetime
+import requests
+import os
+from dotenv import load_dotenv 
+
+load_dotenv()
 
 tasks_bp = Blueprint("task", __name__, url_prefix="/tasks")
 
@@ -64,15 +69,28 @@ def handle_one_task(task_id):
             db.session.commit()
             return jsonify({'details': f'Task {task.task_id} "{task.title}" successfully deleted'}), 200
 
-@tasks_bp.route("/<task_id>/<status_mark>", methods=["PATCH"])
-def mark_test_complete(task_id, status_mark): 
+def post_task_completion_to_slack(task):
+    SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
+    SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL")
+    url = "https://slack.com/api/chat.postMessage"
+    message = f"Somone just completed task {task.title}"
+    query_params = {
+        "token": SLACK_BOT_TOKEN, 
+        "channel": SLACK_CHANNEL,
+        "text": message
+    }
+    requests.post(url, data=query_params)
+
+@tasks_bp.route("/<task_id>/<completion_status>", methods=["PATCH"])
+def mark_completion_status(task_id, completion_status): 
     task_id = int(task_id)
     task = Task.query.get_or_404(task_id)
     task_dict = {}
 
-    if status_mark == "mark_complete":
+    if completion_status == "mark_complete":
         task.completed_at = datetime.date
-    elif status_mark == "mark_incomplete":
+        post_task_completion_to_slack(task)
+    elif completion_status == "mark_incomplete":
         task.completed_at = None
         
     task_dict["task"] = task.to_dict()
