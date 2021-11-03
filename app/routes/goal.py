@@ -83,7 +83,14 @@ def add_goal_tasks(goal_id):
     request_body = request.get_json() 
     for task_id in request_body["task_ids"]:
         task = Task.query.get(task_id)
-        task.goal_id = goal.goal_id
+        if task:
+            task.goal_id = goal.goal_id
+        else:
+            return "Invalid task."
+
+        db.session.add(task)
+        db.session.commit()
+    
     return jsonify({
         "id": goal.goal_id,
         "task_ids": request_body["task_ids"]
