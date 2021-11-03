@@ -12,6 +12,8 @@ goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 path = "https://slack.com/api/chat.postMessage"
 token = os.environ.get("SLACK_TOKEN")
 
+# T A S K S   E N D P O I N T S
+
 
 @tasks_bp.route("", methods=["GET", "POST"])
 def handle_tasks():
@@ -19,15 +21,12 @@ def handle_tasks():
         sort_query = request.args.get("sort")
         if sort_query == "asc":
             tasks = Task.query.order_by(Task.title.asc())
-            print(tasks)
         elif sort_query == "desc":
             tasks = Task.query.order_by(Task.title.desc())
-            print(tasks)
         else:
             tasks = Task.query.all()
-            print(tasks)
-        tasks_response = []
 
+        tasks_response = []
         for task in tasks:
             tasks_response.append(
                 {
@@ -156,7 +155,7 @@ def task_incomplete(task_id):
         }
 
 
-# G O A L   E N D P O I N T S
+# G O A L S   E N D P O I N T S
 
 
 @goals_bp.route("", methods=["POST", "GET"])
@@ -171,6 +170,7 @@ def handle_goals():
         new_goal = Goal(title=request_body["title"])
         db.session.add(new_goal)
         db.session.commit()
+
         new_goal_response = {
             "goal": {
                 "id": new_goal.goal_id,
@@ -226,22 +226,26 @@ def handle_goal(goal_id):
 
 # G O A L S / T A S K S   E N D P O I N T S
 
+
 @goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
 def handle_goals_tasks(goal_id):
-    goal = Goal.query.get(goal_id) 
+    goal = Goal.query.get(goal_id)
     if goal is None:
         return make_response("", 404)
 
     if request.method == "POST":
         request_body = request.get_json()
-        task_ids=request_body["task_ids"]
+        task_ids = request_body["task_ids"]
         for task_id in task_ids:
             task = Task.query.get(task_id)
             task.goal = goal
+
         db.session.commit()
+
         response_task_ids = []
         for task in goal.tasks:
             response_task_ids.append(task.task_id)
+
         new_tasks_response = {
             "id": goal.goal_id,
             "task_ids": response_task_ids
@@ -251,17 +255,17 @@ def handle_goals_tasks(goal_id):
     elif request.method == "GET":
         response_tasks = []
         for task in goal.tasks:
-            response_tasks.append({
-                "id": task.task_id,
-                "goal_id": int(goal_id),
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False if task.completed_at == None else True
-            })
-
+            response_tasks.append(
+                {
+                    "id": task.task_id,
+                    "goal_id": int(goal_id),
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": False if task.completed_at == None else True
+                }
+            )
         return {
             "id": goal.goal_id,
             "title": goal.title,
             "tasks": response_tasks
         }, 200
-        
