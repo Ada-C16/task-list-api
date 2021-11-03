@@ -8,3 +8,4 @@ class Goal(db.Model):
     tasks = db.relationship("Task", back_populates="goal", lazy=True)
     
     # Guard Clause Function (Catch None)
+

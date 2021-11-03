@@ -1,7 +1,7 @@
 from types import new_class 
 import requests
 from app import db
-from flask import Blueprint, jsonify, request, make_response
+from flask import Blueprint, jsonify, request
 from app.models.task import Task
 from app.models.goal import Goal
 from datetime import datetime
@@ -84,7 +84,7 @@ def handle_one_task_at_a_time(task_id):
         task = Task.query.get(task_id)
         if task is None:
             return jsonify(None), 404
-        else:
+        if task.goal_id:
             return {
                 "task":{
                 "id": task.id,
@@ -94,6 +94,17 @@ def handle_one_task_at_a_time(task_id):
                 "is_complete": task.completed_at is not None
                 }
             }, 200
+        else:
+            return {
+                "task": {
+                    "id": task.id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": task.completed_at is not None
+                }
+            }, 200
+
+            
 
     elif request.method == "PUT":
         task = Task.query.get(task_id)
@@ -209,7 +220,7 @@ def handle_goals():
             }
         }
 
-        response_length = len(new_goal_response)
+        # response_length = len(new_goal_response)
 
         return jsonify(new_goal_response), 201
 
