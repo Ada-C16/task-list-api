@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, make_response
 from app import db
 from app.models.task import Task
+from sqlalchemy.types import BOOLEAN
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -59,7 +60,9 @@ def handle_task(task_id):
 def mark_task_completed(task_id):
     task_id = int(task_id)
     task = Task.query.get(task_id)
-    task.completed_at = True
+    if not task:
+        return make_response("", 404)
+    task.completed_at = str(True)
     db.session.commit()
     return make_response({"task": task.to_dict()}, 200)
 
@@ -67,6 +70,8 @@ def mark_task_completed(task_id):
 def mark_task_incompleted(task_id):
     task_id = int(task_id)
     task = Task.query.get(task_id)
+    if not task:
+        return make_response("", 404)
     task.completed_at = None
     db.session.commit()
     return make_response({"task": task.to_dict()}, 200)
