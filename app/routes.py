@@ -239,13 +239,11 @@ def handle_goals_tasks(goal_id):
         for task_id in task_ids:
             task = Task.query.get(task_id)
             task.goal = goal
-
         db.session.commit()
 
         response_task_ids = []
         for task in goal.tasks:
             response_task_ids.append(task.task_id)
-
         new_tasks_response = {
             "id": goal.goal_id,
             "task_ids": response_task_ids
