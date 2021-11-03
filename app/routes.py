@@ -37,7 +37,8 @@ def handle_tasks():
             else:
                 new_task = Task(title=request_body['title'],
                                 description=request_body['description'],
-                                completed_at= datetime.utcnow()
+                                completed_at= request_body['completed_at'] if not request_body['completed_at'] \
+                                                else datetime.utcnow()
                                 )
                 db.session.add(new_task)
                 db.session.commit()
@@ -46,6 +47,7 @@ def handle_tasks():
                                                 "description": new_task.description,
                                                 "is_complete": False if new_task.completed_at is None else True
                                               }}, 201)
+
 
 @tasks_bp.route('/<task_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_one_task(task_id):
@@ -62,13 +64,14 @@ def handle_one_task(task_id):
         updates = request.get_json()
         task.title = updates['title']
         task.description = updates['description']
-        task.completed_at = datetime.utcnow()
+        task.completed_at = updates['completed_at'] if not updates['completed_at'] \
+                            else datetime.utcnow()
         
         db.session.commit()
         return make_response({"task": { "id": task.task_id,
                                         "title": task.title,
                                         "description": task.description,
-                                        "is_complete": False if task.completed_at is None else True  
+                                        "is_complete": False if task.completed_at is None else True
                                         }})
     elif request.method == 'DELETE':
         db.session.delete(task)
