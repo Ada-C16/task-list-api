@@ -15,8 +15,7 @@ class Task(db.Model):
     #due_date = db.Column(db.DateTime, nullable=True)
 
     def to_dict(self):
-        if self.goal_id is None:
-            return {
+        result ={
                 'id': self.task_id,
                 'title': self.title,
                 'description': self.description,
@@ -24,14 +23,9 @@ class Task(db.Model):
                 #'completed_at': self.completed_at
                 #'created_date': self.created_date
             }
-        else:
-            return {
-            'id': self.task_id,
-            'title': self.title,
-            'description': self.description,
-            'is_complete': True if self.completed_at else False,
-            'goal_id': self.goal_id
-        }
+        if self.goal_id:
+            result['goal_id'] = self.goal_id
+        return result
 
 task_schema = {
     "title": "Task Information",
