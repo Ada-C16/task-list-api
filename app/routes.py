@@ -84,12 +84,20 @@ def mark_a_task_completed_with_id(task_id, mark_complete_or_incomplete):
     if mark_complete_or_incomplete == "mark_complete": 
         task.completed_at = date.today()
 
-        token = os.environ.get("SLACK_API_TOKEN")
-        url = "https://slack.com/api/chat.postMessage"
-        headers = {'Authorization': 'Bearer ' + token}
-        
-        response = requests.post(url, json= {"Someone just completed the task {task.title}"}, headers={'Authorization': 'Bearer ' + token})
+        slack_channel_id = os.environ.get("SLACK_CHANNEL_ID")
+        slack_bot_token = os.environ.get('SLACK_BOT_TOKEN') #**
 
+        requests.post(
+        'https://slack.com/api/chat.postMessage',
+        headers={'Authorization': f'Bearer {slack_bot_token}'},
+        data={
+            'channel': slack_channel_id,      
+            'text': f'Someone just completed the task {task.title}'
+        }
+    )
+        
+        return task.concate_task_key_to_a_dict_with_return_code()
+        
     else:   # mark_incomplete
         task.completed_at = None
     db.session.commit()
