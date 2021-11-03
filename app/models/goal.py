@@ -1,5 +1,6 @@
 from flask import current_app
 from app import db
+from app.models.task import Task
 
 
 class Goal(db.Model):
@@ -30,6 +31,10 @@ class Goal(db.Model):
 
     def update(self, goal_dict):
         self.title = goal_dict["title"]
+        return self
+
+    def add_tasks(self, req):
+        self.tasks = [Task.get_by_id(task_id) for task_id in req["task_ids"]]
         return self
 
     @classmethod

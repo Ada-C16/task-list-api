@@ -1,5 +1,8 @@
 from flask import current_app
 from app import db
+import os
+import requests
+from datetime import datetime, timezone
 
 
 class Task(db.Model):
@@ -32,6 +35,32 @@ class Task(db.Model):
         if "completed_at" in task_dict:
             self.completed_at = task_dict["completed_at"]
 
+        return self
+
+    def notify_slack_bot(self):
+        """Send a post request to the slack api with the name of a specified task"""
+        SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
+
+        req_body = {
+            "channel": "task-notifications",
+            "text": f"Someone just completed the task {self.title}"
+        }
+
+        headers = {
+            "Authorization": f"Bearer {SLACK_API_KEY}"
+        }
+
+        path = "https://slack.com/api/chat.postMessage"
+
+        requests.post(path, json=req_body, headers=headers)
+
+    def mark_complete(self):
+        self.completed_at = datetime.now(timezone.utc)
+        self.notify_slack_bot()
+        return self
+
+    def mark_incomplete(self):
+        self.completed_at = None
         return self
 
     @classmethod

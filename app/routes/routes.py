@@ -1,4 +1,4 @@
-from app.routes.route_utils import handle_invalid_data, get_model_and_label, notify_slack_bot
+from app.routes.route_utils import get_model_and_label
 from flask import request, jsonify, abort, Blueprint
 from app import db
 from sqlalchemy import exc
@@ -14,7 +14,7 @@ goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 @task_bp.errorhandler(400)
 def invalid_data(error):
     """This is a function to handle any 400 status code errors"""
-    return handle_invalid_data()
+    return jsonify({"details": "Invalid data"}), 400
 
 
 @goal_bp.route("", methods=["GET"])
@@ -163,10 +163,8 @@ def mark_complete(id):
             - 200 status code
     """
     task = Task.get_by_id(id)
-    task.completed_at = datetime.now(timezone.utc)
+    task.mark_complete()
     db.session.commit()
-
-    notify_slack_bot(task)
 
     return jsonify({"task": task.to_dict()}), 200
 
@@ -185,7 +183,7 @@ def mark_incomplete(id):
             - Task's completed_at attribute is changed to None
     """
     task = Task.get_by_id(id)
-    task.completed_at = None
+    task.mark_incomplete()
     db.session.commit()
     return jsonify({"task": task.to_dict()}), 200
 
@@ -208,8 +206,7 @@ def set_goal_tasks(goal_id):
     req = request.get_json()
 
     try:
-        goal.tasks = [Task.get_by_id(task_id)
-                      for task_id in req["task_ids"]]
+        goal.add_tasks(req)
     except KeyError:
         abort(400)
 
