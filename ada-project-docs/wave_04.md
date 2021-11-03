@@ -129,7 +129,7 @@ Let's verify that this API call works even in Postman!
 Open Postman and make a request that mimics the API call to Slack that we just tested.
 
 - Change the method to `POST`
-- Use this as the request URL: `https://slack.com/api/chat.postMessage`
+  - Use this as the request URL: `https://slack.com/api/chat.postMessage`
 - In "Params," fill in the following values:
   - `channel`: `task-notifications`
   - `text`: Fill in a nice message

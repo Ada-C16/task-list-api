@@ -78,6 +78,20 @@ def mark_completion_status(task_id, completion_status):
     if completion_status == "mark_complete":
         task.completed_at = datetime.utcnow()
 
+        # Send Slack post
+        import requests
+        import os
+        from dotenv import load_dotenv
+        load_dotenv()
+
+        url = "https://slack.com/api/chat.postMessage"
+        headers = {"Authorization": os.environ.get("SLACK_API_TOKEN")}
+        text = f"Someone just completed the task {task.title}"
+        data = {"channel": "task-notifications", "text": text}
+
+        requests.post(url=url, params=data, headers=headers)
+
+
     elif completion_status == "mark_incomplete":
         task.completed_at = None
 
