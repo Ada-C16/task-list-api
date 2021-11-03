@@ -74,6 +74,7 @@ def handle_task(task_id):
              return {
                 "task": {
                     "id": task.task_id,
+                    "goal_id": task.goal_id,
                     "title": task.title,
                     "description": task.description,
                     "is_complete": False if task.completed_at == None else True
@@ -270,3 +271,59 @@ def handle_goal(goal_id):
         db.session.commit()
 
         return {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
+
+@goals_bp.route("/<goal_id>/tasks", methods= ["GET", "POST"])
+def handle_goal_tasks(goal_id):
+#we always pass goal id because every task is related to a goal
+#the goal is the one, tasks are the many
+
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        # return "Author not found", 404
+        return jsonify(None), 404
+
+    if request.method == "GET":
+        tasks_response = []
+        for task in goal.tasks:
+            tasks_response.append(
+                {
+                "id": task.task_id, #references variable from line 286
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False if task.completed_at == None else True
+                }
+            )
+        goal_response = {
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": tasks_response
+        }
+    
+        return jsonify(goal_response)
+        
+    elif request.method == "POST":
+        request_body = request.get_json()#takes request_body and transforms out of json format into python dictionaries and lists
+        # requested_goal = Goal.query.get(id=goal_id)
+        task_ids= []
+        for task_id in request_body["task_ids"]:
+            task = Task.query.get(task_id)
+            task.goal_id = goal_id
+            task_ids.append(task.task_id)
+        
+        db.session.commit()
+
+        return {
+            "id": goal.goal_id,
+            "task_ids": task_ids
+        }
+            # new_task = Task(title=request_body["title"],
+            #                 description=request_body["description"],
+            #                 completed_at=request_body["completed_at"])
+
+        db.session.add(new_task)
+        #used when creating new record
+        db.session.commit()
+        #used when we change any of the records, we want to commit before returning, commit as soon as you expect the changes to persist in the database
+
+        return make_response(f"Task {new_task.title} by {new_task.goal.name} successfully created", 201)
