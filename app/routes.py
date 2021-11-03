@@ -42,9 +42,7 @@ def handle_tasks():
         else:
             tasks = Task.query.all()
         
-        tasks_response = []
-        for task in tasks:
-            tasks_response.append(task_response(task))
+        tasks_response = [task_response(task) for task in tasks]
         return make_response(jsonify(tasks_response), 200)
     
     
@@ -151,9 +149,8 @@ def handle_goals():
         else:
             goals = Goal.query.all()
 
-        goals_response = []
-        for goal in goals:
-            goals_response.append(goal_response(goal))
+        goals_response = [goal_response(goal) for goal in goals]
+
         return make_response(jsonify(goals_response), 200)
     
     
