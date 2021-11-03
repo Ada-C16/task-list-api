@@ -1,10 +1,10 @@
 from app import db
 from app.models.task import Task
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 from datetime import datetime, timezone
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
-goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
+# goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
@@ -26,9 +26,7 @@ def post_new_task():
 
     if "title" not in request_body or "description" not in request_body\
         or "completed_at" not in request_body:
-        return jsonify({
-            "details": "Invalid data"
-        }), 400
+        return abort(404, {"details": "Invalid data"})
 
     new_task = Task(title=request_body["title"],
     description=request_body["description"],
@@ -50,7 +48,7 @@ def get_single_task(task_id):
     task = Task.query.get(task_id)
 
     if task is None:
-        return jsonify(None), 404
+        return abort(404)
 
     response_body = {
         "task": (task.to_dict())
@@ -61,8 +59,9 @@ def get_single_task(task_id):
 @tasks_bp.route("/<task_id>", methods=["PUT"])
 def put_task(task_id):
     task = Task.query.get(task_id)
+    
     if task is None:
-        return jsonify(None), 404
+        return abort(404)
 
     form_data = request.get_json()
     task.title = form_data["title"]
@@ -80,7 +79,7 @@ def put_task(task_id):
 def delete_task(task_id):
     task = Task.query.get(task_id)
     if task is None:
-        return jsonify(None), 404
+        return abort(404)
     
     db.session.delete(task)
     db.session.commit()
@@ -93,7 +92,7 @@ def delete_task(task_id):
 def mark_task_as_completed(task_id):
     task = Task.query.get(task_id)
     if task is None:
-        return jsonify(None), 404
+        return abort(404)
 
     task.completed_at = datetime.now(timezone.utc)
 
@@ -110,7 +109,7 @@ def mark_task_as_completed(task_id):
 def mark_task_as_not_completed(task_id):
     task = Task.query.get(task_id)
     if task is None:
-        return jsonify(None), 404
+        return abort(404)
 
     task.completed_at = None
     db.session.commit()

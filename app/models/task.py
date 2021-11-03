@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, jsonify
 from app import db
 import requests
 import os
@@ -13,6 +13,8 @@ class Task(db.Model):
 
     def to_dict(self):
         self.is_complete = False if not self.completed_at else True
+
+        self.is_complete
 
         task_dict = {
             "id": self.task_id,
@@ -35,3 +37,4 @@ class Task(db.Model):
             'text': f"Someone just completed the task: {self.title}"
         }
         requests.post(url, data)
+

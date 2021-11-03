@@ -1,7 +1,7 @@
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
@@ -23,7 +23,7 @@ def get_tasks_for_goal(goal_id):
     goal = Goal.query.get(goal_id)
 
     if goal is None:
-        return jsonify(None), 404
+        return abort(404)
 
     response_body = goal.verbose_goal_dict()
     
@@ -35,9 +35,7 @@ def post_new_goal():
     request_body = request.get_json()
 
     if "title" not in request_body:
-        return jsonify({
-            "details": "Invalid data"
-        }), 400
+        return abort(404, {"details": "Invalid data"})
 
     new_goal = Goal(title=request_body["title"])
 
@@ -54,7 +52,7 @@ def post_new_tasks_for_goal(goal_id):
     goal = Goal.query.get(goal_id)
 
     if goal_id == None:
-        return jsonify(None), 400
+        return abort(404)
         
     request_body = request.get_json()
     tasks = []
@@ -73,7 +71,7 @@ def get_single_goal(goal_id):
     goal = Goal.query.get(goal_id)
 
     if goal is None:
-        return jsonify(None), 404
+        return abort(404)
 
     response_body = {
         "goal": (goal.to_dict())
@@ -84,7 +82,7 @@ def get_single_goal(goal_id):
 def put_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if goal is None:
-        return jsonify(None), 404
+        return abort(404)
 
     form_data = request.get_json()
     goal.title = form_data["title"]
@@ -100,7 +98,7 @@ def put_goal(goal_id):
 def delete_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if goal is None:
-        return jsonify(None), 404
+        return abort(404)
     
     db.session.delete(goal)
     db.session.commit()
