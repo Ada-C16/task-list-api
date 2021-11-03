@@ -146,3 +146,27 @@ def handle_goal(goal_id):
         db.session.delete(goal)
         db.session.commit()
         return jsonify({"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}), 200
+
+# Nested Routes - Associate Goal with Tasks
+@goal_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goals_tasks(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        abort(404)
+    if request.method == "GET":
+        result = {
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": [task.to_dict() for task in goal.tasks]
+        }
+        return jsonify(result), 200
+
+    elif request.method == "POST":
+        request_body = request.get_json()
+        task_ids = request_body["task_ids"]
+        for task_id in task_ids:
+            task = Task.query.get(task_id)
+            goal.tasks.append(task)
+        
+        db.session.commit()
+        return jsonify({"id": goal.goal_id, "task_ids": [task.task_id for task in goal.tasks]}), 200

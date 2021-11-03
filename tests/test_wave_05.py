@@ -75,7 +75,7 @@ def test_create_goal(client):
 def test_update_goal(client, one_goal):
     # Act
     response = client.put("/goals/1", json={
-        "title": "Updated Goal Title",
+        "title": "Updated Goal Title"
     })
     response_body = response.get_json()
 
