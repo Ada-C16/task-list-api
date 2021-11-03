@@ -86,7 +86,7 @@ def add_goal_tasks(goal_id):
         if task:
             task.goal_id = goal.goal_id
         else:
-            return "Invalid task."
+            return jsonify({ "details" : "Invalid task" }), 400
 
         db.session.add(task)
         db.session.commit()
