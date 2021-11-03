@@ -41,16 +41,12 @@ def handle_tasks():
     elif request.method == "POST":
         request_body = request.get_json()
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-            return {
-                "details": "Invalid data"
-            }, 400
-
+            return {"details": "Invalid data"}, 400
         new_task = Task(title=request_body["title"],
                         description=request_body["description"],
                         completed_at=request_body["completed_at"])
         db.session.add(new_task)
         db.session.commit()
-
         new_task_response = {
             "task": {
                 "id": new_task.task_id,
@@ -166,11 +162,9 @@ def handle_goals():
             return {
                 "details": "Invalid data"
             }, 400
-
         new_goal = Goal(title=request_body["title"])
         db.session.add(new_goal)
         db.session.commit()
-
         new_goal_response = {
             "goal": {
                 "id": new_goal.goal_id,
