@@ -7,6 +7,9 @@ import requests
 from dotenv import load_dotenv
 import os
 from .models.messages import *
+import json
+import pprint
+import slack
 
 load_dotenv()
 
@@ -270,7 +273,7 @@ def handle_slack_goal():
     command = data.get("command")
     print("Command is", command)
 
-    if command == '/goals':
+    if command == '/goal':
 
         return create_item_slash_command(Goal, data)
     
@@ -280,5 +283,28 @@ def handle_slack_goal():
 
 @slack_bp.route("/mark_task", methods=["POST"])
 def handle_slack_mark_task():
+
+    data = request.form
+    payload_dict = json.loads(data['payload'])
+    task_id = int(payload_dict["actions"][0]["value"])
+    channel_id = payload_dict["container"]["channel_id"]
     
+    #print(json.dumps(payload_dict["actions"], indent=4))
+
+    task = Task.query.get(task_id)
+
+    if task.completed_at:
+        task.completed_at = None
+        completion_status = "incomplete"
+    else:
+        task.completed_at = datetime.today()
+        completion_status = "complete"
+
+    db.session.commit()
+
+    text = f"The task *{task.title}* has been marked {completion_status}."
+    
+    client = slack.WebClient(token=slack_api_key)
+    client.chat_postMessage(channel=channel_id, text=text)
+
     return "", 200

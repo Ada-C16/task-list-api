@@ -55,7 +55,7 @@ def create_item_slash_command(class_name, data):
                     "text": f"New {type} *{title}* has been added.",
                 }
             }]
-        }
+        }, 201
 
 def get_items_slash_command(class_name, data, filter=None):
 
@@ -100,17 +100,18 @@ def get_items_slash_command(class_name, data, filter=None):
                                 "type": "plain_text",
                                 "text": "Mark complete" if not item.completed_at else "Mark incomplete"
                                 },
-                            "style": "primary" if not item.completed_at else "danger",
                             "value": str(item.task_id),
-                            "action_id": "button"
+                            "action_id": "button-action"
                             }
+                if not item.completed_at:
+                    item_text["accessory"]["style"] = "primary"
         blocks.append(item_text)
         print(item_text)
 
     return {
         "response_type" : "in_channel",
         "blocks": blocks
-    }
+    }, 200
 
 
 
