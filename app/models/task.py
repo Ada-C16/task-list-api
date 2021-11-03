@@ -11,6 +11,10 @@ class Task(db.Model):
         'goal.goal_id'), nullable=True)
     goal = db.relationship('Goal', back_populates='tasks')
 
+    def check_completed_at(self):
+        if self.completed_at is not db.DateTime:
+            return "Invalid completed_at entry."
+
     def task_dict(self):
         return {
             "id": self.task_id,
