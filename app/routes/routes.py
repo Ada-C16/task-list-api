@@ -13,17 +13,18 @@ goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 @goal_bp.errorhandler(400)
 @task_bp.errorhandler(400)
 def invalid_data(error):
+    """This is a function to handle any 400 status code errors"""
     return handle_invalid_data()
 
 
 @goal_bp.route("", methods=["GET"])
 @task_bp.route("", methods=["GET"])
 def read_items():
-    """This is a route to get all saved tasks
+    """This is a route to get all saved tasks or goals
     Optional query parameter:
-        - sort: can be "asc" or "desc" to sort tasks by title
+        - sort: can be "asc" or "desc" to sort tasks or goals by title
     Returns:
-        - JSON array of tasks represented as objects, optionally sorted by title
+        - JSON array of tasks or goals represented as objects, optionally sorted by title
         - 200 status code
     """
     model = get_model_and_label(request.blueprint, no_label=True)
@@ -41,12 +42,15 @@ def read_items():
 @goal_bp.route("", methods=["POST"])
 @task_bp.route("", methods=["POST"])
 def create_item():
-    """This is a route to create a new task
+    """This is a route to create a new task or goal
     Required request body:
-        - JSON object with title (string), description (string), and completed_at (datetime or null) keys
+        - For task creation:
+            - JSON object with title (string), description (string), and completed_at (datetime or null) keys
+        - For goal creation:
+            - JSON object with title (string)
     Returns:
         - If valid data provided:
-            - JSON object with task data saved to the db
+            - JSON object with task or goal data saved to the db
             - 201 status code
         - If invalid data provided:
             - JSON error message
@@ -74,13 +78,13 @@ def create_item():
 @goal_bp.route("/<id>", methods=["GET"])
 @task_bp.route("/<id>", methods=["GET"])
 def read_item(id):
-    """This is a route to get one task of a specified id
+    """This is a route to get one task or goal of a specified id
     Returns:
-        - If valid id provided but no task found:
+        - If valid id provided but no task or goal found:
             - 404 status code
         - If invalid id provided:
             - 400 status code
-        - If valid is is provided and task is found:
+        - If valid is is provided and task or goal is found:
             - 200 status code
             - JSON object representing task with requested id
     """
@@ -92,9 +96,12 @@ def read_item(id):
 @goal_bp.route("/<id>", methods=["PUT"])
 @task_bp.route("/<id>", methods=["PUT"])
 def update_item(id):
-    """This is a route to update one task of a specified id
+    """This is a route to update one task or goal of a specified id
     Required request body:
-        - JSON object with title (string) and description (string)
+        - For task:
+            - JSON object with title (string) and description (string)
+        - For goal:
+            - JSON object tith title (string)
     Returns:
         - If invalid data is provided:
             - 400 status code
@@ -121,15 +128,15 @@ def update_item(id):
 @goal_bp.route("/<id>", methods=["DELETE"])
 @task_bp.route("/<id>", methods=["DELETE"])
 def delete_item(id):
-    """This is a route to delete a task of a specified id
+    """This is a route to delete a task or goal of a specified id
     Returns:
         - If invalid id is provided:
             - 400 status code
-        - If valid id is provided but not task is found:
+        - If valid id is provided but no task or goal is found:
             - 404 status code
-        - If task is found:
+        - If task or goal is found:
             - 200 status code
-            - JSON object with a message indicating task was deleted
+            - JSON object with a message indicating task or goal was deleted
     """
     model, label = get_model_and_label(request.blueprint)
     item = model.get_by_id(id)
