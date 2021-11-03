@@ -13,6 +13,15 @@ task_bp = Blueprint("task_bp", __name__, url_prefix="/tasks")
 def get_task_with_task_id(task_id):
     return Task.query.get_or_404(task_id, description={"details": "Invalid data"})
 
+def post_slack_message(task):
+    slack_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+
+    try:
+        response = slack_client.chat_postMessage(channel="#task-notifications",
+                                text=f"Someone just completed the task {task.title}")
+
+    except SlackApiError as e:
+        assert e.response["error"]
 
 # Routes
 @task_bp.route("", methods = ["POST"])
@@ -105,15 +114,6 @@ def delete_task(task_id):
 
     return jsonify({'details': f'Task {task.id} "{task.title}" successfully deleted'})
 
-def post_slack_message(task):
-    slack_client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
-
-    try:
-        response = slack_client.chat_postMessage(channel="#task-notifications",
-                                text=f"Someone just completed the task {task.title}")
-
-    except SlackApiError as e:
-        assert e.response["error"]
 
 @task_bp.route("<task_id>/mark_complete", methods = ["PATCH"])
 def update_as_completion(task_id):
