@@ -8,7 +8,8 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 
-# ********************* TASK routes ******************************
+
+#********************* TASK routes ******************************
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 @tasks_bp.route("", methods=["GET", "POST"])
@@ -57,10 +58,7 @@ def handle_all_tasks():
   
 @tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE", "PATCH"])
 def handle_single_task(task_id):
-  task = Task.query.get(task_id)
-  
-  if task is None:
-    return "", 404
+  task = Task.query.get_or_404(task_id)
 
   if request.method == "GET":
     return {"task": {
@@ -71,7 +69,6 @@ def handle_single_task(task_id):
   
   elif request.method == "PUT":
       request_body = request.get_json()
-  
       task.title=request_body["title"] 
       task.description=request_body["description"]
       
@@ -95,38 +92,29 @@ def handle_single_task(task_id):
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_task_complete(task_id):
-  task = Task.query.get(task_id)
-  if task is None:
-    return make_response("", 404)
+  
+  task = Task.query.get_or_404(task_id)
   task.completed_at = datetime.utcnow()
- 
   db.session.commit()
   
-  # path = "https://slack.com/api/chat.postMessage"
-  # query_params = {
-  #   "token": os.getenv("BOT_TOKEN"),
-  #   "channel": "task-notification",
-  #   "text": f"Someone completed the task {task.title}"}
-  # response = requests.post(path, params=query_params)  
-  # response_body = {
-  #   "task": {
-  #     "id": 1,
-  #     "title": "my beautiful tasks",
-  #     "description": "fun stuff",
-  #     "completed_at": "" } }
-    
-  return jsonify({"task": {
+  response_body = {"task": {
         "id": task.task_id,
         "title": task.title,
         "description": task.description,
-        "is_complete": task.is_complete()}}), 200
-
+        "is_complete": task.is_complete()}}
+  
+  path = "https://slack.com/api/chat.postMessage"
+  header = {"Authorization: os.getenv(BOT_TOKEN)"}
+  query_params = {
+    "channel": "task-notification",
+    "text": f"Someone completed the task {task.title}"}
+  response = requests.post(path, params=query_params, headers=header)
+    
+  return jsonify(response_body), 200
+  
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_completed_task_incomplete(task_id):
-  task = Task.query.get(task_id)
-  
-  if task is None:
-    return make_response("", 404)
+  task = Task.query.get_or_404(task_id)
   
   if request.method == "PATCH":
     task.completed_at = None
@@ -158,7 +146,6 @@ def handle_all_goals():
     
     if not request_body:
       return jsonify({"details": "Invalid data"}), 400
-    
     else: 
       goal = Goal(title = request_body["title"])
     
@@ -172,10 +159,7 @@ def handle_all_goals():
 
 @goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
 def handle_single_goal(goal_id):
-  goal = Goal.query.get(goal_id)
-  
-  if goal is None:
-    return "", 404
+  goal = Goal.query.get_or_404(goal_id)
 
   if request.method == "GET":
     return {"goal": {
@@ -200,52 +184,24 @@ def handle_single_goal(goal_id):
       {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
     
 
-
-
-# ********************* Task / Goal routes ******************************
+#********************* Task / Goal routes ******************************
 
 # GET --> list of task ids for a specific goal    
 @goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
-def get_tasks_one_goal(goal_id):
-  goal = Goal.query.get(goal_id) #search for goal by id
-  
-  if goal is None:
-    return make_response("", 404)
-  
-  tasks_with_goals = Task.query.all() #search for tasks
-  tasks_with_goals_list = []
-    
-  for task in tasks_with_goals:
-    tasks_with_goals_list.append({
-      "id": task.task_id, 
-      "goal_id": goal.goal_id, #goal id in the task table
-      "title": task.title, 
-      "description": task.description, 
-      "is_complete": task.is_complete()})
-
-    return {"id": goal_id,
-          "title": goal.title,
-          "tasks_ids": tasks_with_goals_list}, 200
-
-#  GET --> list of task ids for a specific goal with GOAL ID    
-@goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
-def get_task_includes_goal_id(goal_id):
+def get_tasks_with_goal(goal_id):
   if request.method == "GET":
-    goal = Goal.query.get(goal_id) #search for goal by id
-    
-    if goal is None:
-      return make_response("", 404)
-    
-    tasks_with_goals = Task.query.filter_by(goal_id=goal_id).all() #search for tasks with that goal id
+    goal = Goal.query.get_or_404 (goal_id) #search for goal by id
+  
+    tasks_with_goals = Task.query.all() #search for tasks
     tasks_with_goals_list = []
-      
+    
     for task in tasks_with_goals:
       tasks_with_goals_list.append({
         "id": task.task_id, 
-        "goal_id": task.goal_id, #goal id in the task table
+        "goal_id": goal.goal_id, #goal id in the task table
         "title": task.title, 
         "description": task.description, 
-        "is_complete": task.is_complete()})  
+        "is_complete": task.is_complete()})
 
     return {"id": goal.goal_id,
         "title": goal.title,
@@ -255,45 +211,56 @@ def get_task_includes_goal_id(goal_id):
           "title": task.title,
           "description": task.description,
           "is_complete": task.is_complete()}]}, 200
-
-# #GET list of task ids for a specific goal with goal id   
-@goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
-def get_tasks_one_goal_goal_id(goal_id):
-  goal = Goal.query.get(goal_id) #search for goal by id
-  tasks_with_goals = Task.query.filter_by(goal_id=goal_id).all() #search for tasks with that goal id
-  tasks_with_goals_list = []
     
-  for task in tasks_with_goals:
-    tasks_with_goals_list.append({
-      "id": task.task_id, 
-      "goal_id": task.goal_id, #goal id in the task table
-      "title": task.title, 
-      "description": task.description, 
-      "is_complete": task.is_complete()})
     
-  return {"id": goal.goal_id,
-        "title": goal.title,
-        "tasks": [{
-          "id": task.task_id,
-          "goal_id": task.goal_id,
-          "title": task.title,
-          "description": task.description,
-          "is_complete": task.is_complete()}]}, 200
+    
+    
+    
+    
+# "is_complete": task.completed_at is not None}
 
-# POST    
-goals_bp.route("/<goal_id>/tasks", methods=["GET","POST"])
-def post_tasks_to_goal(goal_id):
-  goal = Goal.query.get(goal_id) #search for goal by id
-  request_body = request.get_json()
-  task_ids = request_body["task_ids"]
-  
-  task_ids_list = []
-  for task_id in task_ids_list:
-    task = Task.query.get(task_id)
-    task.goal_id = goal_id
-  
-  db.session.commit()
+# # #GET list of task ids for a specific goal with goal id   
+# @goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+# def get_tasks_one_goal_goal_id(goal_id):
+#   goal = Goal.query.get(goal_id) #search for goal by id
+#   tasks_with_goals = Task.query.filter_by(goal_id=goal_id).all() #search for tasks with that goal id
+#   tasks_with_goals_list = []
+    
+#   for task in tasks_with_goals:
+#     tasks_with_goals_list.append({
+#       "id": task.task_id, 
+#       "goal_id": task.goal_id, #goal id in the task table
+#       "title": task.title, 
+#       "description": task.description, 
+#       "is_complete": task.is_complete()})
+    
+#   return {"id": goal.goal_id,
+#         "title": goal.title,
+#         "tasks": [{
+#           "id": task.task_id,
+#           "goal_id": task.goal_id,
+#           "title": task.title,
+#           "description": task.description,
+#           "is_complete": task.is_complete()}]}, 200
 
-  return jsonify({
-      "id": goal_id,
-      "task_ids": task_ids_list}), 200
+# # POST    
+# goals_bp.route("/<goal_id>/tasks", methods=["GET","POST"])
+# def post_tasks_to_goal(goal_id):
+#   goal = Goal.query.get(goal_id) #search for goal by id
+#   request_body = request.get_json()
+#   task_ids = request_body["task_ids"]
+  
+#   task_ids_list = []
+#   for task_id in task_ids_list:
+#     task = Task.query.get(task_id)
+#     task.goal_id = goal_id
+  
+#   db.session.commit()
+
+#   return jsonify({
+#       "id": goal_id,
+#       "task_ids": task_ids_list}), 200
+
+# return {"id": goal_id,
+#             "title": goal.title,
+#             "tasks_ids": tasks_with_goals_list}, 200
