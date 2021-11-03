@@ -55,6 +55,25 @@ def handle_task(task_id):
         db.session.commit()
         return make_response({"details": f'Task {task.task_id} "{task.title}" successfully deleted'})
 
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_task_completed(task_id):
+    task_id = int(task_id)
+    task = Task.query.get(task_id)
+    task.completed_at = True
+    db.session.commit()
+    return make_response({"task": task.to_dict()}, 200)
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_task_incompleted(task_id):
+    task_id = int(task_id)
+    task = Task.query.get(task_id)
+    task.completed_at = None
+    db.session.commit()
+    return make_response({"task": task.to_dict()}, 200)
+
+
+
+
 
     
 
