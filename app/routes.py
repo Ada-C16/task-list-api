@@ -39,7 +39,6 @@ def create_task():
     db.session.add(new_task)
     db.session.commit()
 
-    # return make_response(jsonify({"task": new_task.to_dict()}), 201)
     return jsonify({"task": new_task.to_dict()}), 201
 
 
@@ -48,7 +47,6 @@ def get_task(task_id):
     """READS task with given id"""
     task = get_task_from_id(task_id)
 
-    # return make_response(jsonify({"task": task.to_dict()}), 200)
     return jsonify({"task": task.to_dict()}), 200
 
 
@@ -70,7 +68,6 @@ def get_tasks():
         tasks_response.append(
             task.to_dict()
         )
-    # return make_response(jsonify(tasks_response), 200)
     return jsonify(tasks_response), 200
 
 
@@ -94,7 +91,6 @@ def update_task(task_id):
         task_response = task.to_dict()
 
         db.session.commit()
-        # return make_response(jsonify({"task": task_response}), 200)
         return jsonify({"task": task_response}), 200
 
 
@@ -105,7 +101,6 @@ def delete_task(task_id):
 
     db.session.delete(task)
     db.session.commit()
-    # return make_response(jsonify({"details": f'Task {task_id} "{task.title}" successfully deleted'}), 200)
     return jsonify({"details": f'Task {task_id} "{task.title}" successfully deleted'}), 200
 
 
