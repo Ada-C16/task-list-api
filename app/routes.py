@@ -11,6 +11,7 @@ goals_bp = Blueprint("goals_bp", __name__,url_prefix="/goals")
 
 #TASKS ROUTES
 
+
 @tasks_bp.route("",methods =["POST","GET"])
 def handle_tasks():
     if request.method == "POST":
@@ -45,6 +46,7 @@ def handle_tasks():
         
         return jsonify(tasks_response)
 
+
 @tasks_bp.route("/<task_id>", methods = ["GET","PUT","DELETE"])
 def handle_task(task_id):
     if not task_id.isnumeric():
@@ -78,6 +80,7 @@ def handle_task(task_id):
             'details': f'Task {task.task_id} "{task.title}" successfully deleted'
         }, 200
 
+
 @tasks_bp.route("/<task_id>/mark_incomplete", methods = ["PATCH"])
 def mark_incomplete(task_id):
     if not task_id.isnumeric():
@@ -93,6 +96,7 @@ def mark_incomplete(task_id):
 
     return ({"task": task.to_dict()}),200
 
+
 @tasks_bp.route("/<task_id>/mark_complete", methods = ["PATCH"])
 def mark_complete(task_id):
     if not task_id.isnumeric():
@@ -104,26 +108,16 @@ def mark_complete(task_id):
     
     task.completed_at = datetime.utcnow()
 
-    db.session.commit()
-    
-    #SLACK API POST MESSAGE
+    db.session.commit() 
 
-    path = "https://slack.com/api/chat.postMessage"
+#SLACK API POST MESSAGE
 
-    SLACK_API_KEY = os.environ.get(
-            "SLACK_API_KEY")
-    
-    query_params = {
-    "token":SLACK_API_KEY,
-    "channel": "task-notifications",
-    "text": f"Someone just completed the task {task.title}!"
-}
-
-    response =requests.post(path, data=query_params)
+    send_slack_message(task)
     
     return ({"task": task.to_dict()}),200
 
 #GOALS ROUTES
+
 
 @goals_bp.route("",methods =["POST","GET"])
 def handle_goals():
@@ -147,6 +141,7 @@ def handle_goals():
             goals_response.append(goal.to_dict())
         
         return jsonify(goals_response)
+
 
 @goals_bp.route("/<goal_id>", methods = ["GET","PUT","DELETE"])
 def handle_goal(goal_id):
@@ -175,6 +170,7 @@ def handle_goal(goal_id):
         return {
             'details': f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
         }, 200
+
 
 @goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
 def handle_nested_tasks(goal_id):
@@ -205,3 +201,18 @@ def handle_nested_tasks(goal_id):
         "title":goal.title,
         "tasks" :tasks_response
         })
+    
+#Helper function for slack bot message
+
+def send_slack_message(task):
+    path = "https://slack.com/api/chat.postMessage"
+
+    SLACK_API_KEY = os.environ.get(
+            "SLACK_API_KEY")
+    
+    query_params = {
+    "token":SLACK_API_KEY,
+    "channel": "task-notifications",
+    "text": f"Someone just completed the task {task.title}!"
+}
+    requests.post(path, data=query_params)
