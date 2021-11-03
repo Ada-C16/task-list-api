@@ -2,6 +2,7 @@ from io import DEFAULT_BUFFER_SIZE
 from app import db
 from flask import Blueprint, request, jsonify
 from app.models.task import Task
+from sqlalchemy import asc, desc
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -28,8 +29,16 @@ def handle_tasks():
         return jsonify({"task": new_task.task_dict()}), 201
 
     elif request.method == "GET":
-        tasks = Task.query.all()
-        task_response = [task.task_dict() for task in tasks]
+        sort_query = request.args.get("sort")
+        if sort_query == "asc":
+            tasks = Task.query.order_by(asc("title"))
+            task_response = [task.task_dict() for task in tasks]
+        elif sort_query == "desc":
+            tasks = Task.query.order_by(desc("title"))
+            task_response = [task.task_dict() for task in tasks]
+        else:
+            tasks = Task.query.all()
+            task_response = [task.task_dict() for task in tasks]
         return jsonify(task_response), 200
 
 
