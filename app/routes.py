@@ -1,12 +1,11 @@
 from flask import Blueprint, jsonify, request, make_response
-import requests
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
 from datetime import date, datetime, timezone
 import os
+import requests
 
-# Create blueprints
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
@@ -56,20 +55,10 @@ def handle_task(task_id):
     
     if request.method == "GET":
         if task.goal_id == None:
-            return {"task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False if task.completed_at == None else True}
-                }
+            return {"task": task.to_json()}
+                
         else:
-            return {"task": {
-                    "id": task.task_id,
-                    "goal_id": task.goal_id,
-                    "title": task.title,
-                    "description": task.description,
-                    "is_complete": False if task.completed_at == None else True}
-            }
+            return {"task": task.to_json_with_goal()}
     
     elif request.method == "PUT":
         request_data = request.get_json()
@@ -78,7 +67,6 @@ def handle_task(task_id):
         task.description = request_data["description"]
         task.completed_at = datetime.now(timezone.utc) if \
             task.completed_at else None
-
         db.session.commit()
 
         return {"task": task.to_json()}
@@ -114,6 +102,7 @@ def update_task_to_incomplete(task_id):
     
     else:
         task.completed_at = None
+        db.session.commit()
         
         return {"task": task.to_json()}, 200
 
@@ -132,21 +121,12 @@ def handle_goals():
         db.session.add(new_goal)
         db.session.commit()
 
-        return {"goal": {
-            "id": new_goal.goal_id,
-            "title": new_goal.title
-        }}, 201
+        return {"goal": new_goal.to_json()}, 201
 
     elif request.method == "GET":
         goals = Goal.query.all()
-
-        goals_response = []
-        for goal in goals:
-            goals_response.append({
-                "id": goal.goal_id,
-                "title": goal.title
-            })
-        
+        goals_response = [goal.to_json() for goal in goals]
+    
         return jsonify(goals_response)
 
 @goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
@@ -157,25 +137,14 @@ def handle_goal(goal_id):
         return make_response("", 404)
 
     elif request.method == "GET":
-        return {
-            "goal": {
-                "id": goal.goal_id,
-                "title": goal.title
-            }
-        }
+        return {"goal": goal.to_json()}
     
     elif request.method == "PUT":
         request_body = request.get_json()
-
         goal.title = request_body["title"]
         db.session.commit()
 
-        return {
-            "goal": {
-                "id": goal.goal_id,
-                "title": goal.title
-            }
-        }
+        return {"goal": goal.to_json()}
 
     elif request.method == "DELETE":
         db.session.delete(goal)
@@ -192,15 +161,11 @@ def handle_goal_tasks(goal_id):
     elif request.method == "POST":
         request_body = request.get_json()
 
-        goal.tasks = []
-        for task_id in request_body["task_ids"]:
-            goal.tasks.append(Task.query.get(task_id))
-        
+        goal.tasks = [Task.query.get(task_id) for task_id in \
+            request_body["task_ids"]]      
         db.session.commit()
 
-        task_ids = []
-        for task in goal.tasks:
-            task_ids.append(task.task_id)
+        task_ids = [task.task_id for task in goal.tasks]
 
         return jsonify({
             "id": goal.goal_id,
@@ -210,12 +175,7 @@ def handle_goal_tasks(goal_id):
     elif request.method == "GET":
         goal_tasks = []
         for task in goal.tasks:
-            goal_tasks.append(
-                {"id": task.task_id,
-                "goal_id": goal.goal_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False if task.completed_at == None else True})
+            goal_tasks.append(task.to_json_with_goal())
 
         return {
             "id": goal.goal_id,

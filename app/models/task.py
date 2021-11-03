@@ -15,3 +15,13 @@ class Task(db.Model):
             "description": self.description,
             "is_complete": False if self.completed_at == None else True
             }
+
+    def to_json_with_goal(self):
+        return {
+            "id": self.task_id,
+            "goal_id": self.goal_id,
+            "title": self.title,
+            "description": self.description,
+            "is_complete": False if self.completed_at == None \
+                else True}
+            
