@@ -281,6 +281,7 @@ def handle_slack_goal():
 
         return get_items_slash_command(Goal, data)
 
+# handle response to pressing the 'mark complete' and 'mark incomplete' buttons for tasks viewed on slack
 @slack_bp.route("/mark_task", methods=["POST"])
 def handle_slack_mark_task():
 
@@ -289,8 +290,6 @@ def handle_slack_mark_task():
     task_id = int(payload_dict["actions"][0]["value"])
     channel_id = payload_dict["container"]["channel_id"]
     
-    #print(json.dumps(payload_dict["actions"], indent=4))
-
     task = Task.query.get(task_id)
 
     if task.completed_at:
