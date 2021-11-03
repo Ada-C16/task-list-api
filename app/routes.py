@@ -93,4 +93,39 @@ def create_goal():
     db.session.commit()
     return jsonify({"goal":new_goal.to_dict()}),201
     
+@goals_bp.route("", methods=["GET"])
+def handle_goals():
+    goals = Goal.query.all()
+    goals_response = []
+    for goal in goals:
+        goals_response.append(goal.to_dict())
+    return jsonify(goals_response), 200
+        
+@goals_bp.route("/<goal_id>", methods=["GET", "PUT","DELETE"])
+def get_goal(goal_id):
+    valid_int(goal_id,"goal_id")
+    goal = Goal.query.get_or_404(goal_id)
     
+    if request.method == "GET":
+        return jsonify({"goal":goal.to_dict()}),200
+    elif request.method == "DELETE":
+        db.session.delete(goal)
+        db.session.commit()
+        return jsonify({"details":f"Goal {goal_id} \"{goal.title}\" successfully deleted"})
+    elif request.method == "PUT":
+        request_body = request.get_json()
+        goal.title = request_body["title"]
+        db.session.commit()
+        return jsonify({"goal":goal.to_dict()}),200
+    
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def post_task_ids_to_goal(goal_id):
+    request_body = request.get_json()
+    
+    goal = Goal.query.get(goal_id)
+    task_ids = request_body["task_ids"]
+    for task_id in task_ids:
+        task = Task.query.get(task_id)
+        goal.tasks.append(task)
+        db.session.commit()
+    return jsonify({"id":goal.id, "task_ids": [task.id for task in goal.tasks]}),200   
