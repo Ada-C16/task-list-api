@@ -24,74 +24,86 @@ def home_page():
         return jsonify(welcome), 200
 
 
-@tasks_bp.route("", methods=["GET", "POST"])
-def handle_all_tasks():
-    if request.method == "POST":
-        request_body = request.get_json()
-        if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-            error_dict = {"details": "Invalid data"}
-            return jsonify(error_dict), 400
+@tasks_bp.route("", methods=["GET"])
+def get_tasks():
+    name_from_url = request.args.get("name")
+    if name_from_url:
+        tasks = Task.query.filter_by(name=name_from_url).all()
+        if not tasks:
+            tasks = Task.query.filter(Task.name.contains(name_from_url))
+    sort_query = request.args.get("sort")
+    if sort_query == "desc":
+        tasks = Task.query.order_by(desc(Task.title))
+    elif sort_query == "asc":
+        tasks = Task.query.order_by(asc(Task.title))
+    else:
+        tasks = Task.query.all()
 
-        new_task = Task.from_json()
-        task_response = {"task": new_task.create_dict()}
-        return jsonify(task_response), 201
+    tasks_response = []
+    for task in tasks:
+        tasks_response.append(task.create_dict())
 
-    elif request.method == "GET":
-        name_from_url = request.args.get("name")
-        if name_from_url:
-            tasks = Task.query.filter_by(name=name_from_url).all()
-            if not tasks:
-                tasks = Task.query.filter(Task.name.contains(name_from_url))
-        sort_query = request.args.get("sort")
-        if sort_query == "desc":
-            tasks = Task.query.order_by(desc(Task.title))
-        elif sort_query == "asc":
-            tasks = Task.query.order_by(asc(Task.title))
-        else:
-            tasks = Task.query.all()
-
-        tasks_response = []
+    if not tasks_response:
+        tasks = Task.query.all()
         for task in tasks:
             tasks_response.append(task.create_dict())
 
-        if not tasks_response:
-            tasks = Task.query.all()
-            for task in tasks:
-                tasks_response.append(task.create_dict())
-
-        return jsonify(tasks_response)
+    return jsonify(tasks_response)
 
 
-@tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
-def tasks_by_id(task_id):
+@tasks_bp.route("", methods=["POST"])
+def post_tasks():
+    request_body = request.get_json()
+    if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
+        error_dict = {"details": "Invalid data"}
+        return jsonify(error_dict), 400
+
+    new_task = Task.from_json()
+    task_response = {"task": new_task.create_dict()}
+    return jsonify(task_response), 201
+
+
+@tasks_bp.route("/<task_id>", methods=["GET"])
+def get_tasks_by_id(task_id):
     task = Task.query.get(task_id)
     if not task:
         return jsonify(None), 404
 
-    if request.method == "GET":
-        task_response = {"task": task.create_dict()}
-        return jsonify(task_response), 200
+    task_response = {"task": task.create_dict()}
+    return jsonify(task_response), 200
 
-    elif request.method == "PUT":
-        form_data = request.get_json()
 
-        task.title = form_data["title"]
-        task.description = form_data["description"]
-        task.iscomplete = None
+@tasks_bp.route("/<task_id>", methods=["PUT"])
+def put_tasks_by_id(task_id):
 
-        db.session.commit()
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify(None), 404
+    form_data = request.get_json()
 
-        task_response = {"task": task.create_dict()}
-        return jsonify(task_response), 200
+    task.title = form_data["title"]
+    task.description = form_data["description"]
+    task.iscomplete = None
 
-    elif request.method == "DELETE":
-        db.session.delete(task)
-        db.session.commit()
+    db.session.commit()
 
-        delete_message = {
-            "details": f'Task {task.task_id} "{task.title}" successfully deleted'}
+    task_response = {"task": task.create_dict()}
+    return jsonify(task_response), 200
 
-        return jsonify(delete_message), 200
+
+@tasks_bp.route("/<task_id>", methods=["DELETE"])
+def delete_task(task_id):
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify(None), 404
+
+    db.session.delete(task)
+    db.session.commit()
+
+    delete_message = {
+        "details": f'Task {task.task_id} "{task.title}" successfully deleted'}
+
+    return jsonify(delete_message), 200
 
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
@@ -166,8 +178,8 @@ def handle_all_goals():
         return jsonify(goals_response)
 
 
-@goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
-def handle_individual_goal(goal_id):
+@goals_bp.route("/<goal_id>", methods=["GET"])
+def get_individual_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if not goal:
         return jsonify(None), 404
@@ -176,54 +188,70 @@ def handle_individual_goal(goal_id):
         goal_response = {"goal": goal.create_dict()}
         return jsonify(goal_response), 200
 
-    elif request.method == "PUT":
-        form_data = request.get_json()
 
-        goal.title = form_data["title"]
+@goals_bp.route("/<goal_id>", methods=["PUT"])
+def replace_individual_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return jsonify(None), 404
+    form_data = request.get_json()
 
-        db.session.commit()
+    goal.title = form_data["title"]
 
-        goal_response = {"goal": goal.create_dict()}
-        return jsonify(goal_response), 200
+    db.session.commit()
 
-    elif request.method == "DELETE":
-        db.session.delete(goal)
-        db.session.commit()
-
-        delete_message = {
-            "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
-
-        return jsonify(delete_message), 200
+    goal_response = {"goal": goal.create_dict()}
+    return jsonify(goal_response), 200
 
 
-@goals_bp.route("<goal_id>/tasks", methods=["GET", "POST"])
-def handle_goal_with_tasks(goal_id):
+@goals_bp.route("/<goal_id>", methods=["DELETE"])
+def delete_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return jsonify(None), 404
+    db.session.delete(goal)
+    db.session.commit()
+
+    delete_message = {
+        "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
+
+    return jsonify(delete_message), 200
+
+
+@goals_bp.route("<goal_id>/tasks", methods=["GET"])
+def get_goal_with_tasks(goal_id):
     goal = Goal.query.get(goal_id)
 
     if not goal:
         return jsonify(None), 404
 
-    if request.method == "GET":
-        goal_response = []
-        for task in goal.tasks:
-            goal_response.append(task.create_dict())
+    goal_response = []
+    for task in goal.tasks:
+        goal_response.append(task.create_dict())
 
-        response = {"id": goal.goal_id,
-                    "title": goal.title,
-                    "tasks": goal_response}
-        return jsonify(response), 200
+    response = {"id": goal.goal_id,
+                "title": goal.title,
+                "tasks": goal_response}
+    return jsonify(response), 200
 
-    if request.method == "POST":
-        form_data = request.get_json()
-        task_ids = form_data["task_ids"]
-        for id in task_ids:
-            task = Task.query.get(id)
-            if not task:
-                continue
-            task.goal = goal
-            db.session.commit()
 
-        response = {"id": goal.goal_id,
-                    "task_ids": task_ids}
+@goals_bp.route("<goal_id>/tasks", methods=["POST"])
+def create_goal_with_tasks(goal_id):
+    goal = Goal.query.get(goal_id)
 
-        return jsonify(response), 200
+    if not goal:
+        return jsonify(None), 404
+
+    form_data = request.get_json()
+    task_ids = form_data["task_ids"]
+    for id in task_ids:
+        task = Task.query.get(id)
+        if not task:
+            continue
+        task.goal = goal
+        db.session.commit()
+
+    response = {"id": goal.goal_id,
+                "task_ids": task_ids}
+
+    return jsonify(response), 200
