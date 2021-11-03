@@ -55,8 +55,21 @@ def handle_task(task_id):
         return make_response("", 404)
     
     if request.method == "GET":
-        return {
-            "task": task.to_json()}
+        if task.goal_id == None:
+            return {"task": {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False if task.completed_at == None else True}
+                }
+        else:
+            return {"task": {
+                    "id": task.task_id,
+                    "goal_id": task.goal_id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": False if task.completed_at == None else True}
+            }
     
     elif request.method == "PUT":
         request_data = request.get_json()
@@ -170,29 +183,42 @@ def handle_goal(goal_id):
 
         return {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
 
-@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+@goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
 def handle_goal_tasks(goal_id):
     goal = Goal.query.get(goal_id)
+    if goal is None:
+        return make_response("", 404)
 
-    if request.method == "POST":
+    elif request.method == "POST":
         request_body = request.get_json()
 
-        # For each task id, get the corresponding task model and
-        # append it to tasks list
-        tasks = []
+        goal.tasks = []
         for task_id in request_body["task_ids"]:
-            tasks.append(Task.query.get(task_id))
-
-        # Goal.tasks is now a list of task models that
-        # correspond to specific goal
-        goal.tasks = tasks
+            goal.tasks.append(Task.query.get(task_id))
+        
         db.session.commit()
 
         task_ids = []
         for task in goal.tasks:
             task_ids.append(task.task_id)
 
-        return {
+        return jsonify({
             "id": goal.goal_id,
             "task_ids": task_ids
+        })
+    
+    elif request.method == "GET":
+        goal_tasks = []
+        for task in goal.tasks:
+            goal_tasks.append(
+                {"id": task.task_id,
+                "goal_id": goal.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False if task.completed_at == None else True})
+
+        return {
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": goal_tasks
         }
