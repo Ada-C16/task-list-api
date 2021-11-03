@@ -245,8 +245,42 @@ def handle_goal_tasks(goal_id):
 def handle_slack_task():
     
     data = request.form
+    print(data)
 
-    return handle_slash_command(Task, data)
+    command = data.get("command")
+    print("Command is", command)
+
+    if command == '/task':
+
+        return handle_slash_command(Task, data)
+    
+    elif command == '/see-tasks':
+
+        tasks = Task.query.all()
+
+        blocks = [{
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Here are your tasks",
+                }
+            }]
+
+        for task in tasks:
+            if task.title: # filter out the completely empty tasks...how did those get in there?
+                task_text = {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": task.to_string_markdown()
+                    }
+                }
+            blocks.append(task_text)
+
+    return {
+        "response_type" : "in_channel",
+        "blocks": blocks
+    }
 
 #respond to /goal command in slack
 @slack_bp.route("/goals", methods=["POST"])
@@ -255,45 +289,4 @@ def handle_slack_goal():
     data = request.form
 
     return handle_slash_command(Goal, data)
-
-# response to /see-tasks command in Slack
-@slack_bp.route('/tasks/all', methods=["POST"])
-def handle_slack_all_tasks():
-
-    data=request.form
-    print(data)
-    
-    channel_id = data['channel_id']
-    client = slack.WebClient(token=slack_api_key)
-
-    blocks = [
-		{
-			"type": "header",
-			"text": {
-				"type": "plain_text",
-				"text": "Here are your tasks",
-			}
-        }
-        ]
-
-    tasks = Task.query.all()
-
-    for task in tasks:
-        if task.title:
-            task_text = {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": task.to_string_markdown()
-                }
-            }
-        blocks.append(task_text)
-
-    # client.chat_postMessage(channel=channel_id, blocks=blocks)
-
-    return {
-        "response_type" : "in_channel",
-        "blocks": blocks
-    }
-
 
