@@ -15,7 +15,7 @@ def create_task():
 
     try:
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-            response_body = {"details": "Invalid data. itle', 'description', 'completed_at' are required"} 
+            response_body = {"details": "Invalid data. Title', 'description', 'completed_at' are required"} 
             return make_response(jsonify(response_body), 400)
 
 
