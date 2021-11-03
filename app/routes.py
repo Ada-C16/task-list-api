@@ -86,14 +86,25 @@ def handle_task(task_id):
         return make_response(f"Task {task_id} not found", 404)
 
     if request.method == "GET":
-        return {
+        if task.goal_id:
+            return {
             "task": {
                 "id": task.task_id,
+                "goal_id": task.goal_id,
                 "title": task.title,
                 "description": task.description,
                 "is_complete": task.completed_at != None  
                 }
             }
+        else:
+            return {
+                "task": {
+                    "id": task.task_id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": task.completed_at != None  
+                    }
+                }
     
     elif request.method == "PUT":
         form_data = request.get_json()
@@ -272,3 +283,110 @@ def handle_goal(goal_id):
         
     })
 
+
+#wave 6
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goal_tasks(goal_id):
+    
+    goal = Goal.query.get(goal_id)
+
+    if goal is None:
+        return make_response(f"Goal {goal_id} not found", 404)
+
+    if request.method == "GET":
+        tasks = goal.tasks # lists of tasks (dictionary for each task), list of dictionary-one dictionary for each task, while loop
+        # task = Task.query.get(goal_id) #=None
+        if tasks == []:
+            return {
+                    "id": int(goal_id),
+                    "title": goal.title,
+                    "tasks": tasks
+                    }
+        else:
+            # print("*******TASKS=", tasks)
+            tasks_list = []
+            for task in tasks:
+                
+                tasks_list.append(
+                    {
+                    "id": task.task_id,
+                    "goal_id": task.goal_id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": task.completed_at != None 
+
+                    }
+                )
+            return {
+                        "id": int(goal_id),
+                        "title": goal.title,
+                        "tasks": tasks_list
+                        }
+            
+        
+        
+        {
+            "goal": {
+                "id": goal.goal_id,
+                "title": goal.title,
+                }
+            }
+
+
+        tasks_response = []
+        for task in goal.tasks:
+            tasks_response.append(
+                {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "goal" : task.goal
+
+                }
+            )
+        return jsonify(tasks_response)
+
+        # return {
+        #     "goal": {
+        #         "id": goal.goal_id,
+        #         "title": goal.title,
+        #         }
+        #     }
+    
+    elif request.method == "POST":
+        form_data = request.get_json()
+
+        for task_id in form_data["task_ids"]:
+            task = Task.query.get(task_id)
+            task.goal_id = goal_id
+
+       
+
+        # db.session.add(task_goal)
+        db.session.commit()
+
+        return jsonify({
+                    "id": int(goal_id),
+                    "task_ids": form_data["task_ids"]
+                    })
+
+     
+
+    #     return jsonify({
+    #     "goal": {
+    #         "id": goal.goal_id,
+    #         "title": goal.title
+            
+    #     }
+    # })
+
+    #     request_body = request.get_json()
+    #     new_book = Book(
+    #         title=request_body["title"],
+    #         description=request_body["description"],
+    #         author=author
+    #         )
+    #     db.session.add(new_book)
+    #     db.session.commit()
+    #     return make_response(f"Book {new_book.title} by {new_book.author.name} successfully created", 201)
