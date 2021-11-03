@@ -109,7 +109,7 @@ def handle_tasks_goals(goal_id):
         if not request_body:
             abort(400)
             
-        if "task_ids" in request_body:
+        elif "task_ids" in request_body:
             task_ids = request_body["task_ids"]
             for item in task_ids:
                 task = Task.query.get_or_404(item)
@@ -123,6 +123,39 @@ def handle_tasks_goals(goal_id):
         
     except Exception:
         abort(422)
+
+
+@goal_bp.route("/<goal_id>/tasks", methods= ['GET'])
+def read_tasks_goals(goal_id):
+    goal = get_goal_by_id(goal_id)
+    
+    try:
+        
+        tasks_list = []
+        tasks = Task.query.filter_by(goal_id=goal_id).all()
+        for task in tasks:
+            tasks_list.append(task.to_dict_goal_task())     
+
+        response_body = {"id": goal.goal_id, 
+                        "title": goal.title,
+                        "tasks": tasks_list}
+
+        return make_response(jsonify(response_body)), 200
+    except Exception:
+        abort(422)
+
+# GET a task
+# @goal_bp.route("/tasks/<task_id>", methods= ['GET'])
+# def get_tasks(task_id):
+#     task = get_task_by_id(task_id)
+    
+#     try:
+#         task_response = {"task": task.to_dict_goal_task()}
+
+#         return make_response(jsonify(task_response), 200)
+
+#     except Exception: 
+#         abort(400)
 
 
 
@@ -150,9 +183,11 @@ def get_goal_by_id(goal_id):
     valid_int(goal_id, "goal_id")
     return Goal.query.get_or_404(goal_id, description='{Goal not found}')
 
-
 def valid_int(number, parameter_type):
     try:
         int(number)
     except:
         abort(make_response({"error": f'{parameter_type} must be an integer'}, 400))
+def get_task_by_id(task_id):
+    valid_int(task_id, "task_id")
+    return Task.query.get_or_404(task_id, description='{Task not found}')

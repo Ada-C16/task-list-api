@@ -46,7 +46,7 @@ def test_get_tasks_for_specific_goal_no_goal(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
+    assert response_body == {'error': 404, 'message': 'Not found', 'success': False} 
 
 
 def test_get_tasks_for_specific_goal_no_tasks(client, one_goal):
@@ -91,6 +91,7 @@ def test_get_tasks_for_specific_goal(client, one_task_belongs_to_one_goal):
 
 def test_get_task_includes_goal_id(client, one_task_belongs_to_one_goal):
     response = client.get("/tasks/1")
+    # changed the endpoint from /tasks/1 to "/goals/tasks/1"
     response_body = response.get_json()
 
     assert response.status_code == 200
@@ -105,3 +106,5 @@ def test_get_task_includes_goal_id(client, one_task_belongs_to_one_goal):
             "is_complete": False
         }
     }
+
+

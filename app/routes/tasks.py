@@ -70,7 +70,12 @@ def read_one_drink(task_id):
     task = get_task_by_id(task_id)
 
     try:
-        task_response = {"task": task.to_dict() }
+        if task.goal_id:
+            task_response = {"task": task.to_dict_goal_task() }                
+            
+        else:
+            task_response = {"task": task.to_dict() }
+
         return jsonify(task_response), 200
 
     except Exception: 
