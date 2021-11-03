@@ -201,15 +201,20 @@ def get_tasks_with_goal(goal_id):
       "title": task.title, 
       "description": task.description, 
       "is_complete": task.is_complete()})
-
-  return {"id": goal.goal_id,
+    
+  
+  """ return {"id": goal.goal_id,
       "title": goal.title,
       "tasks": [{
         "id": task.task_id,
         "goal_id": task.goal_id,
         "title": task.title,
         "description": task.description,
-        "is_complete": task.is_complete()}]}, 200
+        "is_complete": task.is_complete()}]}, 200 """
+  
+  return {"id": goal.goal_id,
+      "title": goal.title,
+      "tasks": tasks_with_goals_list}, 200
     
 
 #POST
