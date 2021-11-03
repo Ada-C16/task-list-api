@@ -1,3 +1,4 @@
+from flask.wrappers import Response
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
@@ -93,6 +94,9 @@ def get_task(task_id):
         task_dict["is_complete"] = True
     else:
         task_dict["is_complete"] = False
+
+    if task.goal_id is not None:
+        task_dict["goal_id"] = task.goal_id
     
     response["task"] = task_dict
     return response
@@ -314,25 +318,105 @@ def delete_goal(goal_id):
 
     return make_response(response, 200)
 
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def post_task_ids_to_goal(goal_id):
 
-# @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
-# def mark_complete_on_complete_task(task_id):
-#     #first get the task
-#     task = Task.query.get(task_id)
-#     response = {}
-#     task_dict = {} 
+    #you would want to get the tasks for each id sent in and set their goals ids to this goal's id
+    #then format a json with the task ids present to show the goal id and its tasks
 
-#     #check the competion of the task
-#     #update it 
-#     task.completed_at = datetime.now(timezone.utc)
-#     task_dict["is_complete"]= True 
+    goal = Goal.query.get(goal_id) #we grabbed the goal for the provided id
 
-#     task_dict["id"]= task.task_id
-#     task_dict["title"]= task.title
-#     task_dict["description"]= task.description
+    if goal is None: #error checking
+        return make_response("", 404)
     
-#     response["task"] = task_dict
+    request_body = request.get_json() #grab form data
+    task_ids = request_body["task_ids"] #storing the list in a cleaner variable reference
+    
+    for task in range(len(task_ids)): #for each index in this list
+        this_task = Task.query.get(task_ids[task]) #get one task at a time
+        this_task.goal_id = goal.goal_id #set its goal id to the id of this goal
+        db.session.commit()
 
-#     print(task.completed_at)
+    response = {"id": goal.goal_id, "task_ids": task_ids}
+    return make_response(response, 200)
 
-#     return make_response(response, 200)
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+def get_tasks_for_specific_goals(goal_id): 
+
+    #get the goal cuz we need its details
+    #get tasks that have that goal id 
+    #if no tasks have that goal id, return a specific response 
+
+    goal = Goal.query.get(goal_id) #grab the specific goal
+
+    if goal is None:
+        return make_response("", 404)
+
+    tasks = Task.query.filter(Task.goal_id==goal_id).all() 
+    response = {"id": goal.goal_id, "title": goal.title, "tasks": []}
+
+    for task in tasks:
+        task_dict = {}
+        task_dict["id"] = task.task_id 
+        task_dict["goal_id"] = task.goal_id
+        task_dict["title"] = task.title
+        task_dict["description"] = task.description
+        if task.completed_at is not None:    
+            task_dict["is_complete"] = True
+        else:
+            task_dict["is_complete"] = False
+    
+        response["tasks"].append(task_dict)
+    
+    return make_response(response, 200)
+
+    
+    # request_body = request.get_json() #grab form data
+    # task_ids = request_body["task_ids"] #storing the list in a cleaner variable reference
+    # response = {"id": goal.goal_id, "task_ids": task_ids, "tasks": []}
+
+    # for task in range(len(task_ids)): #for each index in this list
+    #     this_task = Task.query.get(task_ids[task]) #get one task at a time
+    #     task_dict = {}
+    #     task_dict["id"] = this_task.task_id 
+    #     task_dict["goal_id"] = this_task.goal_id
+    #     task_dict["title"] = this_task.title
+    #     task_dict["description"] = this_task.description
+    #     if this_task.completed_at is not None:    
+    #         task_dict["is_complete"] = True
+    #     else:
+    #         task_dict["is_complete"] = False
+    
+    #     response["tasks"].append(task_dict)
+
+    #return make_response(response, 200)    
+
+
+# @goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+# def get_tasks_for_specific_goals(goal_id): 
+#     #given a specific goal, we want to find the task with that goal id
+#     goal = Goal.query.get(goal_id) #grab the specific goal
+
+#     if goal is None:
+#         return make_response("", 404)
+    
+#     request_body = request.get_json() #grab form data
+#     task_ids = request_body["task_ids"] #storing the list in a cleaner variable reference
+#     response = {"id": goal.goal_id, "task_ids": task_ids, "tasks": []}
+
+#     for task in range(len(task_ids)): #for each index in this list
+#         this_task = Task.query.get(task_ids[task]) #get one task at a time
+#         task_dict = {}
+#         task_dict["id"] = this_task.task_id 
+#         task_dict["goal_id"] = this_task.goal_id
+#         task_dict["title"] = this_task.title
+#         task_dict["description"] = this_task.description
+#         if this_task.completed_at is not None:    
+#             task_dict["is_complete"] = True
+#         else:
+#             task_dict["is_complete"] = False
+    
+#         response["tasks"].append(task_dict)
+
+#     return make_response(response, 200)  
