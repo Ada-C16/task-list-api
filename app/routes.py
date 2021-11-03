@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request
 from app.models.task import Task
 from app.models.goal import Goal
 from app import db
-from sqlalchemy import desc, asc
 import datetime
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
@@ -27,26 +26,14 @@ def home_page():
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
     name_from_url = request.args.get("name")
-    if name_from_url:
-        tasks = Task.query.filter_by(name=name_from_url).all()
-        if not tasks:
-            tasks = Task.query.filter(Task.name.contains(name_from_url))
-    sort_query = request.args.get("sort")
-    if sort_query == "desc":
-        tasks = Task.query.order_by(desc(Task.title))
-    elif sort_query == "asc":
-        tasks = Task.query.order_by(asc(Task.title))
-    else:
-        tasks = Task.query.all()
+    tasks = Task.task_arguments(name_from_url)
 
     tasks_response = []
-    for task in tasks:
-        tasks_response.append(task.create_dict())
+    tasks_response = [task.create_dict() for task in tasks]
 
     if not tasks_response:
         tasks = Task.query.all()
-        for task in tasks:
-            tasks_response.append(task.create_dict())
+        tasks_response = [task.create_dict() for task in tasks]
 
     return jsonify(tasks_response)
 
@@ -116,7 +103,7 @@ def task_complete(task_id):
         task.completed_at = datetime.datetime.now()
         db.session.commit()
 
-        task.send_slack_message()
+        task.send_task_complete_slack_message()
 
         task_response = {"task": task.create_dict()}
         return jsonify(task_response), 200
@@ -141,41 +128,35 @@ def task_incomplete(task_id):
 #
 
 
-@goals_bp.route("", methods=["GET", "POST"])
-def handle_all_goals():
-    if request.method == "POST":
-        request_body = request.get_json()
-        if "title" not in request_body:
-            error_dict = {"details": "Invalid data"}
-            return jsonify(error_dict), 400
+@goals_bp.route("", methods=["GET"])
+def get_all_goals():
+    name_from_url = request.args.get("name")
 
-        new_goal = Goal(title=request_body["title"])
+    goals = Goal.goal_arguments(name_from_url)
+    goals_response = []
+    goals_response = [goal.create_dict() for goal in goals]
 
-        db.session.add(new_goal)
-        db.session.commit()
+    if not goals_response:
+        goals = Goal.query.all()
+        goals_response = [goal.create_dict() for goal in goals]
 
-        goal_response = {"goal": new_goal.create_dict()}
-        return jsonify(goal_response), 201
+    return jsonify(goals_response)
 
-    elif request.method == "GET":
-        name_from_url = request.args.get("name")
-        if name_from_url:
-            goals = Goal.query.filter_by(name=name_from_url).all()
-            if not goals:
-                goals = Goal.query.filter(Goal.name.contains(name_from_url))
-        else:
-            goals = Goal.query.all()
 
-        goals_response = []
-        for goal in goals:
-            goals_response.append(goal.create_dict())
+@goals_bp.route("", methods=["POST"])
+def new_goal():
+    request_body = request.get_json()
+    if "title" not in request_body:
+        error_dict = {"details": "Invalid data"}
+        return jsonify(error_dict), 400
 
-        if not goals_response:
-            goals = Goal.query.all()
-            for goal in goals:
-                goals_response.append(goal.create_dict())
+    new_goal = Goal(title=request_body["title"])
 
-        return jsonify(goals_response)
+    db.session.add(new_goal)
+    db.session.commit()
+
+    goal_response = {"goal": new_goal.create_dict()}
+    return jsonify(goal_response), 201
 
 
 @goals_bp.route("/<goal_id>", methods=["GET"])
@@ -226,8 +207,7 @@ def get_goal_with_tasks(goal_id):
         return jsonify(None), 404
 
     goal_response = []
-    for task in goal.tasks:
-        goal_response.append(task.create_dict())
+    goal_response = [task.create_dict() for task in goal.tasks]
 
     response = {"id": goal.goal_id,
                 "title": goal.title,

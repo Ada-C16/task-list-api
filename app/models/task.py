@@ -3,7 +3,7 @@ from flask import request, current_app
 from dotenv import load_dotenv
 import requests
 import os
-
+from sqlalchemy import desc, asc
 
 class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
@@ -30,7 +30,7 @@ class Task(db.Model):
                 "is_complete": complete_status,
             }
 
-    def send_slack_message(self):
+    def send_task_complete_slack_message(self):
         load_dotenv()
 
         data = {"token": os.environ.get("SLACK_TOKEN"),
@@ -51,3 +51,18 @@ class Task(db.Model):
         db.session.commit()
 
         return new_task
+
+    @classmethod
+    def task_arguments(cls, name_from_url):
+        if name_from_url:
+            tasks = Task.query.filter_by(name=name_from_url).all()
+            if not tasks:
+                tasks = Task.query.filter(Task.name.contains(name_from_url))
+        sort_query = request.args.get("sort")
+        if sort_query == "desc":
+            tasks = Task.query.order_by(desc(Task.title))
+        elif sort_query == "asc":
+            tasks = Task.query.order_by(asc(Task.title))
+        else:
+            tasks = Task.query.all()
+        return tasks
