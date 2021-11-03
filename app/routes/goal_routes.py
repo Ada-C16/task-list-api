@@ -6,17 +6,12 @@ from werkzeug.utils import header_property
 from app.models.goal import Goal
 from app import db
 from datetime import datetime
+from app.routes.utils import valid_int
 
 
 goal_bp = Blueprint("goal", __name__,url_prefix ="/goals")
 
 # Helper Functions
-def valid_int(number, parameter_type):
-    try:
-        int(number)
-    except:
-        abort(make_response({"error": f"{parameter_type} must be an int"}, 400))
-
 def get_goal_from_id(goal_id):
     valid_int(goal_id, "goal_id")
     return Goal.query.get_or_404(goal_id, description="{goal not found}")

@@ -8,17 +8,13 @@ from app import db
 from datetime import datetime
 from dotenv import load_dotenv
 import requests, os 
+from app.routes.utils import valid_int
 
 load_dotenv()
 
 task_bp = Blueprint("task", __name__,url_prefix ="/tasks")
 
 # Helper Functions
-def valid_int(number, parameter_type):
-    try:
-        int(number)
-    except:
-        abort(make_response({"error": f"{parameter_type} must be an int"}, 400))
 
 def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
