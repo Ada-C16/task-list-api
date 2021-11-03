@@ -32,8 +32,8 @@ class Task(db.Model):
         path = "https://slack.com/api/chat.postMessage"
         slack_token = os.environ.get('SLACK_TOKEN')
         query_params = {
-        "token": slack_token,
-        "channel": "slack-api-test-channel",
-        "text": f"Someone just completed the task {self.title}."
+            "token": slack_token,
+            "channel": "slack-api-test-channel",
+            "text": f"Someone just completed the task {self.title}."
         }
         requests.post(path, data=query_params)

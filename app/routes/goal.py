@@ -80,7 +80,7 @@ def add_goal_tasks(goal_id):
     if goal is None:
         return make_response("", 404)
 
-    request_body = request.get_json() # i.e. "task_ids": [1, 2, 3]
+    request_body = request.get_json() 
     for task_id in request_body["task_ids"]:
         task = Task.query.get(task_id)
         task.goal_id = goal.goal_id
