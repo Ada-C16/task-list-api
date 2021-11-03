@@ -30,8 +30,6 @@ class Task(db.Model):
 
     def post_to_slack(self):
         requests.post("https://slack.com/api/chat.postMessage", 
-        { "Authorization" : f"Bearer {os.environ.get('SLACK_TOKEN')}" }, 
-        { 
-            "channel" : '#slack-api-test-channel',
-            "text" : f"Someone just completed the task {self.title}",
-        })
+            headers={"Authorization": os.getenv('SLACK_TOKEN')},
+            data={"channel": "slack-api-test-channel",
+            "text": f"Someone just completed the task {self.title}"})
