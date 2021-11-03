@@ -120,7 +120,7 @@ def get_task_for_goal(goal_id):
     goal = get_goal_with_goal_id(goal_id)
     
     task_list = []
-    tasks_query = Task.query.filter_by(goal_id=goal_id)
+    tasks_query = Task.query.filter_by(id=goal_id)
 
     for task in tasks_query:
         task_list.append(task.to_dict())
