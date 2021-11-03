@@ -134,6 +134,7 @@ def update_task(task_id):
 def mark_complete(task_id):
     task =  get_task_by_id(task_id)
     date = datetime.utcnow()
+    
     try:
         if task.completed_at == None:
             task.completed_at = date
@@ -141,8 +142,10 @@ def mark_complete(task_id):
         db.session.commit()
         response_body = {
                 "task": task.to_dict()} 
+
         message = f"Someone just completed the task {task.title}"     
         post_msg_slack(message)
+
         return response_body
 
     except Exception:
