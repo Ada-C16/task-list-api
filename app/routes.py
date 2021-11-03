@@ -34,7 +34,7 @@ def get_tasks():
 def post_a_task():
     request_body = request.get_json()
 
-    try:   # ** helper func ?
+    try:  
         if type(request_body["completed_at"]) == str:
             datetime_completed_at = from_str_to_datetime(request_body["completed_at"])
         else:
