@@ -1,8 +1,10 @@
 from app.models.task import Task
 from flask import jsonify
 from flask import Blueprint, make_response, request, jsonify, abort
-from app import db
+from app import db, SLACK_TOKEN
 from datetime import datetime
+import requests
+
 
 #helper functions
 task_bp = Blueprint("task", __name__,url_prefix="/tasks")
@@ -73,15 +75,27 @@ def handle_task(task_id):
         db.session.commit()
         return jsonify({"details":f'Task {task.task_id} "{task.title}" successfully deleted'}), 200
 
+##WAVE 4 Slack Helper Function###   
+def post_complete_task_to_slack(task):
+    url = "https://slack.com/api/chat.postMessage"
+    message = f"Someone just completed the task {task.title}"
+    query_params = {
+        "token": SLACK_TOKEN,
+        "channel": 'task-list-api',
+        "text" : message
+    }
+    return requests.post(url, data=query_params).json()
 
+##wave 3 complete/incomplete##
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
-#completed_at if null/None update with a date and change is_complete to True
 def update_task_completion(task_id):
     task= get_task_from_id(task_id)
     task.is_complete=True
     task.completed_at = datetime.now()
     db.session.commit()
-    return jsonify({"task": task.to_dict()}), 200    
+    post_complete_task_to_slack(task)
+    return jsonify({"task": task.to_dict()}), 200 
+
 
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def update_task_incomplete(task_id):
