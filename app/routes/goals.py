@@ -130,7 +130,6 @@ def read_tasks_goals(goal_id):
     goal = get_goal_by_id(goal_id)
     
     try:
-        
         tasks_list = []
         tasks = Task.query.filter_by(goal_id=goal_id).all()
         for task in tasks:
@@ -143,21 +142,6 @@ def read_tasks_goals(goal_id):
         return make_response(jsonify(response_body)), 200
     except Exception:
         abort(422)
-
-# GET a task
-# @goal_bp.route("/tasks/<task_id>", methods= ['GET'])
-# def get_tasks(task_id):
-#     task = get_task_by_id(task_id)
-    
-#     try:
-#         task_response = {"task": task.to_dict_goal_task()}
-
-#         return make_response(jsonify(task_response), 200)
-
-#     except Exception: 
-#         abort(400)
-
-
 
 
 
