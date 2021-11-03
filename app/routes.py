@@ -169,3 +169,30 @@ def handle_goal(goal_id):
         db.session.commit()
 
         return {"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def handle_goal_tasks(goal_id):
+    goal = Goal.query.get(goal_id)
+
+    if request.method == "POST":
+        request_body = request.get_json()
+
+        # For each task id, get the corresponding task model and
+        # append it to tasks list
+        tasks = []
+        for task_id in request_body["task_ids"]:
+            tasks.append(Task.query.get(task_id))
+
+        # Goal.tasks is now a list of task models that
+        # correspond to specific goal
+        goal.tasks = tasks
+        db.session.commit()
+
+        task_ids = []
+        for task in goal.tasks:
+            task_ids.append(task.task_id)
+
+        return {
+            "id": goal.goal_id,
+            "task_ids": task_ids
+        }
