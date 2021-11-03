@@ -9,13 +9,13 @@ from app.models.task import Task
 load_dotenv()
 goal_bp = Blueprint("goal", __name__,url_prefix="/goals")
 
-#Helper functions
+#Helper function
 def valid_int(number):
     try:
         return int(number)     
     except:
         abort(make_response({"error": f"{number} must be an int"}, 400))
-
+#Helper function
 def get_goal_from_id(goal_id):
     goal_id = valid_int(goal_id)
     return Goal.query.get_or_404(goal_id, description="{Goal not found}")
@@ -32,9 +32,7 @@ def create_goal():
     db.session.add(new_goal)
     db.session.commit()
 
-    return {
-        "goal": new_goal.to_dict()
-    }, 201
+    return {"goal": new_goal.to_dict()}, 201
 
 @goal_bp.route("", methods=["GET"])
 def read_all_goals():
@@ -45,9 +43,7 @@ def read_all_goals():
 @goal_bp.route("/<goal_id>", methods=["GET"])
 def read_one_goal(goal_id):
     response_goal = get_goal_from_id(goal_id)
-    return {
-        "goal":response_goal.to_dict()
-    }
+    return {"goal":response_goal.to_dict()}
 
 @goal_bp.route("/<goal_id>", methods=["PUT"])
 def update_goal(goal_id):
@@ -59,10 +55,7 @@ def update_goal(goal_id):
 
     db.session.commit()
 
-    return {
-        "goal":
-            response_goal.to_dict()
-    }
+    return {"goal":response_goal.to_dict()}
 
 @goal_bp.route("/<goal_id>", methods=["DELETE"])
 def delete_goal(goal_id):
@@ -79,9 +72,8 @@ def handle_goal_tasks(goal_id): # this scenario is when there is already tasks d
     
     if request.method == "POST":
         goal = get_goal_from_id(goal_id)
-        print(len(goal.tasks))
         request_body = request.get_json()
-        print(request_body) # since i am given only task ids, no title, description etc,
+         # since i am given only task ids, no title, description etc,
         #i am assuming they were created in the db
        
         for ids in request_body["task_ids"]:
@@ -89,41 +81,16 @@ def handle_goal_tasks(goal_id): # this scenario is when there is already tasks d
             goal.tasks.append(task)
             # task.goal = goal
 
-              # filling goal column of task
-           # adding to tasks column of goal
-        #     #but weren't there before? the tasks? 
-        # print(len(goal_tasks))
-        # print(len(goal.tasks))
-        # for i in range(len(request_body["task_ids"])):
-        #     print(i)
-        #     goal.tasks.append(Task())
-        # print(len(goal.tasks))
-
-
-        # # new_task = Task(
-        # #     title = request_body["title"],
-        # #     description = request_body["description"],
-        # #     completed_at = request_body["completed_at"],
-        # #     goal = goal
-        # # )
-        # # for each in goal_tasks:
-
-        # #     db.session.add(each)
-        db.session.commit()
+            db.session.commit()
         
         return {
             "id":goal.goal_id,
-            "task_ids":request_body["task_ids"]
+            "task_ids":[task.task_id for task in goal.tasks]
         }
-        
-
-
+    
     elif request.method == "GET":
         goal = get_goal_from_id(goal_id)
-       
-        # tasks_response = [task.to_dict() for task in goal.tasks]
-        tasks_response = []
-        # return jsonify(tasks_response)
+        tasks_response = []      
         for task in goal.tasks:
             task_dict = task.to_dict()
             task_dict['goal_id'] = goal.goal_id
