@@ -54,24 +54,26 @@ def handle_one_task(task_id):
     if task is None:
         return jsonify(task), 404
     elif request.method == 'GET':
-        return {"task": { "id": task.task_id,
-                        "title": task.title,
-                        "description": task.description,
-                        "is_complete": False if task.completed_at is None else task.completed_at  
+        return {"task": {"id": task.task_id,
+                            "title": task.title,
+                            "description": task.description,
+                            "is_complete": False if task.completed_at is None else task.completed_at
                         }}
+        
     elif request.method == 'PUT':
         updates = request.get_json()
         task.title = updates['title']
         task.description = updates['description']
-        task.completed_at = updates['completed_at'] if not updates['completed_at'] \
-                            else datetime.utcnow()
+        if 'completed_at' in updates.keys():
+            task.completed_at = updates['completed_at'] if not updates['completed_at'] \
+                                else datetime.utcnow()
         
         db.session.commit()
         return make_response({"task": { "id": task.task_id,
-                                        "title": task.title,
-                                        "description": task.description,
-                                        "is_complete": False if task.completed_at is None else True
-                                        }})
+                                    "title": task.title,
+                                    "description": task.description,
+                                    "is_complete": False if task.completed_at is None else True
+                                    }})
     elif request.method == 'DELETE':
         db.session.delete(task)
         db.session.commit()
@@ -159,19 +161,37 @@ def handle_one_goal(goal_id):
         db.session.commit()
         return make_response({"details": f"Goal {goal.goal_id} \"{goal.title}\" successfully deleted"})
 
-@goals_bp.route('/<goal_id>/tasks', methods=['POST'])
+@goals_bp.route('/<goal_id>/tasks', methods=['GET', 'POST'])
 def handle_one_goal_to_many_tasks(goal_id):
     goal = Goal.query.get(goal_id)
-    updates = request.get_json()
-    
-    # Accessing list of task ids from updates.
-    new_task_ids= updates['task_ids']
-    
-    # Adding task objects to a specific goal object
-    for new_task_id in new_task_ids:
-        task = Task.query.get(new_task_id)
-        goal.tasks.append(task)
+    if goal is None:
+        return jsonify(goal), 404
+    elif request.method == 'GET':
+        # Returns a list of task objects specific to the goal id.
+        tasks = Task.query.filter_by(goal_id=goal_id).all()
+        return { 
+                "id": goal.goal_id,
+                "title": goal.title,
+                # Creates a list of task dicts.
+                "tasks":[{
+                            "id": task.task_id,
+                            "goal_id": task.goal_id,
+                            "title": task.title,
+                            "description": task.description,
+                            "is_complete": False if task.completed_at is None else True
+                         } for task in tasks]
+                }
+    elif request.method == 'POST':
+        updates = request.get_json()
+        
+        # Accessing list of task ids from updates.
+        new_task_ids= updates['task_ids']
+        
+        # Adding task objects to a specific goal object
+        for new_task_id in new_task_ids:
+            task = Task.query.get(new_task_id)
+            goal.tasks.append(task)
 
-    db.session.commit()
-    return make_response({"id": goal.goal_id,
-                          "task_ids": new_task_ids})
+        db.session.commit()
+        return make_response({"id": goal.goal_id,
+                            "task_ids": new_task_ids})
