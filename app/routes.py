@@ -7,7 +7,6 @@ import requests
 from dotenv import load_dotenv
 import os
 from .models.messages import *
-import slack #reinstall as slackclient if import error
 
 load_dotenv()
 
@@ -279,7 +278,7 @@ def handle_slack_goal():
 
         return get_items_slash_command(Goal, data)
 
-@slack_bp.route("/mark_task", method=["POST"])
+@slack_bp.route("/mark_task", methods=["POST"])
 def handle_slack_mark_task():
     
     return "", 200

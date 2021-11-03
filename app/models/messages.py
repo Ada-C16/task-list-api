@@ -32,14 +32,14 @@ def validate_id(Item, id):
 
 def create_item_slash_command(class_name, data):
     
-    item = class_name.__name__.lower()
+    type = class_name.__name__.lower()
 
     title = data.get('text')
 
     if not title:
         return {
             "response_type" : "ephemeral",
-            "text" : f"You forgot to enter the title of your {item}"
+            "text" : f"You forgot to enter the title of your {type}"
         }
 
     new_item = class_name(title=title)
@@ -52,14 +52,14 @@ def create_item_slash_command(class_name, data):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"New {item} *{title}* has been added.",
+                    "text": f"New {type} *{title}* has been added.",
                 }
             }]
         }
 
 def get_items_slash_command(class_name, data, filter=None):
 
-    item = class_name.__name__.lower()
+    type = class_name.__name__.lower()
 
     if filter == "incomplete":
         items = class_name.query.filter(class_name.completed_at == None)
@@ -80,7 +80,7 @@ def get_items_slash_command(class_name, data, filter=None):
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": f"Here are your {qualifier}{item}s",
+                    "text": f"Here are your {qualifier}{object}s",
                 }
             }]
 
@@ -93,9 +93,24 @@ def get_items_slash_command(class_name, data, filter=None):
                         "text": item.to_markdown()
                     }
                 }
-            blocks.append(item_text)
+            if type == "task": # add mark complete/incomplete button if task
+                item_text["accessory"] = {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Mark complete" if not item.completed_at else "Mark incomplete"
+                                },
+                            "style": "primary" if not item.completed_at else "danger",
+                            "value": str(item.task_id),
+                            "action_id": "button"
+                            }
+        blocks.append(item_text)
+        print(item_text)
 
     return {
         "response_type" : "in_channel",
         "blocks": blocks
     }
+
+
+
