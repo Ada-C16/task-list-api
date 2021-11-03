@@ -1,9 +1,14 @@
 from app import db
 from app.models.task import Task
 from datetime import datetime
+from app.slack_api import post_msg_slack
 from flask import Blueprint, jsonify, make_response, request, abort
 
+
+
 task_bp = Blueprint('task', __name__, url_prefix="/tasks")
+
+
 
 
 ''' POST task  - this function handles the creation of a task.
@@ -71,11 +76,9 @@ def read_one_drink(task_id):
 
     try:
         if task.goal_id:
-            task_response = {"task": task.to_dict_goal_task() }                
-            
+            task_response = {"task": task.to_dict_goal_task() }                     
         else:
             task_response = {"task": task.to_dict() }
-
         return jsonify(task_response), 200
 
     except Exception: 
@@ -88,14 +91,11 @@ def read_one_drink(task_id):
 @task_bp.route("/<task_id>", methods=['DELETE'])
 def delete_one_task(task_id):
     task = get_task_by_id(task_id)
-    
     try:
         db.session.delete(task)
         db.session.commit()
         response_body = {"details": f'Task {task.task_id} "{task.title}" successfully deleted'}
-
         return make_response(response_body, 200)
-
     except Exception: 
         abort(400)
 
@@ -139,10 +139,12 @@ def mark_complete(task_id):
             task.completed_at = date
 
         db.session.commit()
-
         response_body = {
                 "task": task.to_dict()} 
+        message = f"Someone just completed the task {task.title}"     
+        post_msg_slack(message)
         return response_body
+
     except Exception:
         abort(400)
 
