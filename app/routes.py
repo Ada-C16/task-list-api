@@ -25,7 +25,6 @@ def handle_tasks():
             tasks = Task.query.order_by(Task.title.desc())
         else:
             tasks = Task.query.all()
-
         tasks_response = []
         for task in tasks:
             tasks_response.append(
@@ -84,7 +83,6 @@ def handle_task(task_id):
                     "is_complete": False if task.completed_at == None else True
                 }
             }
-
     elif request.method == "PUT":
         form_data = request.get_json()
         task.title = form_data["title"]
@@ -98,7 +96,6 @@ def handle_task(task_id):
                 "is_complete": False if task.completed_at == None else True
             }
         }
-
     elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
@@ -199,7 +196,6 @@ def handle_goal(goal_id):
                 "title": goal.title
             }
         }
-
     elif request.method == "PUT":
         form_data = request.get_json()
         goal.title = form_data["title"]
@@ -210,7 +206,6 @@ def handle_goal(goal_id):
                 "title": goal.title
             }
         }
-
     elif request.method == "DELETE":
         db.session.delete(goal)
         db.session.commit()
@@ -234,7 +229,6 @@ def handle_goals_tasks(goal_id):
             task = Task.query.get(task_id)
             task.goal = goal
         db.session.commit()
-
         response_task_ids = []
         for task in goal.tasks:
             response_task_ids.append(task.task_id)
@@ -243,7 +237,7 @@ def handle_goals_tasks(goal_id):
             "task_ids": response_task_ids
         }
         return jsonify(new_tasks_response), 200
-
+        
     elif request.method == "GET":
         response_tasks = []
         for task in goal.tasks:
