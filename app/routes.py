@@ -24,5 +24,15 @@ def handle_tasks():
             task_response.append(task.to_dict())
         return jsonify(task_response), 200
 
+@tasks_bp.route("/<task_id>", methods = ["GET", "PUT"])
+def handle_task(task_id):
+    task = Task.query.get(task_id)
+    if request.method == "GET":
+        if task: 
+            return make_response({"task": (task.to_dict())}, 200)
+        return make_response("", 404)
+    
+
+
 
     
