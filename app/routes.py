@@ -279,3 +279,7 @@ def handle_slack_goal():
 
         return get_items_slash_command(Goal, data)
 
+@slack_bp.route("/mark_task", method=["POST"])
+def handle_slack_mark_task():
+    
+    return "", 200
