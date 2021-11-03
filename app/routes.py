@@ -13,9 +13,9 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 @tasks_bp.route("", methods=["POST"])
 def create_task():
     request_data=request.get_json()
-    if "title" not in request_data or "description" not in request_data or "completed_at" not in request_data:
+    if "title" not in request_data or "description" not in request_data:
         return jsonify({"details": "Invalid data"}),400
-    new_task=Task(title=request_data["title"], description=request_data["description"], completed_at=request_data["completed_at"])
+    new_task=Task(title=request_data["title"], description=request_data["description"])
     db.session.add(new_task)
     db.session.commit()
 
