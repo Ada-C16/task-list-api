@@ -4,9 +4,7 @@ from app.models.task import Task
 from app.models.goal import Goal
 import datetime
 import requests
-# import os 
-# from sqlalchemy import Table, Column, Integer, ForeignKey
-# from sqlalchemy.orm import relationship
+import os 
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
@@ -17,12 +15,20 @@ def make_task_dict(task):
     else:
         completed = False 
 
-    return {
+    if task.goal_id:
+        return {
                 "id" : task.task_id,
                 "title" : task.title,
                 "description" : task.description,
                 "is_complete" : completed,
                 "goal_id": task.goal_id
+            } 
+    else:  
+        return {
+                "id" : task.task_id,
+                "title" : task.title,
+                "description" : task.description,
+                "is_complete" : completed,
             }
 
 @tasks_bp.route("", methods=["GET", "POST"])
@@ -62,7 +68,7 @@ def handle_tasks():
             new_task = Task(
             title=request_body["title"],
             description=request_body["description"],
-            completed_at=request_body["completed_at"]
+            completed_at=request_body["completed_at"],
         )
         db.session.add(new_task)
         db.session.commit()
@@ -102,10 +108,11 @@ def handle_mark_complete(task_id):
         return make_response("", 404)
     else: 
         task.completed_at = datetime.datetime.now()
+        SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
     
         data = {
                 "channel": "task-notifications",
-                "token": "xoxb-2158298111270-2670798559349-0agYHWOZ4uYPH4XJljZjLKGS",
+                "token": SLACK_BOT_TOKEN,
                 "text": f"Someone just completed the task {task.title}"
                }
 
@@ -131,8 +138,8 @@ def make_goal_dict(goal):
     return {
                 "id" : goal.goal_id,
                 "title" : goal.title,
-                "tasks": [] 
             }
+
 
 @goals_bp.route("", methods=["GET", "POST"])
 def handle_goals():

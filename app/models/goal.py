@@ -1,8 +1,5 @@
 from flask import current_app
 from app import db
-from sqlalchemy import Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import relationship
-
 
 
 class Goal(db.Model):

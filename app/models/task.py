@@ -1,9 +1,5 @@
 from app import db
-from datetime import datetime
 from flask import current_app
-from sqlalchemy import Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import relationship
-
 
 
 class Task(db.Model):
