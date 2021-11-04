@@ -15,11 +15,12 @@ def valid_int(number, parameter_type):
     except:
         abort(jsonify({"error": f"{parameter_type} must be an int"}), 400)
 
-def get_goal_from_id(client, goal_id):
-    goal_id = valid_int(goal_id)
+def get_goal_from_id(goal_id):
+    goal_id = valid_int(goal_id, "int")
     return Goal.query.get_or_404(goal_id, description="{Goal not found}")
 
 # Routes
+
 @goal_bp.route("", methods=['POST'])
 def create_goal():
     """CREATES new goal in database"""
@@ -41,14 +42,19 @@ def create_goal():
 @goal_bp.route("/<goal_id>", methods=["GET"])
 def get_goal(goal_id):
     """READS goal with given id"""
-    goal = get_goal_from_id(goal_id)
+    goal = Goal.query.get(goal_id)
 
-    return jsonify({"goal": goal.to_dict()}), 200
-
+    if goal is None:
+        return jsonify(None), 404
+    
+    if request.method == "GET":
+        return {"goal":
+        {"id": goal.goal_id,
+        "title": goal.title}}, 200 
 
 @goal_bp.route("", methods=["GET"])
 def get_goals():
-    """READS all goals"""
+    """READS ALL goals"""
     sort_query = request.args.get("sort")
 
     if sort_query == "asc":
@@ -73,7 +79,7 @@ def update_goal(goal_id):
         return make_response(404)
 
     else:
-        goal = get_goal_from_id(goal_id)
+        goal = Goal.query.get(goal_id)
         request_body = request.get_json()
 
         if "title" in request_body:
@@ -81,17 +87,29 @@ def update_goal(goal_id):
         if "goal" in request_body:
             goal.goal = request_body["goal"]
 
-        goal_response = goal.to_dict()
-
         db.session.commit()
-        return jsonify({"goal": goal_response}), 200
+
+        return {"goal":
+        {"id": goal.goal_id,
+        "title": goal.title}}, 200 
 
 
 @goal_bp.route("/<goal_id>", methods=["DELETE"])
 def delete_goal(goal_id):
     """DELETES goal with given id"""
-    goal = get_goal_from_id(goal_id)
+    goal = Goal.query.get(goal_id)
+    if goal is None: 
+        return jsonify(goal), 404 
 
-    db.session.delete(goal)
-    db.session.commit()
-    return jsonify({"details": f'Goal {goal_id} "{goal.title}" successfully deleted'}), 200
+        # db.session.delete(goal)
+        # db.session.commit()
+    else: 
+        db.session.delete(goal)
+        db.session.commit()
+
+    return jsonify({"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}), 200
+
+
+    # db.session.delete(goal)
+    # db.session.commit()
+    # return jsonify({"details": f'Goal {goal_id} "{goal.title}" successfully deleted'}), 200

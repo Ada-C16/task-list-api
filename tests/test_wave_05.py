@@ -1,6 +1,5 @@
 import pytest
-from app.models.goal import Goal
-
+from app.models.goal import Goal 
 
 def test_get_goals_no_saved_goals(client):
     # Act
@@ -73,7 +72,6 @@ def test_update_goal(client, one_goal):
     # Act
     response = client.put("/goals/1", json={
         "title": "Updated Goal Title",
-        "description": "Updated Goal Description",
     })
     response_body = response.get_json()
 
@@ -83,7 +81,7 @@ def test_update_goal(client, one_goal):
     assert response_body == {
         "goal": {
             "id": 1,
-            "title": " Updated Goal Title"
+            "title": "Updated Goal Title"
         }
     }
 def test_update_goal_not_found(client):

@@ -8,9 +8,9 @@ class Task(db.Model):
     title = db.Column(db.String(200))
     description = db.Column(db.String(200)) 
     completed_at = db.Column(db.DateTime, nullable=True)
-    #
-    is_complete = db.Column(db.Boolean, default = False )
-    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable = True)
+    # #
+    # is_complete = db.Column(db.Boolean, default = False )
+    # goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable = True)
 
     def to_dict(self):
         """converts task data to dictionary"""
