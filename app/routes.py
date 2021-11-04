@@ -50,9 +50,7 @@ def get_one_task(id):
     if task is None:
         return jsonify(None), 404
 
-    return {
-        "task": task.to_dict()
-    }
+    return {"task": task.to_dict()}
 
 
 @tasks_bp.route("/<id>", methods=["PUT"])
@@ -240,9 +238,3 @@ def read_tasks_from_goal(id):
         "tasks": tasks_response
     }
     return jsonify(response_body)
-
-
-# potential refactors:
-    # formating of the resopnse {task :  {}} repeated throughout, as well as {details: "fka;df"}
-
-    # adding to_dict() to goal model that uses task as an optional argument ?
