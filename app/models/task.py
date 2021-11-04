@@ -5,6 +5,7 @@ import requests
 import os
 from sqlalchemy import desc, asc
 
+
 class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False)
