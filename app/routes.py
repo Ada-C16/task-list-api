@@ -8,6 +8,7 @@ from app.models.goal import Goal
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
+
 @tasks_bp.route("", methods = ["POST", "GET"])
 def handle_tasks():
     
@@ -103,7 +104,7 @@ def mark_completion_status(task_id, completion_status):
     response_body = create_task_body(task)
     return jsonify(response_body), 200
 
-### Helper functions ###
+### Helper functions TASKS###
 
 def is_complete(task):
     is_complete = task.completed_at
@@ -152,9 +153,6 @@ def jsonify_list_of_tasks(tasks):
 
 
 # ### GOALS ####
-####################
-
-
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
@@ -233,7 +231,7 @@ def handle_goal_and_task_relationship(goal_id):
         return jsonify(response_body)
 
 
-## Helper functions ###
+## Helper functions GOALS ###
 
 def create_goal_body(goal):
     goal_body = {"goal": {
