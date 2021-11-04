@@ -206,7 +206,7 @@ def get_goal_with_tasks(goal_id):
     if not goal:
         return jsonify(None), 404
 
-    goal_response = []
+    # goal_response = []
     goal_response = [task.create_dict() for task in goal.tasks]
 
     response = {"id": goal.goal_id,
@@ -230,8 +230,9 @@ def create_goal_with_tasks(goal_id):
             continue
         task.goal = goal
         db.session.commit()
-
+    
+    goal_response = [item.task_id for item in goal.tasks]
     response = {"id": goal.goal_id,
-                "task_ids": task_ids}
+                "task_ids": goal_response}
 
     return jsonify(response), 200
