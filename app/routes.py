@@ -179,6 +179,26 @@ def create_goal():
     return jsonify(response_body), 201
 
 
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def create_goals_tasks(goal_id):
+    valid_data = is_parameter_found(Goal, goal_id)
+    if valid_data:
+        return valid_data
+    goal = Goal.query.get(goal_id)
+    request_body = request.get_json()
+    new_task = Task(
+        task_id=request_body["id"],
+        goal=goal
+    )
+    task_ids = request_body["id"]
+    db.session.add(new_task)
+    db.session.commit()
+    response_body = {}
+    response_body = {
+        "id": goal.id,
+        "task_ids": task_ids
+    }
+
 @goals_bp.route("", methods=["GET"])
 def read_goals():
     goals = Goal.query.all()
@@ -208,6 +228,27 @@ def read_goal(goal_id):
     goal_response = {}
     goal_response["goal"] = goal.to_dict()
     return jsonify(goal_response), 200
+
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+def read_goals_tasks(goal_id):
+    valid_data = is_parameter_found(Goal, goal_id)
+    if valid_data:
+        return valid_data
+
+    goal = Goal.query.get(goal_id)
+    tasks_response = []
+    for task in goal.tasks:
+        tasks_response.append(
+            {
+                "id": task.task_id,
+                "goal_id": task.goal.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False
+            }
+        )
+    return jsonify(tasks_response)
 
 
 @goals_bp.route("/<goal_id>", methods=["PUT"])
