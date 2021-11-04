@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, abort, make_response
+from flask import Blueprint, jsonify, request, make_response
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
@@ -9,10 +9,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Blueprints instantiated 
 tasks_bp = Blueprint("tasks_bp",__name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
-# TASKS ROUTES
+# TASK ROUTES
+
+# add new task to database
 @tasks_bp.route('', methods=["POST"])
 def new_task():
     request_body = request.get_json()
@@ -31,13 +34,13 @@ def new_task():
 
     return {"task": new_task.to_dict()}, 201
 
-# get tasks
+# gets all tasks
 @tasks_bp.route('', methods=["GET"])
 def get_all_tasks():
     response_tasks = []
     tasks = Task.query.all()
 
-    # sort ascending or descending
+    # sort ascending or descending if query param sort present
     if request.args.get("sort") == "asc":
         tasks = Task.query.order_by(Task.title)
     elif request.args.get("sort") == "desc":
@@ -48,12 +51,13 @@ def get_all_tasks():
 
     return jsonify(response_tasks), 200
 
+# gets, updates or deletes a task of a specific ID
 @tasks_bp.route('/<task_id>', methods=["GET", "PUT", "DELETE"])
 def get_one_task(task_id):
     task = Task.query.get(task_id)
-    
+
     if not task:
-            return make_response('', 404)
+        return make_response('', 404)
     elif request.method == "GET":
         return {"task": task.to_dict()}, 200
     elif request.method == "PUT":
@@ -61,49 +65,47 @@ def get_one_task(task_id):
         task.title = request_body["title"]
         task.description = request_body["description"]
 
-        #Save Action
         db.session.commit()
+
         return {"task": task.to_dict()}, 200
     elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
         return {"details": f'Task {task_id} "{task.title}" successfully deleted'}, 200
 
-@tasks_bp.route('<task_id>/mark_complete', methods=["PATCH"])
-def mark_task_complete(task_id):
+# updates a task of a specific ID to True or False at "is_complete"
+@tasks_bp.route('<task_id>/<complete_status>', methods=["PATCH"])
+def mark_task_complete(task_id, complete_status):
     task = Task.query.get(task_id)
 
     if not task:
         return make_response('', 404)
 
-    task.completed_at = date.today()
-    db.session.commit()
+    if complete_status == "mark_complete":
+        task.completed_at = date.today()
+        db.session.commit()
 
-    PATH = "https://slack.com/api/chat.postMessage"
+        # Slack URL
+        PATH = "https://slack.com/api/chat.postMessage"
 
-    query_params = {"token": os.environ.get('SLACK_API_TOKEN'),
-            "channel": "task-notifications",
-            "text": f"Someone just completed the task {task.title}" 
-            }
+        # query parameters for post request to Slack endpoint
+        query_params = {"token": os.environ.get('SLACK_API_TOKEN'),
+                "channel": "task-notifications",
+                "text": f"Someone just completed the task {task.title}" 
+                }
+        # post request to Slack endpoint 
+        requests.post(PATH, data=query_params)
 
-    requests.post(PATH, data=query_params)
-
-    return {"task": task.to_dict()} ,200
-
-@tasks_bp.route('<task_id>/mark_incomplete', methods=["PATCH"])
-def mark_task_incomplete(task_id):
-    task = Task.query.get(task_id)
-
-    if not task:
-        return make_response('', 404)
-
-    task.completed_at = None
-    db.session.commit()
+    elif complete_status == "mark_incomplete":
+        task.completed_at = None
+        db.session.commit()
 
     return {"task": task.to_dict()} ,200
 
 
 # GOALS ROUTES
+
+# adds new goal to database
 @goals_bp.route('', methods=["POST"])
 def new_goal():
     request_body = request.get_json()
@@ -118,6 +120,7 @@ def new_goal():
 
     return {"goal": new_goal.to_dict()}, 201
 
+# gets all goals
 @goals_bp.route('', methods=["GET"])
 def get_all_goals():
     response_goals = []
@@ -128,6 +131,7 @@ def get_all_goals():
 
     return jsonify(response_goals), 200
 
+# gets, updates or deletes a goal of a specific ID
 @goals_bp.route('/<goal_id>', methods=["GET", "PUT", "DELETE"])
 def get_one_goal(goal_id):
     goal = Goal.query.get(goal_id)
@@ -140,14 +144,16 @@ def get_one_goal(goal_id):
         request_body = request.get_json()
         goal.title = request_body["title"]
 
-        #Save Action
         db.session.commit()
+
         return {"goal": goal.to_dict()}, 200
     elif request.method == "DELETE":
         db.session.delete(goal)
         db.session.commit()
         return {"details": f'Goal {goal_id} "{goal.title}" successfully deleted'}, 200
 
+# gets taks belonging to a specific goal
+# adds tasks to a specific goal (updates)
 @goals_bp.route("<goal_id>/tasks", methods=["GET", "POST"])
 def handle_goals_tasks(goal_id):
     goal = Goal.query.get(goal_id)
