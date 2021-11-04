@@ -197,3 +197,48 @@ def delete_goal(goal_id):
     db.session.commit()
   
     return {'details': f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
+
+# One to many/nested routes
+
+# Sending a list of task ids to a goal
+@goal_bp.route("/<goal_id>/tasks", methods=["POST"])
+def send_list_of_task_to_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    # goal = Goal.query.get(goal_id)
+    request_body = request.get_json()
+    
+    task_ids_list = request_body["task_ids"]
+
+    for task_id in task_ids_list:
+        current_task = Task.query.get(task_id)
+        current_task.goal_id = goal.goal_id
+    
+    db.session.commit()
+
+    response_body = {
+        "id":goal.goal_id,
+        "task_ids":task_ids_list,
+    }
+
+    return jsonify(response_body), 200
+
+    # find goal by id
+    # find tasks by own id and it's task_id
+
+# Getting tasks of one goal
+@goal_bp.route("/<goal_id>/tasks", methods=["GET"])
+def get_tasks_of_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    all_tasks = []
+    tasks = Task.query.filter(Task.goal_id == goal_id).all()
+    for task in tasks:
+        all_tasks.append(task.to_dict())
+
+    response_body = {
+        "id":goal.goal_id,
+        "title":goal.title,
+        "tasks":all_tasks
+    }
+
+    return jsonify(response_body), 200
+
