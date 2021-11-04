@@ -1,5 +1,6 @@
 import os
 import requests
+from sqlalchemy.orm import query
 from app import db
 from datetime import datetime
 from dotenv import load_dotenv
@@ -51,9 +52,10 @@ def handle_get_task(task_id):
     if task is None:
         return jsonify(None), 404
     elif request.method == "GET":
-        response_body = {"task":(task.task_dict())}
-        return jsonify(response_body), 200
-
+        if task.goal_id:
+            response_body = {"task":(task.tasked_dict())}
+            return jsonify(response_body), 200
+        return jsonify({"task":task.task_dict()}),200
 
     elif request.method == "PUT":
         request_body = request.get_json()
@@ -90,9 +92,7 @@ def change_task_complete(task_id):
 
     response_body = {"task":(task.task_dict())}
     return jsonify(response_body), 200   
-
-
-        
+    
 @tasks_bp.route("/<task_id>/mark_incomplete", methods= ["PATCH"])
 def change_task_incomplete(task_id): 
     task = Task.query.get(task_id)
@@ -105,8 +105,8 @@ def change_task_incomplete(task_id):
     response_body = {"task":(task.task_dict())}
     return jsonify(response_body), 200
 
-######
-@goals_bp.route("", methods= ["GET"])
+###
+@goals_bp.route("", methods= ["GET","POST"])
 def get_goal():
     if request.method == "GET":
         goals =  Goal.query.all()
@@ -118,7 +118,7 @@ def get_goal():
 
     elif request.method == "POST":
         request_body = request.get_json()
-        if "title" not in request_body:
+        if not "title" in request_body: 
             return jsonify({
                 "details": "Invalid data"
             }) ,400 
@@ -140,13 +140,11 @@ def manage_goal(goal_id):
         return jsonify(None), 404
     elif request.method == "GET":
         response_body = {"goal":(goal.goal_dict())}
-        return jsonify(response_body), 200
-
+        return jsonify(response_body),200
 
     elif request.method == "PUT":
         request_body = request.get_json()
         goal.title = request_body["title"]
-        goal.description = request_body["description"]
         db.session.commit()
 
         response_body = {"goal":(goal.goal_dict())}
@@ -158,3 +156,38 @@ def manage_goal(goal_id):
     
         return jsonify({"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
     }),200
+
+####
+@goals_bp.route("/<goal_id>/tasks", methods= ["GET","POST"])
+def acquire_tasks_goals(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal == None:
+        return jsonify(None), 404
+    elif request.method == "GET":
+        # task_dicts =[]
+        # for task in goal.tasks:
+        #     task_dicts.append(task.task_dict())
+        # response_body ={
+        #     "id": goal.goal_id,
+        #     "title": goal.title,
+        #     "tasks":task_dicts
+        # }
+
+        return jsonify(goal.tasked_goal()), 200
+
+    elif request.method == "POST":
+        request_body = request.get_json()
+        task_ids = request_body["task_ids"] 
+        for id in task_ids:
+            task = Task.query.get(id)
+            task.goal_id = goal_id
+        db.session.commit()
+        new_tasks = []
+        for task in goal.tasks:
+            new_tasks.append(task.task_id)
+        response_body ={
+            "id": int(goal_id),
+            "task_ids": new_tasks
+        }
+        return jsonify(response_body), 200
+    

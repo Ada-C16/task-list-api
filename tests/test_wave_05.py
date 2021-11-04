@@ -80,7 +80,7 @@ def test_update_goal(client, one_goal):
     assert response.status_code == 200
     assert "goal" in response_body
     assert response_body == {
-        "task": {
+            "goal": {
             "id": 1,
             "title": "Updated Goal Title",
         }
