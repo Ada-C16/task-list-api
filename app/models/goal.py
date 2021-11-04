@@ -13,7 +13,7 @@ class Goal(db.Model):
             return {
                 "id": self.goal_id,
                 "title": self.title,
-                "tasks": self.tasks
+                "tasks": [task.to_dict() for task in self.tasks]
                 }
         else:
             return {
