@@ -1,7 +1,8 @@
 from app import db
 from flask import Blueprint, jsonify, make_response, request
 from app.models.task import Task
-from datetime import datetime
+import datetime
+from datetime import datetime as d1
 from .helpers import get_task_from_id, send_completion_slack_message
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -29,13 +30,14 @@ def create_new_task():
         return make_response({"details": "Invalid data"}, 400)
     if request_body['completed_at']:
         try:
-            date = datetime.strptime(request_body['completed_at'], '%d/%m/%y %H:%M')
+            d1.strptime(request_body['completed_at'], '%a, %d %b %Y %H:%M:%S %Z')
         except:
-            return make_response({"details": "completed_at must be a date formatted as: dd/mm/yy HH/MM"})
+            return make_response({"details": "completed_at must be a date formatted as: Thu, 04 Nov 2021 21:53:34 GMT"})
+
     new_task = Task(
         title = request_body["title"],
         description = request_body["description"],
-        completed_at = date
+        completed_at = request_body["completed_at"]
     )
     db.session.add(new_task)
     db.session.commit()
@@ -55,12 +57,13 @@ def update_task(task_id):
         selected_task.title = request_body["title"]
     if "description" in request_body:
         selected_task.description = request_body["description"]
-    if request_body['completed_at']:
-        try:
-            date = datetime.strptime(request_body['completed_at'], '%d/%m/%y %H:%M')
-            selected_task.completed_at = date
-        except:
-            return make_response({"details": "completed_at must be a date formatted as: dd/mm/yy HH/MM"})
+    if "completed_at" in request_body:
+        if request_body['completed_at']:
+            try:
+                d1.strptime(request_body['completed_at'], '%a, %d %b %Y %H:%M:%S %Z')
+            except:
+                return make_response({"details": "completed_at must be a date formatted as: Thu, 04 Nov 2021 21:53:34 GMT"})
+        selected_task.completed_at = request_body["completed_at"]
     db.session.commit()
     return make_response({"task": selected_task.to_dict()}, 200)
 
