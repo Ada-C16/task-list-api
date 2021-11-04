@@ -60,7 +60,7 @@ def update_task(task_id):
             try:
                 d1.strptime(request_body['completed_at'], '%a, %d %b %Y %H:%M:%S %Z')
             except:
-                return make_response({"details": "completed_at must be a date formatted as: Thu, 04 Nov 2021 21:53:34 GMT"})
+                return make_response({"details": "completed_at must be a date formatted as: Thu, 04 Nov 2021 21:53:34 GMT"}, 404)
         selected_task.completed_at = request_body["completed_at"]
     db.session.commit()
     return make_response({"task": selected_task.to_dict()}, 200)
