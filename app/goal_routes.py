@@ -8,9 +8,7 @@ goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 @goal_bp.route("", methods=["GET"])
 def get_goals():
     goals = Goal.query.all()
-    goals_response = []
-    for goal in goals:
-        goals_response.append(Goal.to_json(goal))
+    goals_response = [Goal.to_json(goal) for goal in goals]
     return jsonify(goals_response), 200
 
 @goal_bp.route("", methods=["POST"])
@@ -77,9 +75,7 @@ def get_goal_tasks(goal_id):
     goal = Goal.query.get(goal_id)
     if goal is None:
         return ("", 404)
-    tasks_response = []
-    for task in goal.tasks:
-        tasks_response.append(Task.to_json_with_goal(task))
+    tasks_response = [Task.to_json_with_goal(task) for task in goal.tasks]
     goal_tasks = Goal.to_json(goal)
     goal_tasks["tasks"] = tasks_response
     return goal_tasks, 200

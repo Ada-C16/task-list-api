@@ -1,11 +1,8 @@
 from flask import Blueprint, jsonify, request
 from app import db
 from app.models.task import Task
-from app.models.goal import Goal
 from sqlalchemy import asc, desc
 from datetime import datetime, timezone
-import requests
-import os
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -16,9 +13,7 @@ def get_tasks():
         tasks = Task.query.order_by(eval(sort_query)(Task.title))
     else:
         tasks = Task.query.all()
-    tasks_response = []
-    for task in tasks:
-        tasks_response.append(Task.to_json(task))
+    tasks_response = [Task.to_json(task) for task in tasks]
     return jsonify(tasks_response), 200
     
 @task_bp.route("", methods=["POST"])
