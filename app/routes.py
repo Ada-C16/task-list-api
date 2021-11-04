@@ -82,11 +82,17 @@ def CRUD_one_task(task_id):
 # returning the object's info in the desired data structure format
     is_complete = task.completed_at is not None
     if request.method == "GET":
-        return make_response({"task": {"id": task.task_id,
+        if task.goal_id:
+            return make_response({"task": {"id": task.task_id,
                                     "title": task.title,
                                     "description": task.description,
                                     "goal_id": task.goal_id,
                                     "is_complete": is_complete}}, 200)
+        else:
+            return make_response({"task": {"id": task.task_id,
+                        "title": task.title,
+                        "description": task.description,
+                        "is_complete": is_complete}}, 200)
     elif request.method == "PUT":
     # form data is a local variable to hold the body of the HTTP request
         form_data = request.get_json()
