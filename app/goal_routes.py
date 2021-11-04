@@ -68,8 +68,7 @@ def delete_goal(goal_id):
 # Wave 6 routes
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"])
 def create_one_to_many(goal_id):
-    # task = Task.query.get(task_id)
-    goal = Goal.query.get(goal_id)
+    goal = get_goal_from_id(goal_id)
     request_body = request.get_json()
     task_ids = request_body["task_ids"]
 
@@ -82,5 +81,14 @@ def create_one_to_many(goal_id):
     return jsonify({"id": goal.goal_id, "task_ids": [task.task_id for task in goal.tasks]}), 200
 
 @goals_bp.route("/<goal_id>/tasks", methods=["GET"])
-def get_tasks_for_goal():
-    
+def get_tasks_for_goal(goal_id):
+    goal = get_goal_from_id(goal_id)
+    if goal is None:
+        return make_response("", 404)
+    db.session.commit()
+    return jsonify({
+        "id": goal.goal_id,
+        "title": goal.title,
+        "tasks": [task.to_dict() for task in goal.tasks]
+    }), 200
+

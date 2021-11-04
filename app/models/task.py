@@ -13,9 +13,12 @@ class Task(db.Model):
     # Create helper function to print out attributes
     # in a dict format
     def to_dict(self):
-        return {
+        dictionary = {
             "id": self.task_id,
             "title": self.title,
             "description": self.description,
             "is_complete": False if self.completed_at == None else True
         }
+        if self.goal_id:
+            dictionary["goal_id"] = self.goal_id
+        return dictionary
