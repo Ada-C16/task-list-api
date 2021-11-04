@@ -6,6 +6,18 @@ from .helpers import get_goal_from_id, get_task_from_id
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 # Goals CRUD routes
+@goals_bp.route("", methods=["GET"], strict_slashes=False)
+def get_all_goals():
+    sort_query = request.args.get("sort")
+    if sort_query == "asc":
+        goals = Goal.query.order_by(Goal.title.asc())
+    elif sort_query == "desc":
+        goals = Goal.query.order_by(Goal.title.desc())
+    else:
+        goals = Goal.query.all()
+    goals_response = [goal.to_dict() for goal in goals]
+    return make_response(jsonify(goals_response), 200)
+
 @goals_bp.route("", methods=["POST"], strict_slashes=False)
 def create_goal():
     request_body = request.get_json()
@@ -15,12 +27,6 @@ def create_goal():
     db.session.add(new_goal)
     db.session.commit()
     return make_response({"goal": new_goal.to_dict()}, 201)
-
-@goals_bp.route("", methods=["GET"], strict_slashes=False)
-def get_all_goals():
-    goals = Goal.query.all()
-    goals_response = [goal.to_dict() for goal in goals]
-    return make_response(jsonify(goals_response), 200)
 
 # Single goal CRUD routes
 @goals_bp.route("/<goal_id>", methods=["GET"], strict_slashes=False)
