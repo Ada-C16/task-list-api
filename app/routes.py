@@ -7,6 +7,13 @@ import requests
 import os
 from dotenv import load_dotenv
 
+# Welcome screen
+home_bp = Blueprint("home", __name__, url_prefix="/")
+
+@home_bp.route("", methods=["GET"], strict_slashes=False)
+def home():
+    return "Welcome to Michelle's task list", 200
+
 # TASKS
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
