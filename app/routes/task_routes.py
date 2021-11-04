@@ -9,8 +9,6 @@ TOKEN = os.environ.get('TOKEN')
 task_bp = Blueprint("task", __name__, url_prefix="/tasks")
 
 # Helper Functions
-
-
 def valid_int(number, parameter_type):
     try:
         int(number)
@@ -142,4 +140,3 @@ def incompleted_task(task_id):
         task_dict["task"] = task.to_dict()
         return jsonify(task_dict), 200
 
-#oops
