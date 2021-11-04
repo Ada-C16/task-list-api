@@ -91,7 +91,24 @@ def mark_task_incompleted(task_id):
     return make_response({"task": task.to_dict()}, 200)
 
 
+@goals_bp.route("", methods = ["POST", "GET"])
+def handle_goals():
+    if request.method == "POST":
+        request_body = request.get_json()
+        new_goal = Goal(
+            title = request_body["title"]
+        )
+        db.session.add(new_goal)
+        db.session.commit()
 
+        return make_response({"goal": new_goal.to_dict()}, 201)
+    
+    elif request.method == "GET":
+        goals = Goal.query.all()
+        goal_response = []
+        for goal in goals:
+            goal_response.append(goal.to_dict())
+        return jsonify(goal_response), 200
 
 
     
