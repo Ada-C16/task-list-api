@@ -42,13 +42,7 @@ def create_goal():
 # Read all goals
 @goal_bp.route("", methods=["GET"])
 def read_all_goals():
-    title_query = request.args.get("title")
-
-    if title_query:
-        valid_int(title_query, "title")
-        goals = Goal.query.filter_by(title=title_query)
-    else:
-        goals = Goal.query.all()
+    goals = Goal.query.all()
     goals_response = []
     for goal in goals:
         goals_response.append(
