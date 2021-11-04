@@ -173,7 +173,7 @@ def handle_goals_tasks(goal_id):
     tasks = []
     if goal is None:
         return make_response("Goal not found", 404)
-    if request.method == "POST":
+    elif request.method == "POST":
         request_body = request.get_json()
         for task_id in request_body["task_ids"]:
             tasks.append(Task.query.get(task_id))
