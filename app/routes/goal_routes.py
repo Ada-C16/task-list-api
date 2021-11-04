@@ -22,12 +22,11 @@ def get_all_goals():
     goals_response = [goal.to_dict() for goal in goals]
     return make_response(jsonify(goals_response), 200)
 
-# single goal routes
+# Single goal CRUD routes
 @goals_bp.route("/<goal_id>", methods=["GET"], strict_slashes=False)
 def get_one_goal(goal_id):
     selected_goal = get_goal_from_id(goal_id)
     return make_response({"goal": selected_goal.to_dict()}, 200)
-
 
 @goals_bp.route("/<goal_id>", methods=["PUT"], strict_slashes=False)
 def update_goal(goal_id):
@@ -36,7 +35,6 @@ def update_goal(goal_id):
     if "title" in request_body:
         selected_goal.title = request_body["title"]
     return make_response({"goal": selected_goal.to_dict()}, 200)
-
 
 @goals_bp.route("/<goal_id>", methods=["DELETE"], strict_slashes=False)
 def delete_goal(goal_id):

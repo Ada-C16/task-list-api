@@ -7,7 +7,6 @@ from .helpers import get_task_from_id, send_completion_slack_message
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
 # Task CRUD routes
-
 @tasks_bp.route("", methods=["GET"], strict_slashes=False)
 def get_all_tasks():
 
@@ -37,7 +36,7 @@ def create_new_task():
     db.session.commit()
     return make_response({"task": new_task.to_dict()}, 201)
 
-
+# Single task CRUD routes
 @tasks_bp.route("/<task_id>", methods=["GET"], strict_slashes=False)
 def get_one_task(task_id):
     selected_task = get_task_from_id(task_id)
@@ -53,7 +52,6 @@ def update_task(task_id):
         selected_task.description = request_body["description"]
     return make_response({"task": selected_task.to_dict()}, 200)
 
-
 @tasks_bp.route("/<task_id>", methods=["DELETE"], strict_slashes=False)
 def delete_task(task_id):
     selected_task = get_task_from_id(task_id)
@@ -63,7 +61,6 @@ def delete_task(task_id):
         {"details": f'Task {selected_task.id} "{selected_task.title}" successfully deleted'}, 200)
 
 # Custom Routes: marking tasks complete or incomplete
-
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"], strict_slashes=False)
 def mark_incompleted_task_complete(task_id):
     selected_task = get_task_from_id(task_id)
