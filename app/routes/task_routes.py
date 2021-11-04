@@ -15,7 +15,6 @@ load_dotenv()
 task_bp = Blueprint("task", __name__,url_prefix ="/tasks")
 
 # Helper Functions
-
 def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description="{task not found}")
@@ -38,7 +37,6 @@ def post_slack_message(message):
 def create_task():
     request_body = request.get_json()
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-    # if "title" not in request_body or "description" not in request_body:
         return make_response({"details": "Invalid data"}, 400)
 
     new_task = Task(

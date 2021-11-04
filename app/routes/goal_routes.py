@@ -93,21 +93,3 @@ def link_tasks_to_goals(goal_id):
 def read_tasks_for_goal(goal_id):
     goal = get_goal_from_id(goal_id)
     return make_response(goal.to_dict_with_tasks(), 200)
-
-    # Task.query.filter(Task.goal_id == goal_id)
-    # sort_query = request.args.get("sort")
-
-    # if sort_query == "asc":
-    #     goals = Goal.query.order_by(Goal.title.asc())
-    # elif sort_query == "desc":
-    #     goals = Goal.query.order_by(Goal.title.desc())
-    # else:
-    #     goals = Goal.query.all()
-
-    # goal_response = []
-    # for goal in goals:
-    #     goal_response.append(
-    #         goal.to_dict()
-    #     )
-    # return make_response(jsonify(goal_response), 200)
-

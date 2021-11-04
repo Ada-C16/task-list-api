@@ -10,10 +10,8 @@ class Task(db.Model):
     description = db.Column(db.String, nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)
     goal_id = db.Column(db.Integer, db.ForeignKey(Goal.goal_id), nullable=True)
-    # goal = db.relationship("Goal", backref="tasks", lazy=True)
-    # goal = db.relationship("Goal", back_populates="tasks")
 
-    def to_dict(self): #if no goal id this else: if goal id add to dict
+    def to_dict(self):
         complete = False
         if self.completed_at:
             complete = True

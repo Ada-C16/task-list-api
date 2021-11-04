@@ -9,7 +9,6 @@ class Goal(db.Model):
     goal_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String, nullable=False)
     tasks = db.relationship("Task", backref="goal", lazy=True)
-    # tasks = db.relationship("Task", back_populates="goal")
 
     def to_dict(self):
         return {
@@ -29,5 +28,3 @@ class Goal(db.Model):
                     "title": self.title,
                     "tasks": [task.to_dict() for task in self.tasks]
                 }
-    
-    # foal - goal.query.get(goal_id)
