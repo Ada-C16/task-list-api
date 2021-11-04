@@ -1,4 +1,5 @@
 from flask import Blueprint, json, jsonify, request, make_response
+from werkzeug.wrappers import response
 from app.models.task import Task
 from app.models.goal import Goal
 from app import db
@@ -20,14 +21,16 @@ def post_tasks():
         description = request_body["description"],
         completed_at = request_body["completed_at"]
         )
-
     db.session.add(new_task)
     db.session.commit()
     
-    return {"task": {"id": new_task.id,
+    response_body = {"task": {"id": new_task.id,
         "title": new_task.title,
         "description": new_task.description,
-        "is_complete": bool(new_task.completed_at)}}, 201
+        "is_complete": bool(new_task.completed_at)}}
+        
+    return jsonify(response_body), 201
+
 
 @tasks_bp.route("", methods=["GET"])   
 def get_tasks():
@@ -38,7 +41,6 @@ def get_tasks():
             tasks = Task.query.order_by(Task.title.desc()).all()
         else:
             tasks = Task.query.all()
-    
 
         tasks_response = []
         for task in tasks: 
@@ -49,11 +51,10 @@ def get_tasks():
                 "is_complete": bool(task.completed_at)
                 })
 
-        return jsonify(tasks_response)
+        return jsonify(tasks_response), 200
 
 
 @tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
-
 def handle_task(task_id):
     task = Task.query.get_or_404(task_id)
     if not task:
@@ -61,18 +62,21 @@ def handle_task(task_id):
         
     if request.method == "GET":
         if not task.goal_id:
-            return {"task":
+            response_body = {"task":
                 {"id": task.id,
                 "title": task.title,
                 "description": task.description,
                 "is_complete": bool(task.completed_at)}}
+            return jsonify(response_body), 200
+        
         else:
-            return {"task":
+            response_body = {"task":
             {"id": task.id,
             "goal_id": task.goal_id,
             "title": task.title,
             "description": task.description,
             "is_complete": bool(task.completed_at)}}
+            return jsonify(response_body), 200
 
     elif request.method == "PUT":
         request_body = request.get_json()
@@ -84,10 +88,12 @@ def handle_task(task_id):
             task.is_complete = False
         db.session.commit()
         
-        return {"task": {"id": task.id,
+        response_body = {"task": {"id": task.id,
             "title": task.title,
             "description": task.description,
             "is_complete": bool(task.completed_at)}}
+        
+        return jsonify(response_body), 200
 
     elif request.method == "DELETE":
         db.session.delete(task)
@@ -101,6 +107,7 @@ def slack_bot(title):
     response=requests.post('https://slack.com/api/chat.postMessage', params = query_path, headers= header)
     return response.json()
 
+
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def handle_completed_task(task_id):
     task = Task.query.get_or_404(task_id)
@@ -110,11 +117,13 @@ def handle_completed_task(task_id):
     
     slack_bot(task.title)
         
-    return jsonify({"task": 
+    response_body = {"task": 
         {"id": task.id,
         "title": task.title,
         "description": task.description,
-        "is_complete": bool(task.completed_at)}}), 200
+        "is_complete": bool(task.completed_at)}}
+    return jsonify(response_body), 200
+
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def handle_incompleted_task(task_id):
@@ -122,17 +131,14 @@ def handle_incompleted_task(task_id):
     task.completed_at = None
     db.session.commit()
         
-    return jsonify({"task": 
+    response_body = {"task": 
         {"id": task.id,
         "title": task.title,
         "description": task.description,
-        "is_complete": bool(task.completed_at)}}), 200
+        "is_complete": bool(task.completed_at)}}
     
-
-    #task.completed_at = request_body['completed_at']
-
-
-
+    return jsonify(response_body), 200
+    
 
 
 
@@ -157,12 +163,6 @@ def post_goals():
 
 @goals_bp.route("", methods=["GET"])   
 def get_goals():
-        # sort_query = request.args.get("sort")
-        # if sort_query == "asc":
-        #     goals = Goal.query.order_by(Goal.title.asc()).all()
-        # elif sort_query == "desc":
-        #     tasks = Task.query.order_by(Task.title.desc()).all()
-        # else:
         goals = Goal.query.all()
     
         goals_response = []
@@ -172,7 +172,7 @@ def get_goals():
                 "title": goal.title
                 })
 
-        return jsonify(goals_response)
+        return jsonify(goals_response), 200
 
 
 @goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
@@ -183,19 +183,21 @@ def handle_goal(goal_id):
         return make_response(f"Goal {goal_id} not found", 404)
         
     if request.method == "GET":
-        return {"goal":
+        response_body = {"goal":
             {"id": goal.id,
             "title": goal.title,
             }}
+        return jsonify(response_body), 200
 
     elif request.method == "PUT":
         request_body = request.get_json()
         goal.title = request_body['title']
         db.session.commit()
         
-        return {"goal": {"id": goal.id,
+        response_body = {"goal": {"id": goal.id,
             "title": goal.title,
             }}
+        return jsonify(response_body), 200
 
     elif request.method == "DELETE":
         db.session.delete(goal)
@@ -235,14 +237,3 @@ def handle_goals_tasks(goal_id):
                 "title": goal.title,
                 "tasks": tasks_response}), 200
 
-
-            # "tasks": [{"id": goal.tasks.id,
-            #         "goal_id": goal.tasks.goal_id,
-            #         "title": goal.tasks.title,
-            #         "description": goal.tasks.description,
-            #         "is_complete": bool(goal.task.completed_at)}]}
-
-
-
-    # return {"task": {"id": new_task.id,
-    #     "title": new_task.title,
