@@ -1,5 +1,6 @@
 from flask import current_app
 from app import db
+from app.models.goal import Goal
 
 
 class Task(db.Model):
@@ -9,6 +10,10 @@ class Task(db.Model):
     completed_at = db.Column(db.DateTime, nullable=True)
     goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'))
     goal = db.relationship("Goal", back_populates="tasks")
+
+    # def __init__(self, dict ={}):
+    #     if dict != {}:
+    #         self.from_json(dict)
 
     def to_dict(self):
         response = {
@@ -20,4 +25,10 @@ class Task(db.Model):
         if self.goal_id:
             response["goal_id"] = self.goal_id
         return response
+
+    # def from_json(self, dict):
+    #     self.title = dict["title"]
+    #     self.description = dict["description"]
+    #     self.completed_at = dict["completed_at"]
+
         

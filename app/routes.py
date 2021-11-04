@@ -30,6 +30,7 @@ def post_to_tasks():
         new_task = Task(title=request_body["title"], \
         description = request_body["description"], \
         completed_at = request_body["completed_at"])
+        # new_task = Task(request_body)
 
         db.session.add(new_task)
         db.session.commit()
@@ -50,9 +51,8 @@ def get_tasks():
             return {"details": "Invalid sort parameter"}, 400
     else:
         tasks = Task.query.all()
-    response = []
-    for task in tasks:
-        response.append(task.to_dict())
+
+    response = [task.to_dict() for task in tasks]
     return jsonify(response), 200
 
 @tasks_bp.route('/<id>', methods=["GET"], strict_slashes=False)
@@ -168,9 +168,7 @@ def post_goals():
 @goals_bp.route("", methods=["GET"], strict_slashes=False)
 def get_goals():
     goals = Goal.query.all()
-    response = []
-    for goal in goals:
-        response.append(goal.to_dict())
+    response = [goal.to_dict() for goal in goals]
     return jsonify(response), 200
 
 @goals_bp.route("/<id>", methods=["GET"], strict_slashes=False)
@@ -199,34 +197,6 @@ def delete_goal(id):
     db.session.commit()
     return {"details": f"Goal {str(goal.goal_id)} \"{str(goal.title)}\" successfully deleted"}, 200
 
-@goals_bp.route("/<goal_id>/tasks", methods=["POST"], strict_slashes=False)
-def post_goals_and_tasks(goal_id):
-    goal_id = int(goal_id)
-    if not goal_id_exists(goal_id):
-        return "", 404
-    request_body = request.get_json()
-    task_ids = request_body["task_ids"]
-    for task_id in task_ids:
-        task = Task.query.get(task_id)
-        task.goal_id = goal_id
-        db.session.commit()
-    all_task_ids = []
-    for task in Task.query.filter(Task.goal_id == goal_id):
-        all_task_ids.append(task.task_id)
-    return {"id": goal_id, "task_ids": all_task_ids}, 200
-
-@goals_bp.route("/<goal_id>/tasks", methods=["GET"], strict_slashes=False)
-def get_goals_and_tasks(goal_id):
-    goal_id = int(goal_id)
-    if not goal_id_exists(goal_id):
-        return "", 404
-    tasks = []
-    for task in Task.query.filter(Task.goal_id == goal_id):
-        tasks.append(task.to_dict())
-    goal_dict = Goal.query.get(goal_id).to_dict()
-    goal_dict["tasks"] = tasks
-    return goal_dict
-
 def goal_id_exists(id):
     id = int(id)
     if Goal.query.get(id):
@@ -239,4 +209,32 @@ def is_goal_data_valid(input):
         if type(input.get(name)) != val_type:
             return False
     return True
+
+# GOALS x TASKS
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"], strict_slashes=False)
+def post_goals_and_tasks(goal_id):
+    goal_id = int(goal_id)
+    if not goal_id_exists(goal_id):
+        return "", 404
+    request_body = request.get_json()
+    task_ids = request_body["task_ids"]
+    for task_id in task_ids:
+        task = Task.query.get(task_id)
+        task.goal_id = goal_id
+        db.session.commit()
+    all_task_ids = [task.task_id for task in Task.query.filter(Task.goal_id == goal_id)]
+    return {"id": goal_id, "task_ids": all_task_ids}, 200
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"], strict_slashes=False)
+def get_goals_and_tasks(goal_id):
+    goal_id = int(goal_id)
+    if not goal_id_exists(goal_id):
+        return "", 404
+    tasks = [task.to_dict() for task in Task.query.filter(Task.goal_id == goal_id)]
+    goal_dict = Goal.query.get(goal_id).to_dict()
+    goal_dict["tasks"] = tasks
+    return goal_dict
+
+
 
