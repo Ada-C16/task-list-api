@@ -58,8 +58,6 @@ def change_data(task_id):
     if task:
         task.title = form_data["title"]
         task.description = form_data["description"]
-        # task.completed_at = form_data["completed_at"]
-
         db.session.commit()
         return {
             "task":{
@@ -87,7 +85,7 @@ def delete_planet(task_id):
 def task_incomplete(task_id):
     task = Task.query.get(task_id)
     if task == None:
-        return "", 404
+        return jsonify(None), 404
     task.completed_at = None
     return {"task": task.to_dict()}
 
@@ -97,7 +95,7 @@ def task_complete(task_id):
     task = Task.query.get(task_id)
     
     if task == None:
-        return "", 404
+        return jsonify(None), 404
     task.completed_at = datetime.now()
     post_message_to_slack(f"Someone just completed the task {task.title}")
 
