@@ -189,34 +189,32 @@ def handle_single_goal(goal_id):
 # GET 
 @goals_bp.route("/<goal_id>/tasks", methods=["GET"])
 def get_tasks_with_goal(goal_id):
-  goal = Goal.query.get_or_404 (goal_id) 
-
-  tasks_with_goals = Task.query.all() 
+  goal = Goal.query.get_or_404(goal_id) 
   tasks_with_goals_list = []
   
-  for task in tasks_with_goals:
-    tasks_with_goals_list.append({
+  for task in goal.tasks:
+    tasks_with_goals_list.append(
+      {
       "id": task.task_id, 
-      "goal_id": task.goal_id, 
+      "goal_id": task.goal_id,
       "title": task.title, 
       "description": task.description, 
-      "is_complete": task.is_complete()})
-    
+      "is_complete": False if task.completed_at is None else True})
   
-  """ return {"id": goal.goal_id,
-      "title": goal.title,
-      "tasks": [{
-        "id": task.task_id,
-        "goal_id": task.goal_id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": task.is_complete()}]}, 200 """
+  return jsonify({"id": goal.goal_id,
+      "title": goal.title, "tasks": tasks_with_goals_list}), 200 
   
-  return {"id": goal.goal_id,
-      "title": goal.title,
-      "tasks": tasks_with_goals_list}, 200
+  
+  
+  #   if task.goal_id is not None:
+  #     task_dict["goal_id"] = task.goal_id
+      
+  #   tasks_with_goals_list.append(task_dict)
+      
+  # return {"id": goal.goal_id,
+  #     "title": goal.title,
+  #     "tasks": tasks_with_goals_list}, 200
     
-
 #POST
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"], strict_slashes=False)
 def post_goals_with_tasks(goal_id):
