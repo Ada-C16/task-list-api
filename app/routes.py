@@ -100,12 +100,7 @@ def mark_complete(task_id):
     requests.post(url, data=slack_request)
 
     response_body = {}
-    response_body["task"] = {
-        "id": task.id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": task.is_complete
-    }
+    response_body["task"] = task.to_dict()
     return jsonify(response_body)
 
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
@@ -118,12 +113,7 @@ def mark_incomplete(task_id):
     task.completed_at = None
 
     response_body = {}
-    response_body["task"] = {
-        "id": task.id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": task.is_complete
-    }
+    response_body["task"] = task.to_dict()
     return jsonify(response_body)
 
 @goal_bp.route("", methods=["POST", "GET"])
@@ -137,20 +127,14 @@ def handle_tasks():
         db.session.commit()
         
         response = {}
-        response["goal"] = {
-            "id": new_goal.goal_id,
-            "title": new_goal.title
-        }
+        response["goal"] = new_goal.to_dict()
         return jsonify(response), 201
     elif request.method == "GET":
         goals = Goal.query.all()
 
         response_body = []
         for goal in goals:
-            response_body.append({
-                "id": goal.goal_id,
-                "title": goal.title
-            })
+            response_body.append(goal.to_dict())
         return jsonify(response_body)
 
 @goal_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
@@ -161,10 +145,7 @@ def handle_goal(goal_id):
 
     if request.method == "GET":
         response_body = {}
-        response_body["goal"] = {
-            "id": goal.goal_id,
-            "title": goal.title
-        }
+        response_body["goal"] = goal.to_dict()
         return jsonify(response_body)
 
     elif request.method == "PUT":
@@ -173,18 +154,13 @@ def handle_goal(goal_id):
         db.session.commit()
 
         response_body = {}
-        response_body["goal"] = {
-            "id": goal.goal_id,
-            "title": goal.title
-        }
+        response_body["goal"] = goal.to_dict()
         return jsonify(response_body)
 
     elif request.method == "DELETE":
         db.session.delete(goal)
         db.session.commit()
-        response_body = {
-            "details": f"Goal {goal.goal_id} \"{goal.title}\" successfully deleted"
-        }
+        response_body = {"details": f"Goal {goal.goal_id} \"{goal.title}\" successfully deleted"}
         return jsonify(response_body)
 
 @goal_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
@@ -198,25 +174,15 @@ def handle_relationship(goal_id):
         for task_id in request_body["task_ids"]:
             goal.tasks.append(Task.query.get(task_id))
         db.session.commit()
-
-        response_body = {
-            "id": goal.goal_id,
-            "task_ids": request_body["task_ids"]
-        }
+        
+        response_body = goal.to_dict()
         return jsonify(response_body)
     
     elif request.method == "GET":
-        goal_dict = {
-            "id": goal.goal_id,
-            "title": goal.title,
-            "tasks":[]
-        }
+        goal_dict = goal.to_dict()
+        goal_dict["tasks"] = []
         for task in goal.tasks:
-            goal_dict["tasks"].append({
-                "id": task.id,
-                "goal_id": task.goal_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": task.is_complete
-            })
+            task_dict = task.to_dict()
+            task_dict["goal_id"]= task.goal_id
+            goal_dict["tasks"].append(task_dict)
         return jsonify(goal_dict)
