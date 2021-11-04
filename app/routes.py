@@ -61,6 +61,14 @@ def handle_single_task(task_id):
   task = Task.query.get_or_404(task_id)
 
   if request.method == "GET":
+    if task.goal_id:
+      return {"task": {
+          "id": task.task_id,
+          "goal_id": task.goal_id,
+          "title": task.title,
+          "description": task.description,
+          "is_complete": task.is_complete()}}, 200
+    
     return {"task": {
         "id": task.task_id,
         "title": task.title,
@@ -103,12 +111,15 @@ def mark_task_complete(task_id):
         "description": task.description,
         "is_complete": task.is_complete()}}
   
-  path = "https://slack.com/api/chat.postMessage"
-  header = {"Authorization: os.getenv(BOT_TOKEN)"}
-  query_params = {
+  load_dotenv()
+  def send_slack_post(task):
+    slack_token = os.getenv("BOT_TOKEN")
+    path = "https://slack.com/api/chat.postMessage"
+    header = {"Authorization": slack_token}
+    query_params = {
     "channel": "task-notification",
     "text": f"Someone completed the task {task.title}"}
-  response = requests.post(path, params=query_params, headers=header)
+    return requests.post(path, params=query_params, headers=header)
     
   return jsonify(response_body), 200
   
@@ -199,7 +210,7 @@ def get_tasks_with_goal(goal_id):
       "goal_id": task.goal_id,
       "title": task.title, 
       "description": task.description, 
-      "is_complete": False if task.completed_at is None else True})
+      "is_complete": task.is_complete()})
   
   return jsonify({"id": goal.goal_id,
       "title": goal.title, "tasks": tasks_with_goals_list}), 200 
