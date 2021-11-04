@@ -11,7 +11,7 @@ class Goal(db.Model):
     tasks = db.relationship('Task', back_populates='goal')
 
     def to_dict(self):
-        if self.tasks == None:
+        if self.tasks == []:
             return {
                 "id": self.goal_id,
                 "title": self.title,
@@ -19,15 +19,19 @@ class Goal(db.Model):
         else:
             return {
                 "id": self.goal_id,
-                "task_ids": self.tasks.task_id
+                "task_ids": self.tasks
             }
 
 
     def to_dict_plus_tasks(self):
+        task_dicts = []
+        for task in self.tasks:
+            task_dicts.append(Task.to_dict(task))
         return {
             "id": self.goal_id,
             "title": self.title,
-            "tasks": [
-                Task.to_dict()
-            ]
+            "tasks": task_dicts
         }
+
+
+        

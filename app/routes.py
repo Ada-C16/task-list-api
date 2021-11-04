@@ -217,7 +217,7 @@ def read_goals_tasks(goal_id):
     if valid_data:
         return valid_data
     goal = Goal.query.get(goal_id)
-    return jsonify(Goal.to_dict_plus_tasks(goal.goal_id))
+    return jsonify(goal.to_dict_plus_tasks())
 
 
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"])
