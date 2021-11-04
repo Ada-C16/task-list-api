@@ -2,15 +2,79 @@ from flask import Blueprint, request, make_response, jsonify
 from flask_sqlalchemy import model
 from app import db
 from app.models.task import Task
+from app.models.goal import Goal
 from datetime import datetime
 import requests
 import os
-
-
 from tests.conftest import completed_task
 
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
+
+
+
+@goals_bp.route("", methods=["GET", "POST"])
+def handle_goals():
+    if request.method == "GET":
+        goals = Goal.query.all()
+        goals_response = []
+        for goal in goals:
+            goals_response.append({
+                "id": goal.goal_id,
+                "title": goal.title
+            })
+
+        return jsonify(goals_response)
+
+    
+    elif request.method == "POST":
+        request_body = request.get_json()
+        if request_body.get("title"):
+            new_goal = Goal(title=request_body["title"])
+            db.session.add(new_goal)
+            db.session.commit()
+            response_value = {"goal":{
+                    "id": new_goal.goal_id,
+                    "title": new_goal.title,
+            }}
+            return make_response(response_value, 201)
+        else:
+            return make_response({"details":"Invalid data"}, 400)
+
+
+
+@goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
+def handle_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return make_response("", 404)
+
+    if request.method == "GET":
+        response_value = {"goal":{
+            "id": goal.goal_id,
+            "title": goal.title,
+        }}
+
+        return make_response(response_value, 200)
+
+    elif request.method == "DELETE":
+        db.session.delete(goal)
+        db.session.commit()
+        return make_response({"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'},200)
+
+    elif request.method == "PUT":
+        form_data = request.get_json()
+        goal.title = form_data["title"]
+
+        db.session.commit()
+
+        response_value = {"goal":{
+            "id": goal.goal_id,
+            "title": goal.title,
+        }}
+
+        return make_response(response_value, 200)
 
 
 @tasks_bp.route("", methods=["GET", "POST"])
@@ -21,9 +85,9 @@ def handle_tasks():
             tasks = Task.query.order_by(Task.title.asc()).all()
         elif sort_query == "desc":
             tasks = Task.query.order_by(Task.title.desc()).all()
-
         else:
             tasks = Task.query.all()
+
         tasks_response = []
         for task in tasks:
             if not task.completed_at:
@@ -38,7 +102,7 @@ def handle_tasks():
                     "id": task.task_id,
                     "title": task.title,
                     "description": task.description,
-                    "is_complete": task.is_complete
+                    "is_complete": task.completed_at
                 })
         return jsonify(tasks_response)
 
@@ -72,35 +136,7 @@ def handle_tasks():
         else:
             return make_response({"details":"Invalid data"}, 400)
 
-        
         return make_response(response_value, 201)
-        
-    # task_by_title = Task.query.filter_by(title=new_task.title)
-
-    # if not new_task.completed_at:
-    #     response_value = {"task":{
-    #         "id": len(Task.query.all()),
-    #         "title": new_task.title,
-    #         "description": new_task.description,
-    #         "is_complete": False
-    #     }}
-
-    #     return make_response(response_value, 201)
-    # else:
-    #     response_value = {"task":{
-    #         "id": len(Task.query.all()),
-    #         "title": new_task.title,
-    #         "description": new_task.description,
-    #         "is_complete": new_task.is_complete
-    #     }}
-
-    #     return make_response(response_value, 201)
-
-    # return make_response({"task":request_body}, 201)
-
-
-
-
 
 
 @tasks_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
@@ -124,7 +160,7 @@ def handle_task(task_id):
                 "id": task.task_id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": task.is_complete
+                "is_complete": task.completed_at
             }}
 
             return make_response(response_value, 200)
@@ -178,7 +214,7 @@ def mark_complete(task_id):
     }}
     url= 'https://slack.com/api/chat.postMessage'
     header_values = {'AUTHORIZATION': os.environ.get("AUTHORIZATION")}
-    slack_values = {"text" : f"You just finished {task.title}",
+    slack_values = {"text" : f"Someone just completed the task {task.title}",
                     "channel" : "task list api"
     }
     requests.post(url, headers=header_values, params=slack_values)
