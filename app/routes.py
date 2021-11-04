@@ -8,13 +8,6 @@ import os, requests, sys
 
 task_list_bp = Blueprint("task_list", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
-welcome_bp = Blueprint("homescreen", __name__)
-
-@welcome_bp.route("", methods=["GET"])
-def welcome_screen():
-    print("Welcome to Task List webpage")
-    print("Please modify your url to get the appropriate information")
-
 
 @task_list_bp.route("", methods=["GET"])
 def get_task_lists():
