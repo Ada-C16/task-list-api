@@ -20,3 +20,10 @@ class Task(db.Model):
             "description": self.description,
             "is_complete": self.check_if_completed()
         }
+
+    def update_from_dict(self, data):
+        # Loops through attributes provided by user
+        for key, value in data.items():
+            # Restricts to attributes that are table columns
+            if key in Task.__table__.columns.keys():
+                setattr(self, key, value)

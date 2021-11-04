@@ -1,5 +1,5 @@
 from app import db
-from flask import Blueprint, request, abort, jsonify
+from flask import Blueprint, request, abort, jsonify, make_response
 from datetime import datetime
 from dotenv import load_dotenv
 from functools import wraps
@@ -8,8 +8,8 @@ import requests
 from app.models.task import Task
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
-
-def require_task(endpoint):
+ 
+def require_task_or_404(endpoint):
     """Decorator to validate input data."""
     @wraps(endpoint) # Makes fn look like func to return
     def fn(*args, **kwargs):
@@ -17,7 +17,7 @@ def require_task(endpoint):
         task = Task.query.get(task_id)
 
         if not task:
-            return json("null", 404) # HOW TO RETURN AN EMPTY BODY...
+            return jsonify(None), 404             ## null
 
         kwargs.pop("task_id")
         return endpoint(*args, task=task, **kwargs)
@@ -41,14 +41,12 @@ def get_tasks():
     query = query.all() # Final query
     
     # Returns jsonified list of task dicionaries
-    return jsonify([task.to_dict() for task in query])
+    return jsonify([task.to_dict() for task in query]), 200
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
-# @require_task
-def get_task(task_id):
+@require_task_or_404
+def get_task(task):
     """Retrieve one stored task by id."""
-    task = Task.query.get_or_404(task_id)
-
     return jsonify({"task": task.to_dict()}), 200
 
 @tasks_bp.route("", methods=["POST"])
@@ -57,6 +55,7 @@ def post_task():
     form_data = request.get_json()
 
     #TODO: Refactor to validation decorator helper method
+
     # All fields must be provided
     mandatory_fields = ["title", "description", "completed_at"]
     for field in mandatory_fields:
@@ -74,26 +73,21 @@ def post_task():
     return {"task": new_task.to_dict()}, 201
 
 @tasks_bp.route("/<task_id>", methods=["PUT"])
-def put_task(task_id):
+@require_task_or_404
+def put_task(task):
     """Updates task by id."""
-    task = Task.query.get_or_404(task_id)
     form_data = request.get_json()
 
-    # Loops through attributes provided by user
-    for key, value in form_data.items():
-        # Restricts to attributes that are table columns
-        if key in Task.__table__.columns.keys():
-            setattr(task, key, value)
-
+    # Updates object from form data
+    task.update_from_dict(form_data)
     db.session.commit()
 
     return {"task": task.to_dict()}, 200
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
-def update_task_to_complete(task_id):
+@require_task_or_404
+def update_task_to_complete(task):
     """Updates task at particular id to completed using PATCH."""
-    task = Task.query.get_or_404(task_id)
-    
     # Make call to Slack API if task newly completed
     if not task.check_if_completed():
         slack_api_url = "https://slack.com/api/chat.postMessage"
@@ -116,19 +110,17 @@ def update_task_to_complete(task_id):
     return {"task": task.to_dict()}, 200
 
 @tasks_bp.route("<task_id>/mark_incomplete", methods=["PATCH"])
-def update_task_to_incomplete(task_id):
+@require_task_or_404
+def update_task_to_incomplete(task):
     """Updates task at particular id to incomplete using PATCH."""
-    task = Task.query.get_or_404(task_id)
-
     task.completed_at = None
     db.session.commit()
     return {"task": task.to_dict()}, 200
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
-def delete_task(task_id):
+@require_task_or_404
+def delete_task(task):
     """Deletes task by id."""
-    task = Task.query.get_or_404(task_id)
-
     db.session.delete(task)
     db.session.commit()
 
