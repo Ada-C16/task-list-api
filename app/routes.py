@@ -1,3 +1,4 @@
+from werkzeug.datastructures import Authorization
 from app import db
 from app.models.goal import Goal
 from app.models.task import Task
@@ -68,8 +69,9 @@ def complete_task(task_id):
         
         my_token=os.environ.get("MY_TOKEN")
         message=f"Someone just completed the task {task.title}"
-        query={"channel": "task-notifications", "text": message, "token": f"{my_token}"}
-        requests.post("https://slack.com/api/chat.postMessage", data=query)
+        query={"channel": "task-notifications", "text": message}
+        my_headers={"Authorization": f"Bearer {my_token}"}
+        requests.post("https://slack.com/api/chat.postMessage", data=query, headers= my_headers)
     
         
         return jsonify({"task": task.to_dict()}),200
