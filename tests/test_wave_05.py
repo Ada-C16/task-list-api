@@ -79,7 +79,7 @@ def test_update_goal(client, one_goal):
 
     # Assert
     assert response.status_code == 200
-    assert "title" in response_body
+    assert "goal" in response_body
     assert response_body == {
         "goal": {
             "id": 1,

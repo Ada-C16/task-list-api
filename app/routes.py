@@ -145,14 +145,13 @@ def get_goal(goal_id):
 
     return jsonify({"goal": goal.to_dict()}), 200
 
-# @goals_bp.route("", methods=["POST"])
-# def create_goal():
-#     pass
-
 @goals_bp.route("", methods=["POST"])
 def create_goal():
     """Create a new goal from JSON data."""
     form_data = request.get_json()
+
+    if "title" not in form_data:
+        return jsonify({"details": "Invalid data"}), 400
 
     new_goal = Goal(
         title=form_data["title"]
@@ -162,23 +161,23 @@ def create_goal():
 
     return jsonify({"goal": new_goal.to_dict()}), 201
 
-@goals_bp.route("/<goal_id>", methods=["PATCH"])
+@goals_bp.route("/<goal_id>", methods=["PUT"])
 def update_goal(goal_id):
     """Updates goal by id."""
     form_data = request.get_json()
 
     goal = Goal.query.get(goal_id)
-    new_goal = goal.update_from_dict(form_data)
+    goal.update_from_dict(form_data)
     db.session.commit()
 
-    return jsonify({"goal": new_goal.to_dict()}), 200
+    return jsonify({"goal": goal.to_dict()}), 200
 
 @goals_bp.route("/<goal_id>", methods=["DELETE"])
 def delete_goal(goal_id):
     """Deletes goal by id."""
     goal = Goal.query.get(goal_id)
 
-    db.session.delete(goal_id)
+    db.session.delete(goal)
     db.session.commit()
 
     return {
