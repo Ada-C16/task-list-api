@@ -32,11 +32,7 @@ def handle_tasks():
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
             return invalid_data_message()
 
-        new_task = Task(
-            title=request_body["title"],
-            description=request_body["description"],
-            completed_at = datetime.today() if request_body["completed_at"] else None
-            )
+        new_task = Task.from_json(request_body)
         
         db.session.add(new_task)
         db.session.commit()
@@ -164,7 +160,7 @@ def handle_goals():
         if "title" not in request_body:
             return invalid_data_message()
         
-        new_goal = Goal(title=request_body["title"])
+        new_goal = Goal.from_json(request_body)
 
         db.session.add(new_goal)
         db.session.commit()

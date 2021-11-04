@@ -13,6 +13,14 @@ class Goal(db.Model):
             "title": self.title
         }
 
+    @classmethod
+    def from_json(cls, request_body):
+        
+        new_goal = Goal(
+            title=request_body["title"],
+            )
+        return new_goal
+
     def to_dict_with_relationship(self):
 
         return {

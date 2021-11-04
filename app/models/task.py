@@ -1,6 +1,7 @@
 from flask import current_app
 from sqlalchemy.orm import relation
 from app import db
+from datetime import datetime
 
 class Task(db.Model):
     __tablename__ = "tasks"
@@ -18,6 +19,16 @@ class Task(db.Model):
             "description": self.description,
             "is_complete": bool(self.completed_at)
         }
+
+    @classmethod
+    def from_json(cls, request_body):
+        
+        new_task = Task(
+            title=request_body["title"],
+            description=request_body["description"],
+            completed_at = datetime.today() if request_body["completed_at"] else None
+            )
+        return new_task
 
     def to_dict_with_relationship(self):
         return {
