@@ -2,6 +2,12 @@ from flask import Blueprint, request, make_response, jsonify
 from flask_sqlalchemy import model
 from app import db
 from app.models.task import Task
+from datetime import datetime
+import requests
+import os
+
+
+from tests.conftest import completed_task
 
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -38,7 +44,8 @@ def handle_tasks():
 
     elif request.method == "POST":
         request_body = request.get_json()
-        if request_body.get("title") and request_body.get("description") and request_body.get("completed_at"):
+        if request_body.get("title") and request_body.get("description"): 
+            """and request_body.get("completed_at")"""
             if request_body.get("completed_at")==None:
                 new_task = Task(title=request_body["title"],
                                 description=request_body["description"])
@@ -53,14 +60,14 @@ def handle_tasks():
             else:
                 new_task = Task(title=request_body["title"],
                             description=request_body["description"],
-                            completed_at=request_body["completed_at"])
+                            completed_at=datetime.now())
                 db.session.add(new_task)
                 db.session.commit()
                 response_value = {"task":{
                         "id": new_task.task_id,
                         "title": new_task.title,
                         "description": new_task.description,
-                        "is_complete": new_task.is_complete
+                        "is_complete": True
                     }}
         else:
             return make_response({"details":"Invalid data"}, 400)
@@ -127,7 +134,7 @@ def handle_task(task_id):
         task.title = form_data["title"]
         task.description = form_data["description"]
         if form_data.get("completed_at"):
-            task.completed_at = form_data["completed_at"]
+            task.completed_at = datetime.now()
 
         db.session.commit()
 
@@ -145,7 +152,7 @@ def handle_task(task_id):
                 "id": task.task_id,
                 "title": task.title,
                 "description": task.description,
-                "is_complete": task.complete_at
+                "is_complete": True
             }}
             return make_response(response_value, 200)
 
@@ -154,18 +161,47 @@ def handle_task(task_id):
         db.session.commit()
         return make_response({"details": f'Task {task.task_id} "{task.title}" successfully deleted'},200)
 
-# @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
-# def mark_complete(task_id):
-#     task = Task.query.get(task_id)
-#     # task.completed_at(True)
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def mark_complete(task_id):
+    task = Task.query.get(task_id)
 
-#     task.completed_at = True
+    if task is None:
+        return make_response("", 404)
 
-#     response_value = Task(title=task["title"],
-#                         description=task["description"],
-#                         is_complete=task["completed_at"])
-#     db.session.add(task)
-#     return (make_response({task: response_value}, 200))
+    task.completed_at = datetime.now()
 
-#     db.session.commit()
-#     return (make_response({task: response_value}, 200))
+    response_value = {"task":{
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": True
+    }}
+    url= 'https://slack.com/api/chat.postMessage'
+    header_values = {'AUTHORIZATION': os.environ.get("AUTHORIZATION")}
+    slack_values = {"text" : f"You just finished {task.title}",
+                    "channel" : "task list api"
+    }
+    requests.post(url, headers=header_values, params=slack_values)
+    db.session.commit()
+
+    return (make_response(response_value, 200))
+
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_incomplete(task_id):
+    task = Task.query.get(task_id)
+
+    if task is None:
+        return make_response("", 404)
+
+    task.completed_at = None
+
+    response_value = {"task":{
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False
+    }}
+
+
+    db.session.commit()
+    return (make_response(response_value, 200))
