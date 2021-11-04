@@ -7,6 +7,7 @@ from app.models.goal import Goal
 from app import db
 from datetime import datetime
 from app.routes.utils import valid_int
+from app.models.task import Task
 
 
 goal_bp = Blueprint("goal", __name__,url_prefix ="/goals")
@@ -74,22 +75,17 @@ def delete_goal(goal_id):
 
     return make_response({"details": f"Goal {goal.goal_id} \"{goal.title}\" successfully deleted"}, 200)
 
-# @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
-# def mark_task_complete(task_id):
-#     task = get_task_from_id(task_id)
-#     task.completed_at = datetime.utcnow()
-    
-#     db.session.commit()
-#     message = f"Someone just completed the task {task.title}"
-#     post_slack_message(message)
-
-#     return make_response({"task": task.to_dict()}, 200)
-
-# @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
-# def mark_task_incomplete(task_id):
-#     task = get_task_from_id(task_id)
-#     task.completed_at = None
-#     db.session.commit()
-
-#     return make_response({"task": task.to_dict()}, 200)
+@goal_bp.route("/<goal_id>/tasks", methods=["POST"])
+def link_tasks_to_goals(goal_id):
+    request_body = request.get_json()
+    task_ids = request_body["task_ids"]
+    for t_id in task_ids:
+        task = Task.query.get(t_id)
+        task.goal_id = goal_id
+        db.session.commit()
+    response_body = {
+        "id": int(goal_id),
+        "task_ids": task_ids
+        }
+    return make_response(response_body, 200)
 
