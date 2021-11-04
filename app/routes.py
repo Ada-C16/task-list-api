@@ -195,9 +195,13 @@ def handle_goals_tasks(goal_id):
             return response_body
         else:  
             for task in goal.tasks:
-                tasks_list.append(
-                    return_response_goal_id(goal_id))
-        return response_body
+                tasks_list.append({"id": task.task_id,
+                "goal_id" : task.goal_id,
+                "title" : task.title,
+                "description" : task.description,
+                "is_complete" : task. completed_at !=None})
+
+            return response_body
 
 @tasks_bp.route("/<goal_id>", methods=["GET"])
 def handle_task_goal(goal_id):
