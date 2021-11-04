@@ -95,6 +95,8 @@ def mark_task_incompleted(task_id):
 def handle_goals():
     if request.method == "POST":
         request_body = request.get_json()
+        if "title" not in request_body:
+            return make_response({"details": "Invalid data"}, 400)
         new_goal = Goal(
             title = request_body["title"]
         )
@@ -114,6 +116,8 @@ def handle_goals():
 @goals_bp.route("/<goal_id>", methods = ["GET", "PUT", "DELETE"])
 def handle_goal(goal_id):
     goal = Goal.query.get(goal_id)
+    if not goal:
+        return make_response("", 404)
     if request.method == "GET":
         return make_response({"goal": (goal.to_dict())}, 200)
     elif request.method == "PUT":
