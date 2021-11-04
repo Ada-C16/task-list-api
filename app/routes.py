@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request, make_response
 from app import db
 from app.models.task import Task
-from sqlalchemy.types import BOOLEAN
+import requests
+from dotenv import load_dotenv
+import os
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -63,6 +65,15 @@ def mark_task_completed(task_id):
     if not task:
         return make_response("", 404)
     task.completed_at = str(True)
+    SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
+    path = "https://slack.com/api/chat.postMessage"
+    payload = {
+        "token": SLACK_API_KEY,
+        "channel": "task-notifications",
+        "text": f"Someone just completed the task {task.title}"
+    }
+    response = requests.post(path, payload)
+    
     db.session.commit()
     return make_response({"task": task.to_dict()}, 200)
 
