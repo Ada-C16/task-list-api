@@ -2,9 +2,6 @@ from flask import Blueprint, jsonify, request
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
-from sqlalchemy import asc, desc
-import requests
-import os
 
 goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
