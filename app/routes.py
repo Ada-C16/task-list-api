@@ -168,5 +168,12 @@ def handle_goals_tasks(goal_id):
         "task_ids": [task.task_id for task in goal.tasks]}, 200)
 
     if request.method == "GET":
-        pass
+        goal = Goal.query.get(goal_id)
+        if not goal:
+            return make_response("", 404)
+
+        goal_dict = goal.to_dict()
+        goal_dict["tasks"] = [task.to_dict() for task in goal.tasks]
+
+        return make_response(goal_dict), 200
 
