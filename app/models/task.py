@@ -8,3 +8,4 @@ class Task(db.Model):
     description = db.Column(db.String)
     completed_at = db.Column(db.DateTime, nullable=True)
     is_complete = db.Column(db.Boolean, default=False)
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable=True)
