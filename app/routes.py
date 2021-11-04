@@ -120,7 +120,8 @@ def mark_task_complete(task_id):
     "channel": "task-notification",
     "text": f"Someone completed the task {task.title}"}
     return requests.post(path, params=query_params, headers=header)
-    
+  send_slack_post(task.title)  
+  
   return jsonify(response_body), 200
   
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
