@@ -2,7 +2,8 @@ from flask import Blueprint
 from app import db
 from app.models.goal import Goal
 from flask import Blueprint, jsonify, make_response, request, abort
-from datetime import datetime
+from app.models.task import Task
+
 
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
@@ -64,3 +65,22 @@ def delete_goal(goal_id):
     db.session.commit()
     return make_response({"details":f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}), 200
 
+# Wave 6 routes
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def create_one_to_many(goal_id):
+    # task = Task.query.get(task_id)
+    goal = Goal.query.get(goal_id)
+    request_body = request.get_json()
+    task_ids = request_body["task_ids"]
+
+    for task_id in task_ids:
+        #tasks is a list and now we are appending 
+        # querying to give us back an object
+        task=Task.query.get(task_id)
+        goal.tasks.append(task)
+    db.session.commit()
+    return jsonify({"id": goal.goal_id, "task_ids": [task.task_id for task in goal.tasks]}), 200
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+def get_tasks_for_goal():
+    
