@@ -1,4 +1,4 @@
-from app.models.Task import Task
+from app.models.task import Task
 
 
 def test_get_tasks_no_saved_tasks(client):

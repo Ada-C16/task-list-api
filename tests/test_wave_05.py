@@ -1,5 +1,5 @@
 import pytest
-from app.models.Goal import Goal
+from app.models.goal import Goal
 
 def test_get_goals_no_saved_goals(client):
     # Act
