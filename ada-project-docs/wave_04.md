@@ -76,9 +76,6 @@ At the top, find the section "OAuth Tokens for Your Workspace"
 - This value should always start with the characters `xoxb`
 - This value is your bot token. **Be ready to copy/paste and keep this value**.
 
-Juliana's Bot 
-xoxb-2668152893315-2670619013060-OzHTau8CGkQot7778a2GVRT9
-
 ![](assets/slackbot_token_verify.png)
 
 Whenever you want to go back to this page, follow these steps:
