@@ -33,12 +33,6 @@ def create_task():
     try:
         new_task = Task(title=request_body["title"],
                         description=request_body["description"], completed_at=request_body["completed_at"])
-        # if request_body["completed_at"]:
-        #     new_task = Task(title=request_body["title"],
-        #                     description=request_body["description"], completed_at=request_body["completed_at"])
-        # else:
-        #     new_task = Task(title=request_body["title"],
-        #                     description=request_body["description"])
         
         db.session.add(new_task)
         db.session.commit()
