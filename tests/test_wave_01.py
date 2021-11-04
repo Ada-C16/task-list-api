@@ -170,9 +170,7 @@ def test_create_task_must_contain_title(client):
     # Assert
     assert response.status_code == 400
     assert "details" in response_body
-    assert response_body == {
-        "details": "Invalid data"
-    }
+    assert response_body == {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
     assert Task.query.all() == []
 
 
@@ -187,9 +185,7 @@ def test_create_task_must_contain_description(client):
     # Assert
     assert response.status_code == 400
     assert "details" in response_body
-    assert response_body == {
-        "details": "Invalid data"
-    }
+    assert response_body == {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
     assert Task.query.all() == []
 
 
@@ -204,7 +200,5 @@ def test_create_task_must_contain_completed_at(client):
     # Assert
     assert response.status_code == 400
     assert "details" in response_body
-    assert response_body == {
-        "details": "Invalid data"
-    }
+    assert response_body == {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
     assert Task.query.all() == []
