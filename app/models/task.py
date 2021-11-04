@@ -1,7 +1,6 @@
-from flask import app # mistake from instructors, not really needed 
+# from flask import app # mistake from instructors, not really needed 
 from app import db
 
-# in each model, write single line w/SQL to 
 
 class Task(db.Model):
     __tablename__= "tasks"
@@ -9,6 +8,9 @@ class Task(db.Model):
     title = db.Column(db.String(200))
     description = db.Column(db.String(200)) 
     completed_at = db.Column(db.DateTime, nullable=True)
+    #
+    is_complete = db.Column(db.Boolean, default = False )
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable = True)
 
     def to_dict(self):
         """converts task data to dictionary"""

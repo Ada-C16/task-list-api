@@ -7,7 +7,7 @@ import requests, os
 TOKEN = os.environ.get('TOKEN')
 
 task_bp = Blueprint("task", __name__, url_prefix="/tasks")
-#GOAL
+
 
 
 # Helper Functions
@@ -115,7 +115,6 @@ def completed_task(task_id):
     """UPDATES completion status of task by given id"""
     task = get_task_from_id(task_id)
     task_dict = {} 
-    # posts to slack
     if not task:
         abort(404)
     else:
