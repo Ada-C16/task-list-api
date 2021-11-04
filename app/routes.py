@@ -5,6 +5,7 @@ from flask_sqlalchemy import _make_table
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
+from app.helper import *
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -108,21 +109,6 @@ def mark_completion_status(task_id, completion_status):
     response_body = task.create_task_response()
     return response_body, 200
 
-# Post a notification on Slack when a task has been marked as completed.
-def send_slack_notification_of_task_completion(task):
-    import requests
-    import os
-    from dotenv import load_dotenv
-    load_dotenv()
-
-    url = "https://slack.com/api/chat.postMessage"
-    headers = {"Authorization": os.environ.get("SLACK_API_TOKEN")}
-    text = f"Someone just completed the task {task.title}"
-    data = {"channel": "task-notifications", "text": text}
-
-    requests.post(url=url, params=data, headers=headers)
-
-
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 # POST /goals Create a goal and commit to the db.
@@ -223,14 +209,3 @@ def get_tasks_for_specific_goal(goal_id):
     tasks_list = list_of_tasks(tasks)
     response_body = dict(id=goal.goal_id, title=goal.title, tasks=tasks_list)
     return jsonify(response_body), 200
-
-## Helper functions ###
-
-# Create response body for details in error message responses.
-def create_details_response(details):
-    return {"details": details}
-
-# Create list of tasks.
-def list_of_tasks(tasks):
-    list_of_tasks = [task.task_body() for task in tasks]
-    return list_of_tasks
