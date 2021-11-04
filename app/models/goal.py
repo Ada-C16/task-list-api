@@ -1,6 +1,6 @@
 from flask import current_app
 from app import db
-from app.models.Task import Task
+from app.models.task import Task
 
 class Goal(db.Model):
     __tablename__ = 'goal'

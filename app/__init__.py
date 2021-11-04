@@ -34,7 +34,7 @@ def create_app(test_config=None):
     app.register_blueprint(tasks_bp)
     app.register_blueprint(goals_bp)
 
-    from app.models.Task import Task
-    from app.models.Goal import Goal
+    from app.models.task import Task
+    from app.models.goal import Goal
 
     return app

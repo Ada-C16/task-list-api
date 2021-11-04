@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request, make_response
 from flask.globals import session
 from app import db
-from app.models.Task import Task
-from app.models.Goal import Goal
+from app.models.task import Task
+from app.models.goal import Goal
 from sqlalchemy import asc, desc
 from datetime import datetime
 import requests
