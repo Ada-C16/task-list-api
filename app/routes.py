@@ -27,7 +27,7 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 def handle_tasks():
     if request.method == "POST":
         request_body = request.get_json()
-        if is_task_data_valid(request_body):
+        if is_post_task_data_valid(request_body):
             new_task = Task(title=request_body["title"], \
             description = request_body["description"], \
             completed_at = request_body["completed_at"])
@@ -65,12 +65,19 @@ def handle_task(id):
 
     if request.method == "PUT":
         request_body = request.get_json()
-        task.description = request_body['description']
-        task.title = request_body['title']
-        if request_body.get('completed_at'):
-            task.completed_at = request_body.get('completed_at')
-        db.session.commit()
-        return {"task": task.to_dict()}, 200
+        if is_put_task_data_valid(request_body):
+            task.description = request_body['description']
+            task.title = request_body['title']
+            completed_at = request_body.get("completed_at")
+            if completed_at:
+                if is_datetime(completed_at):
+                    task.completed_at = completed_at
+                else:
+                    return {"details": "Invalid data"}, 400
+            db.session.commit()
+            return {"task": task.to_dict()}, 200
+        else:
+            return {"details": "Invalid data"}, 400
     
     if request.method == "DELETE":
         db.session.delete(task)
@@ -105,7 +112,7 @@ def mark_incomplete(id):
 
     return {"task": task.to_dict()}, 200
 
-def is_task_data_valid(input):
+def is_post_task_data_valid(input):
     data_types = {"title":str, "description":str}
     completed_at = input.get("completed_at")
     for name, val_type in data_types.items():
@@ -116,6 +123,13 @@ def is_task_data_valid(input):
     else:
         return not completed_at or is_datetime(completed_at)
 
+def is_put_task_data_valid(input):
+    data_types = {"title":str, "description":str}
+    completed_at = input.get("completed_at")
+    for name, val_type in data_types.items():
+        if type(input.get(name)) != val_type:
+            return False
+    return True
 
 def is_datetime(string):
     try:
@@ -123,11 +137,6 @@ def is_datetime(string):
     except ValueError:
         return False
     return True
-
-    # if "title" not in input.keys() or "description" not in input.keys()\
-    #     or "completed_at" not in input.keys():
-    #     return False
-    # return True
 
 def task_id_exists(id):
     id = int(id)
