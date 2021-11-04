@@ -78,7 +78,7 @@ def completed_task(task_id):
 
         PATH = "https://slack.com/api/chat.postMessage"
         params = {
-            "token": os.environ.get("IGOR"),
+            "token": os.environ.get("IGORS_TOKEN"),
             "channel": "task-notifications",
             "text": f"Someone just completed the task {task.title}"
             }
