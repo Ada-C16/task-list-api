@@ -1,7 +1,8 @@
 from io import DEFAULT_BUFFER_SIZE
 from app import db
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, json, request, jsonify
 from app.models.task import Task
+from app.models.goal import Goal
 from sqlalchemy import asc, desc
 from datetime import datetime
 import os, requests
@@ -10,6 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
+goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
 @tasks_bp.route("", methods=["POST", "GET"])
 def handle_tasks():
@@ -105,3 +107,48 @@ def mark_task_incomplete(task_id):
     db.session.commit()
 
     return jsonify({"task": task.task_dict()}), 200
+
+
+@goals_bp.route("", methods=["GET", "POST"])
+def handle_goals():
+    if request.method == "POST":
+        request_body = request.get_json()
+        if "title" not in request_body:
+            return jsonify({"details": "Invalid data"}), 400
+
+        new_goal = Goal(title = request_body["title"])
+
+        db.session.add(new_goal)
+        db.session.commit()
+
+        return jsonify({"goal": new_goal.goal_dict()}), 201
+
+    elif request.method == "GET":
+        request_body = request.get_json()
+        goals = Goal.query.all()
+        goal_response = [goal.goal_dict() for goal in goals]
+        return jsonify(goal_response), 200
+
+
+@goals_bp.route("/<goal_id>", methods = ["GET", "PUT", "DELETE"])
+def handle_one_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return jsonify(goal), 404
+
+    request_body = request.get_json()
+    if request.method == "GET":
+        return jsonify({"goal": goal.goal_dict()}), 200
+
+    elif request.method == "PUT":
+        if "title" not in request_body:
+            return jsonify({"details": "Invalid data"}), 400
+
+        goal.title = request_body["title"]
+        db.session.commit()
+        return jsonify({"goal": goal.goal_dict()}), 200
+
+    elif request.method == "DELETE":
+        db.session.delete(goal)
+        db.session.commit()
+        return jsonify({'details': f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
