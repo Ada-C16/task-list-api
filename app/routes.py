@@ -1,11 +1,14 @@
 from flask import Blueprint, jsonify, request, make_response
 from app import db
 from app.models.task import Task
+from app.models.goal import Goal
 import requests
 from dotenv import load_dotenv
 import os
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
+goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
+
 
 @tasks_bp.route("", methods = ["POST", "GET"])
 def handle_tasks():
