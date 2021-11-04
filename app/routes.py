@@ -29,10 +29,10 @@ def post_to_tasks():
     if not is_post_task_data_valid(request_body):
         return {"details": "Invalid data"}, 400
     else:
-        new_task = Task(title=request_body["title"], \
-        description = request_body["description"], \
-        completed_at = request_body["completed_at"])
-        # new_task = Task(request_body) 
+        # new_task = Task(title=request_body["title"], \
+        # description = request_body["description"], \
+        # completed_at = request_body["completed_at"])
+        new_task = Task.from_json(request_body) 
 
         db.session.add(new_task)
         db.session.commit()
