@@ -46,13 +46,7 @@ def get_all_tasks():
 def get_single_task(task_id):  
     task = Task.query.get(task_id)
     if task:
-        return {
-            "task":{
-                "id": task.task_id, 
-                "title": task.title, 
-                "description": task.description, 
-                "is_complete": bool(task.completed_at)
-                }}, 200
+        return {"task": task.to_dict()}, 200
     else:
         return jsonify(None), 404
 
@@ -180,3 +174,35 @@ def delete_planet(goal_id):
         return {"details": "Goal 1 \"Build a habit of going outside daily\" successfully deleted"}
     else:
         return jsonify(None), 404
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def send_list_of_Task_ids_to_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    request_form = request.get_json()
+   
+    for task_id in request_form["task_ids"]:
+        task = Task.query.get(task_id)
+        task.goal_id = goal.goal_id
+    db.session.commit()
+   
+    return make_response({"id": goal.goal_id, "task_ids": request_form["task_ids"]}, 200)
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+def get_goal_task(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal == None:
+        return "", 404
+    tasks = Task.query.filter_by(goal_id=goal.goal_id)
+    task_list = []
+    for task in tasks:
+        task_list.append({
+            "id": task.task_id,
+            "goal_id": task.goal_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": bool(task.completed_at)
+        })
+
+    return make_response({"id":goal.goal_id, "title": goal.title, "tasks": task_list}, 200)
+
+    
