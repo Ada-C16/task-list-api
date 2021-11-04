@@ -23,6 +23,13 @@ class Task(db.Model):
 
         return task
 
+    @classmethod
+    def from_dict(self, request_body):
+        task = Task(title=request_body["title"],
+                    description=request_body["description"], completed_at=request_body["completed_at"])
+
+        return task
+
 
 
 

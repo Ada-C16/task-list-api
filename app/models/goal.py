@@ -10,4 +10,3 @@ class Goal(db.Model):
     def to_dict(self, task=None):
         pass
 
-    
