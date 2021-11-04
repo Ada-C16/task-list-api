@@ -25,7 +25,6 @@ def test_get_goals_one_saved_goal(client, one_goal):
         }
     ]
 
-
 def test_get_goal(client, one_goal):
     # Act
     response = client.get("/goals/1")

@@ -6,9 +6,11 @@ from functools import wraps
 import os
 import requests
 from app.models.task import Task
+from app.models.goal import Goal
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
- 
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
+
 def require_task_or_404(endpoint):
     """Decorator to validate input data."""
     @wraps(endpoint) # Makes fn look like func to return
@@ -127,3 +129,16 @@ def delete_task(task):
     return {
         "details": f"Task {task.id} \"{task.title}\" successfully deleted"
     }, 200
+
+@goals_bp.route("", methods=["GET"])
+def get_goals():
+    """Retrieve all stored goals."""
+    goals = Goal.query.all()
+
+    return jsonify([goal.to_dict() for goal in goals]), 200
+
+@goals_bp.route("/<goal_id>", methods=["GET"])
+def get_goal(goal_id):
+    """Retrieve one stored goal by id."""
+    goal = Goal.get_or_404(goal_id)
+
