@@ -15,17 +15,15 @@ def create_goal():
     if "title" not in request_body:
         response_body = {"details": "Invalid data. Title is required"} 
         return make_response(response_body, 400)
-
     try:
         new_goal = Goal(title=request_body["title"])
-
+        # add new entity and commit it 
         db.session.add(new_goal)
         db.session.commit()
 
         response_body = {
             "goal": new_goal.to_dict()
         }
-
         return make_response(jsonify(response_body),201)
     
     except:
@@ -35,8 +33,9 @@ def create_goal():
 @goal_bp.route('', methods = ['GET'])
 def read_all_goals():
     goals = Goal.query.all()
-    response_body = []
+
     try:
+        response_body = []
         for goal in goals:
             response_body.append(goal.to_dict())     
         return  make_response(jsonify(response_body), 200)
@@ -61,6 +60,7 @@ def read_one_goal(goal_id):
 def delete_goal(goal_id):
     goal = get_goal_by_id(goal_id)
     try:
+        # delete entity and commit it
         db.session.delete(goal)
         db.session.commit()
         response_body ={"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
@@ -79,12 +79,11 @@ def update_goal(goal_id):
         request_body = request.get_json()
         if not request_body: 
             abort(400)
-
-        if "title" in request_body:
+        elif "title" in request_body:
             goal.title = request_body["title"]
-        
+        # commit changes to db
         db.session.commit()
-
+    
         response_body = {
             "goal": goal.to_dict()
         }
@@ -100,15 +99,14 @@ def update_goal(goal_id):
 # POST
 @goal_bp.route("/<goal_id>/tasks", methods= ['POST'])
 def handle_tasks_goals(goal_id):
+    # Becca, why is it a POST and not a PATCH method?
     goal = get_goal_by_id(goal_id)
     goal_id = goal.goal_id
 
     try:  
         request_body =  request.get_json()
-        
         if not request_body:
-            abort(400)
-            
+            abort(400)         
         elif "task_ids" in request_body:
             task_ids = request_body["task_ids"]
             for item in task_ids:
@@ -117,10 +115,8 @@ def handle_tasks_goals(goal_id):
                 db.session.commit()
 
         response_body = {"id": goal_id,
-                        "task_ids": [int(item) for item in task_ids]}
-        
-        return make_response(response_body, 200)
-        
+                        "task_ids": [int(item) for item in task_ids]}        
+        return make_response(response_body, 200)       
     except Exception:
         abort(422)
 
@@ -138,8 +134,8 @@ def read_tasks_goals(goal_id):
         response_body = {"id": goal.goal_id, 
                         "title": goal.title,
                         "tasks": tasks_list}
-
         return make_response(jsonify(response_body)), 200
+        
     except Exception:
         abort(422)
 

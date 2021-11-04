@@ -5,10 +5,7 @@ from app.slack_api import post_msg_slack
 from flask import Blueprint, jsonify, make_response, request, abort
 
 
-
 task_bp = Blueprint('task', __name__, url_prefix="/tasks")
-
-
 
 
 ''' POST task  - this function handles the creation of a task.
@@ -53,13 +50,12 @@ def read_all_tasks():
         if sort_by_title_query == "asc":
             tasks = Task.query.order_by(Task.title.asc()).all()
         elif sort_by_title_query == "desc":
-            tasks = Task.query.order_by(Task.title.desc()).all()
-        
+            tasks = Task.query.order_by(Task.title.desc()).all()     
         else:
             tasks = Task.query.all()
+
         for task in tasks:
             task_response.append(task.to_dict())     
-
         return  make_response(jsonify(task_response),200)
 
     except Exception:
@@ -79,6 +75,7 @@ def read_one_drink(task_id):
             task_response = {"task": task.to_dict_goal_task() }                     
         else:
             task_response = {"task": task.to_dict() }
+
         return jsonify(task_response), 200
 
     except Exception: 
@@ -95,7 +92,9 @@ def delete_one_task(task_id):
         db.session.delete(task)
         db.session.commit()
         response_body = {"details": f'Task {task.task_id} "{task.title}" successfully deleted'}
+
         return make_response(response_body, 200)
+
     except Exception: 
         abort(400)
 
@@ -116,7 +115,8 @@ def update_task(task_id):
             task.title = request_body["title"]
         if "description" in request_body:
             task.description = request_body["description"]
-        
+    
+        # commit session after patching 
         db.session.commit()
 
         response_body = {
@@ -143,6 +143,7 @@ def mark_complete(task_id):
         response_body = {
                 "task": task.to_dict()} 
 
+        # send slack notification 
         message = f"Someone just completed the task {task.title}"     
         post_msg_slack(message)
 
@@ -159,14 +160,15 @@ def mark_incomplete(task_id):
     try:
         task.completed_at = None
         db.session.commit()
-        response_body = {
-                "task": task.to_dict()} 
-
-
+    
+        # send slack notification 
         message = f"Someone just completed the task {task.title}"     
         post_msg_slack(message)
-                
+
+        response_body = {
+                "task": task.to_dict()}           
         return response_body
+
     except Exception:
         abort(400)
 
@@ -193,7 +195,6 @@ get_task_by_id - handles 404 errors '''
 def get_task_by_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description='{Task not found}')
-
 
 def valid_int(number, parameter_type):
     try:
