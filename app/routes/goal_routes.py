@@ -23,7 +23,7 @@ def get_tasks_for_goal(goal_id):
     goal = Goal.query.get(goal_id)
 
     if goal is None:
-        return abort(404)
+        return jsonify(None), 404
 
     response_body = goal.verbose_goal_dict()
     
@@ -35,7 +35,7 @@ def post_new_goal():
     request_body = request.get_json()
 
     if "title" not in request_body:
-        return abort(400, {"details": "Invalid data"})
+        return jsonify({"details": "Invalid data"}), 400
 
     new_goal = Goal(title=request_body["title"])
 
@@ -52,7 +52,7 @@ def post_new_tasks_for_goal(goal_id):
     goal = Goal.query.get(goal_id)
 
     if goal_id == None:
-        return abort(400)
+        return jsonify(None), 404
         
     request_body = request.get_json()
     tasks = []
@@ -71,7 +71,7 @@ def get_single_goal(goal_id):
     goal = Goal.query.get(goal_id)
 
     if goal is None:
-        return abort(400)
+        return jsonify(None), 404
 
     response_body = {
         "goal": (goal.to_dict())
@@ -82,7 +82,7 @@ def get_single_goal(goal_id):
 def put_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if goal is None:
-        return abort(400)
+        return jsonify(None), 404
 
     form_data = request.get_json()
     goal.title = form_data["title"]
@@ -98,7 +98,7 @@ def put_goal(goal_id):
 def delete_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if goal is None:
-        return abort(400)
+        return jsonify(None), 404
     
     db.session.delete(goal)
     db.session.commit()
