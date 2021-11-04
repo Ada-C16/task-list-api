@@ -7,6 +7,7 @@ from app.models.task import Task
 from app.models.goal import Goal
 from flask import Blueprint, request, jsonify
 import requests, os, json
+from datetime import datetime
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
@@ -25,6 +26,8 @@ def handle_tasks():
         )
         db.session.add(new_task)
         db.session.commit()
+        if new_task.completed_at:
+            new_task.is_complete = True
         
         response = {}
         # posted_task = Task.query.all()
@@ -74,8 +77,11 @@ def handle_task(task_id):
         request_body = request.get_json()
         task.title = request_body["title"]
         task.description = request_body["description"]
+        if "completed_at" in request_body:
+            task.completed_at = request_body["completed_at"]
+            task.is_complete = True
         db.session.commit()
-        
+
         response_body = {}
         response_body["task"] = {
             "id": task.id,
@@ -96,10 +102,10 @@ def handle_task(task_id):
 def mark_complete(task_id):
     task = Task.query.get(task_id)
     if task is None:
-        return jsonify(), 404
+        return make_response("", 404)
     task.is_complete = True
     db.session.commit()
-    
+    task.completed_at = datetime.now()
     
     # posts to slack
     url = 'https://slack.com/api/chat.postMessage'
@@ -122,9 +128,11 @@ def mark_complete(task_id):
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def mark_incomplete(task_id):
     task = Task.query.get(task_id)
-    
+    if task is None:
+        return make_response("", 404)
     task.is_complete = False
     db.session.commit()
+    task.completed_at = None
 
     response_body = {}
     response_body["task"] = {
