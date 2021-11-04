@@ -25,7 +25,7 @@ def post_slack_message(task):
 
 # Routes
 @task_bp.route("", methods = ["POST"])
-def add_books():
+def add_tasks():
     request_body = request.get_json()
     if request_body is None:
         return make_response({"details": "Invalid data"}, 400)
