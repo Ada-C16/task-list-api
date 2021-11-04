@@ -14,7 +14,6 @@ class Task(db.Model):
         else:
             is_complete = True
             
-        
         return {
             "id": self.task_id,
             "title": self.title,
