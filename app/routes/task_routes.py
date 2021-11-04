@@ -26,7 +26,7 @@ def post_new_task():
 
     if "title" not in request_body or "description" not in request_body\
         or "completed_at" not in request_body:
-        return abort(404, {"details": "Invalid data"})
+        return abort(400, {"details": "Invalid data"})
 
     new_task = Task(title=request_body["title"],
     description=request_body["description"],
@@ -48,7 +48,7 @@ def get_single_task(task_id):
     task = Task.query.get(task_id)
 
     if task is None:
-        return abort(404)
+        return abort(400)
 
     response_body = {
         "task": (task.to_dict())
@@ -61,7 +61,7 @@ def put_task(task_id):
     task = Task.query.get(task_id)
     
     if task is None:
-        return abort(404)
+        return abort(400)
 
     form_data = request.get_json()
     task.title = form_data["title"]
@@ -92,7 +92,7 @@ def delete_task(task_id):
 def mark_task_as_completed(task_id):
     task = Task.query.get(task_id)
     if task is None:
-        return abort(404)
+        return abort(400)
 
     task.completed_at = datetime.now(timezone.utc)
 
@@ -109,7 +109,7 @@ def mark_task_as_completed(task_id):
 def mark_task_as_not_completed(task_id):
     task = Task.query.get(task_id)
     if task is None:
-        return abort(404)
+        return abort(400)
 
     task.completed_at = None
     db.session.commit()
