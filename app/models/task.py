@@ -11,33 +11,22 @@ class Task(db.Model):
     fk_goal_id = db.Column(db.Integer, db.ForeignKey('goals.goal_id'), nullable=True)
 
     def to_dict(self):
-        if not self.completed_at and not self.fk_goal_id:
-            return{
+        """Defines a series of return options for a dictionary, dependent on if completed and fk_goal_id are null"""
+        
+        dictionary = {
             "id": self.task_id,
             "title": self.title,
             "description": self.description,
-            "is_complete": False
             }
-        elif self.completed_at and not self.fk_goal_id:
-            return{
-                "id": self.task_id,
-                "title": self.title,
-                "description": self.description,
-                "is_complete": True
-            }
-        elif not self.completed_at and self.fk_goal_id:
-            return{
-            "id": self.task_id,
-            "goal_id": self.fk_goal_id,
-            "title": self.title,
-            "description": self.description,
-            "is_complete": False
-            }
+
+        if not self.completed_at:
+            dictionary["is_complete"] = False
+            if self.fk_goal_id:
+                dictionary["goal_id"] = self.fk_goal_id
+
         else:
-            return{
-                "id": self.task_id,
-                "goal_id": self.fk_goal_id,
-                "title": self.title,
-                "description": self.description,
-                "is_complete": True
-            }
+            dictionary["is_complete"] = True
+            if self.fk_goal_id:
+                dictionary["goal_id"] = self.fk_goal_id
+                
+        return dictionary
