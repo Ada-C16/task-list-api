@@ -109,13 +109,15 @@ def mark_tasks_complete(task_id):
     PATH = "https://slack.com/api/chat.postMessage"
     API_KEY = os.environ.get("API_KEY")
 
-    query_params = {
-        "token" : API_KEY,
+    post_header = {
+        "authorization" :  f"Bearer {API_KEY}"
+    }
+    post_body = {
         "channel" : "task-notifications",
         "text" : f"Someone just completed the task {task.title}"
     }
 
-    requests.post(PATH, params=query_params)
+    requests.post(PATH, json=post_body, headers=post_header)
 
     return jsonify({ "task" : {
         "id" : task.task_id,
