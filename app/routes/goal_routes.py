@@ -34,6 +34,7 @@ def update_goal(goal_id):
     selected_goal = get_goal_from_id(goal_id)
     if "title" in request_body:
         selected_goal.title = request_body["title"]
+    db.session.commit()
     return make_response({"goal": selected_goal.to_dict()}, 200)
 
 @goals_bp.route("/<goal_id>", methods=["DELETE"], strict_slashes=False)

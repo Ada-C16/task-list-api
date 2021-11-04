@@ -61,6 +61,7 @@ def update_task(task_id):
             selected_task.completed_at = date
         except:
             return make_response({"details": "completed_at must be a date formatted as: dd/mm/yy HH/MM"})
+    db.session.commit()
     return make_response({"task": selected_task.to_dict()}, 200)
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"], strict_slashes=False)
