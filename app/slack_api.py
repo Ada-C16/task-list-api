@@ -7,7 +7,6 @@ load_dotenv()
 slack_client = WebClient(os.environ.get('SLACK_API_TOKEN'))
 
 
-
 def post_msg_slack(msg:str, chan="task-notifications") -> dict:
     message = str(msg)
     response = slack_client.chat_postMessage(

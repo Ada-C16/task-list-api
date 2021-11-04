@@ -10,7 +10,6 @@ task_bp = Blueprint('task', __name__, url_prefix="/tasks")
 
 
 
-
 ''' POST task  - this function handles the creation of a task.
     it requests "title", "description" and "completed_at" values to be to successful
 '''
@@ -22,7 +21,6 @@ def create_task():
         if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
             response_body = {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
             return make_response(jsonify(response_body), 400)
-
 
         new_task = Task(title=request_body["title"],
                         description=request_body["description"],
@@ -101,7 +99,7 @@ def delete_one_task(task_id):
 
 
 
-''' PATCH       - this functions updates a task by its id'''
+''' PATCH   - this functions updates a task by its id'''
 
 @task_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
@@ -134,7 +132,7 @@ def update_task(task_id):
 def mark_complete(task_id):
     task =  get_task_by_id(task_id)
     date = datetime.utcnow()
-    
+
     try:
         if task.completed_at == None:
             task.completed_at = date
@@ -161,6 +159,10 @@ def mark_incomplete(task_id):
         db.session.commit()
         response_body = {
                 "task": task.to_dict()} 
+
+        message = f"The {task.title} still pending"     
+        post_msg_slack(message)
+                
         return response_body
     except Exception:
         abort(400)
