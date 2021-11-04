@@ -1,10 +1,7 @@
-# from flask import Blueprint
-
 from flask import Blueprint, jsonify, request, json
 from flask.signals import request_tearing_down
 from app.models.task import Task
 from app import db
-# import datetime
 from datetime import datetime
 import requests
 import os
@@ -64,7 +61,7 @@ def handle_tasks():
 
         return jsonify(list_of_tasks), 200
 
-@tasks_bp.route("/<task_id>", methods = ["GET", "PUT", "PATCH", "DELETE"])
+@tasks_bp.route("/<task_id>", methods = ["GET", "PUT", "DELETE"])
 def handle_specific_tasks(task_id):
     task = Task.query.get_or_404(task_id)
 
@@ -72,21 +69,31 @@ def handle_specific_tasks(task_id):
         return jsonify(None), 404
 
     if request.method == "GET":
-        return {
-            "task": {
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": False if task.completed_at == None else True
-        }
-        }
+        if not task.goal_id:
+            return jsonify({
+                "task": {
+                "id": task.task_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False if task.completed_at == None else True
+            }
+            }), 200
+        else:
+            return jsonify({
+                "task": {
+                "id": task.task_id,
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False if task.completed_at == None else True
+            }
+            }), 200
     
     elif request.method == "PUT":
         updated_body = request.get_json()
 
         task.title = updated_body["title"]
         task.description = updated_body["description"]
-        # task.completed_at = updated_body["is_complete"]
         db.session.commit()
 
         return jsonify({
@@ -97,31 +104,6 @@ def handle_specific_tasks(task_id):
                 "is_complete": False if task.completed_at == None else True
             }
         }), 200
-
-
-# # @task_bp.route("/<task_id>/mark_complete")
-#     elif request.method == "PATCH":
-#         request_body = request.get_json()
-
-#         if "title" in request_body:
-#             task.title = request_body["title"]
-        
-#         if "description" in request_body:
-#             task.description = request_body["description"]
-
-#         if "is_complete" in request_body:
-#             task.completed_at = request_body["is_complete"]
-        
-#         db.session.commit()
-
-#         return jsonify({
-#             "task": {
-#                 "id": task.task_id,
-#                 "title": task.title,
-#                 "description": task.description,
-#                 "is_complete": False if task.completed_at == None else True
-#             }
-#         }), 200
 
     elif request.method == "DELETE":
         db.session.delete(task)
@@ -146,22 +128,6 @@ def handle_mark_complete_tasks(task_id):
 
     slack_bot(task.title)
 
-    # if task is None:
-    #     return jsonify(None), 404
-    # else:
-    #     request_body = request.get_json()
-
-    #     if "title" in request_body:
-    #         task.title = request_body["title"]
-        
-    #     elif "description" in request_body:
-    #         task.description = request_body["description"]
-
-    #     elif "is_complete" in request_body:
-    #         task.completed_at = request_body["is_complete"]
-        
-        
-
     return jsonify({
             "task": {
                 "id": task.task_id,
@@ -174,27 +140,10 @@ def handle_mark_complete_tasks(task_id):
 
 @tasks_bp.route("/<task_id>/mark_incomplete", methods = ["PATCH"])
 def handle_mark_incomplete_tasks(task_id):
-    # if request.method == "PATCH":
     
     task = Task.query.get_or_404(task_id)
     task.completed_at = None
 
-        # slack_bot(task.title)
-
-    # if task is None:
-    #     return jsonify(None), 404
-    # else:
-    #     request_body = request.get_json()
-
-    #     if "title" in request_body:
-    #         task.title = request_body["title"]
-        
-    #     elif "description" in request_body:
-    #         task.description = request_body["description"]
-
-    #     elif "is_complete" in request_body:
-    #         task.completed_at = request_body["is_complete"]
-        
     db.session.commit()
 
     return jsonify({
@@ -212,30 +161,33 @@ goals_bp = Blueprint("goals", __name__, url_prefix = "/goals")
 
 @goals_bp.route("", methods = ["POST", "GET"])
 def handle_goals():
-
-    request_body = request.get_json()
-
     if request.method == "POST":
-        new_goal = Goal(title = request_body["title"])
+    
+        request_body = request.get_json()
 
-        db.session.add(new_goal)
-        db.session.commit()
-
+        if "title" not in request_body:
+            return jsonify({
+                "details": "Invalid data"
+            }), 400
+        else:
+            new_goal = Goal(title = request_body["title"])
+            db.session.add(new_goal)
+            db.session.commit()
+            
         return jsonify({
-            "goal": {
-                "id": new_goal.goal_id,
-                "title": new_goal.title
-            }
-        })
+                "goal": {
+                    "id": new_goal.goal_id,
+                    "title": new_goal.title
+                }
+            }), 201
 
     elif request.method == "GET":
-        
         goal_query = request.args.get("title")
+
         if goal_query:
             goals = Goal.query.filter_by(title = goal_query)
         else:
             goals = Goal.query.all()
-
         
         list_of_goals = []
         for goal in goals:
@@ -244,20 +196,82 @@ def handle_goals():
                 "title": goal.title
             })
 
-        return jsonify(list_of_goals), 200
-        
+        if list_of_goals is None:
+            return jsonify([]), 200
+        else:
+            return jsonify(list_of_goals), 200
 
-@goals_bp.route("/<goal_id>", methods = ["GET"])
-def handle_one_goal(goal_id):
+@goals_bp.route("/<goal_id>", methods = ["GET", "PUT", "DELETE"])
+def handle_specific_goals(goal_id):
     goal = Goal.query.get_or_404(goal_id)
+    
 
     if goal is None:
         return jsonify(None), 404
 
     if request.method == "GET":
+        return {
+            "goal": {
+            "id": goal.goal_id,
+            "title": goal.title
+        }}, 200
+
+    elif request.method == "PUT":
+        updated_body = request.get_json()
+
+        goal.title = updated_body["title"]
+        db.session.commit()
+
         return jsonify({
             "goal": {
-                "id": goal.goal_id,
-                "title": goal.title
-            }
+            "id": goal.goal_id,
+            "title": goal.title
+        }}), 200
+
+    elif request.method == "DELETE":
+        db.session.delete(goal)
+        db.session.commit()
+
+        return jsonify({
+            "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
+        }), 200
+        
+
+@goals_bp.route("/<goal_id>/tasks", methods = ["POST", "GET"])
+def handle_tasks_in_goals(goal_id):
+    goal = Goal.query.get(goal_id)
+
+    if goal is None:
+        return jsonify(None), 404
+
+    elif request.method == "POST":
+        request_body = request.get_json()
+        task_ids = request_body["task_ids"]
+
+        for task_id in task_ids:
+            task = Task.query.get(task_id)
+            task.goal_id = goal.goal_id
+
+        db.session.commit()
+
+        return jsonify({
+            "id": goal.goal_id,
+            "task_ids": request_body["task_ids"]
+        }), 200
+
+    elif request.method == "GET":
+        tasks_in_goals = []
+        for task in goal.tasks:
+            tasks_in_goals.append({
+                "id": task.task_id,
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False if task.completed_at == None else True
+            })
+        
+        return jsonify({
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": tasks_in_goals
         }), 200

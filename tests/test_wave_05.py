@@ -74,7 +74,7 @@ def test_update_goal(client, one_goal):
     # Act
     response = client.put("/goals/1", json = {
         "title": "Updated Goal Title",
-        "description": "Updated Goal Description"
+        # "description": "Updated Goal Description"
     })
     response_body = response.get_json()
 
@@ -85,19 +85,19 @@ def test_update_goal(client, one_goal):
         "goal": {
             "id": 1,
             "title": "Updated Goal Title",
-            "description": "Updated Goal Description"
+            # "description": "Updated Goal Description"
         }
     }
     goal = Goal.query.get(1)
     assert goal.title == "Updated Goal Title"
-    assert goal.description == "Updated Goal Description"
+    # assert goal.description == "Updated Goal Description"
 
 # @pytest.mark.skip(reason="test to be completed by student")
 def test_update_goal_not_found(client):
     # Act
     response = client.put("/goals/1", json = {
         "title": "Updated Goal Title",
-        "description": "Updated Goal Description"
+        # "description": "Updated Goal Description"
     })
     response_body = response.get_json()
 
