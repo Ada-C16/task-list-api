@@ -30,12 +30,7 @@ def handle_tasks():
             new_task.is_complete = True
         
         response = {}
-        response["task"] = {
-            "id": new_task.id,
-            "title": new_task.title,
-            "description": new_task.description,
-            "is_complete": new_task.is_complete
-        }
+        response["task"] = new_task.to_dict()
         return jsonify(response), 201
 
     elif request.method == "GET":
