@@ -1,5 +1,6 @@
 from flask import current_app
 from app import db
+from app.models.goal import Goal
 
 
 class Task(db.Model):
@@ -7,6 +8,8 @@ class Task(db.Model):
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)
+    goal_id = db.Column(db.Integer, db.ForeignKey(Goal.goal_id))
+    goal = db.relationship("Goal", back_populates="tasks")
 
     def to_dict(self):
         complete = False
