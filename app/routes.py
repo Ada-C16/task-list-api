@@ -9,10 +9,15 @@ from dotenv import load_dotenv
 
 # Welcome screen
 home_bp = Blueprint("home", __name__, url_prefix="/")
+fab_4_bp = Blueprint("fab_4", __name__, url_prefix="/fab4")
 
 @home_bp.route("", methods=["GET"], strict_slashes=False)
 def home():
     return "Welcome to Michelle's task list", 200
+
+@fab_4_bp.route("", methods=["GET"], strict_slashes=False)
+def fab_4():
+    return "Fab 4 FOR LYFE", 200
 
 # TASKS
 
