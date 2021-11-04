@@ -99,24 +99,23 @@ def handle_task_completion(task_id, completion_status):
     task = Task.query.get(task_id)
     if task is None:
         return ("", 404)
-    if request.method == "PATCH":
-        if completion_status == "complete":
-            task.completed_at = datetime.now(timezone.utc)
-            requests.post(
-                "https://slack.com/api/chat.postMessage",
-                headers={"Authorization": f"Bearer {os.environ.get('SLACK_API_KEY')}"},
-                params={
-                    "channel": "task-notifications",
-                    "text": f"Someone just completed the task {task.title}"
-                })        
-        elif completion_status == "incomplete":
-            task.completed_at = None
-        db.session.commit()
-        return {
-                "task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": bool(task.completed_at)  
-                }
-            }, 200
+    if completion_status == "complete":
+        task.completed_at = datetime.now(timezone.utc)
+        requests.post(
+            "https://slack.com/api/chat.postMessage",
+            headers={"Authorization": f"Bearer {os.environ.get('SLACK_API_KEY')}"},
+            params={
+                "channel": "task-notifications",
+                "text": f"Someone just completed the task {task.title}"
+            })        
+    elif completion_status == "incomplete":
+        task.completed_at = None
+    db.session.commit()
+    return {
+            "task": {
+            "id": task.task_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": bool(task.completed_at)  
+            }
+        }, 200
