@@ -79,6 +79,7 @@ def CRUD_one_task(task_id):
         return make_response({"task": {"id": task.task_id,
                                     "title": task.title,
                                     "description": task.description,
+                                    "goal_id": task.goal_id,
                                     "is_complete": is_complete}}, 200)
     elif request.method == "PUT":
     # form data is a local variable to hold the body of the HTTP request
@@ -212,5 +213,37 @@ def CRUD_one_goal(goal_id):
         db.session.commit()
         return make_response({'details': 
         f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}, 200)
+# given one goal id, find 3 task ids and associate them with the goal by changing
+# their goal_id column(Foreign Key) from nullable to the goal_id of the goal to be associated    
+@goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"]) 
+def associate_tasks_with_goal(goal_id):
+    request_body = request.get_json()
+    tasks = Task.query.all()
+    goal = Goal.query.get(goal_id) #either get Goal back or None
+# this guard clause checks if the goal_id exists, if not, it will give 404
+    if goal is None:
+# couldn't figure out another way to return no response body, researched abort
+        abort(404) 
+    if request.method == "POST":
+        for task in tasks:
+            if task.task_id in request_body["task_ids"]:
+                task.goal_id = int(goal_id)
+            db.session.commit()
+        return make_response({"id": int(goal_id), "task_ids": request_body["task_ids"]}, 200)   
+    elif request.method == "GET":
+    # getting all tasks (attribute of Goal object) associated with given goal_id
+        goals_tasks = Goal.query.get(goal_id).tasks
+        
+        task_response = []
+        for task in goals_tasks:
+            is_complete = task.completed_at is not None
+            task_response.append({
+            'id': task.task_id,
+            'goal_id': task.goal_id,
+            'title': task.title,
+            'description': task.description,
+            'is_complete': is_complete})
     
-                                                                            
+        return make_response({"id": goal.goal_id, "title": goal.title, "tasks": task_response}, 200)
+
+
