@@ -69,6 +69,15 @@ def handle_task(task_id):
     if request.method == "GET":
         if task is None:
             return jsonify(None), 404
+        elif task.goal_id == None:
+            return {
+                "task": {
+                    "id": task.task_id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": False if task.completed_at == None else True
+                }
+            }
         else:
             # return jsonify(task), 200
              return {
