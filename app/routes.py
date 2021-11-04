@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, request, make_response, jsonify
 from flask_sqlalchemy import model
 from app import db
@@ -41,6 +42,40 @@ def handle_goals():
             return make_response(response_value, 201)
         else:
             return make_response({"details":"Invalid data"}, 400)
+
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def task_in_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return make_response("Goal not found", 404)
+
+    if request.method == "POST":
+        request_body = request.get_json()
+        for task_id in request_body["task_ids"]:
+            task = Task.query.get(task_id)
+            task.goal_id = goal_id
+            
+
+        db.session.commit()
+        return make_response({"id":int(goal_id), "task_ids": request_body["task_ids"]}, 200)
+
+    if request.method == "GET":
+        task_list = []
+        for each in goal.tasks:
+            task_list.append({
+                "id": each.task_id,
+                "goal_id": each.goal_id,
+                "title": each.title,
+                "description": each.description,
+                "is_complete": False
+            })
+        return make_response({"id": int(goal_id), "title": goal.title, "tasks": task_list}, 200)
+        
+
+
+
+
 
 
 
@@ -109,7 +144,6 @@ def handle_tasks():
     elif request.method == "POST":
         request_body = request.get_json()
         if request_body.get("title") and request_body.get("description"): 
-            """and request_body.get("completed_at")"""
             if request_body.get("completed_at")==None:
                 new_task = Task(title=request_body["title"],
                                 description=request_body["description"])
@@ -121,7 +155,7 @@ def handle_tasks():
                         "description": new_task.description,
                         "is_complete": False
                 }}
-            else:
+            elif request_body.get("completed_at"):
                 new_task = Task(title=request_body["title"],
                             description=request_body["description"],
                             completed_at=datetime.now())
@@ -147,12 +181,21 @@ def handle_task(task_id):
 
     if request.method == "GET":
         if not task.completed_at:
-            response_value = {"task":{
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False
-            }}
+            if task.goal_id:
+                response_value = {"task":{
+                    "id": task.task_id,
+                    "goal_id": task.goal_id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": False
+                }}
+            else:
+                response_value = {"task":{
+                    "id": task.task_id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": False
+                }}
 
             return make_response(response_value, 200)
         else:
