@@ -21,16 +21,25 @@ def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description="{task not found}")
 
-#Routes
+#ROUTES
 @task_bp.route("", methods=["GET"])
 def read_all_tasks():
 
+    title_query = request.args.get("title")
     sort_query = request.args.get("sort")
+    sort_id_query =  request.args.get("sort_id")
+    
     
     if sort_query == "asc":
         tasks = Task.query.order_by(Task.title.asc())
     elif sort_query == "desc":
         tasks = Task.query.order_by(Task.title.desc())
+    elif sort_id_query  == "asc":
+        tasks = Task.query.order_by(Task.task_id.asc())
+    elif sort_id_query  == "desc":
+        tasks = Task.query.order_by(Task.task_id.desc())
+    elif title_query:
+        tasks = Task.query.filter_by(title=title_query)
     else:
         tasks = Task.query.all()
 
@@ -127,6 +136,14 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
     return ({"details": f'Task {task_id} "{task.title}" successfully deleted'})
+
+
+#OPTIONAL ROUTES
+
+# @task_bp.route("/<task_id>", methods=["GET"])
+# def read_task(task_id):
+#     task = get_task_from_id(task_id)
+#     return {"task": task.to_dict()}
 
 
 

@@ -22,9 +22,14 @@ def get_goal_from_id(goal_id):
 
 #ROUTES
 @goal_bp.route("", methods=["GET"])
-def read_all_goals():
+def read_goals():
+    title_query = request.args.get("title")
 
-    goals = Goal.query.all()
+    if title_query:
+        goals = Goal.query.filter_by(title=title_query)
+    
+    else:
+        goals = Goal.query.all()
 
     goal_response = []
     for goal in goals:

@@ -54,6 +54,24 @@ def three_tasks(app):
 
 
 # This fixture gets called in every test that
+# references "three_tasks"
+# This fixture creates three tasks and saves
+# them in the database
+
+@pytest.fixture
+def three_goals(app):
+    db.session.add_all([
+        Goal(
+            title="Establish healthy habbits"),
+        Goal(
+            title="Run marathon"),
+        Goal(
+            title="Get internship at Google"),
+    ])
+    db.session.commit()
+
+    
+# This fixture gets called in every test that
 # references "completed_task"
 # This fixture creates a task with a
 # valid completed_at date
