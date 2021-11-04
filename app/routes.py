@@ -23,66 +23,73 @@ def fab_4():
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
-@tasks_bp.route("", methods=["POST", "GET"], strict_slashes=False)
-def handle_tasks():
-    if request.method == "POST":
-        request_body = request.get_json()
-        if is_post_task_data_valid(request_body):
-            new_task = Task(title=request_body["title"], \
-            description = request_body["description"], \
-            completed_at = request_body["completed_at"])
+@tasks_bp.route("", methods=["POST"], strict_slashes=False)
+def post_to_tasks():
+    request_body = request.get_json()
+    if is_post_task_data_valid(request_body):
+        new_task = Task(title=request_body["title"], \
+        description = request_body["description"], \
+        completed_at = request_body["completed_at"])
 
-            db.session.add(new_task)
-            db.session.commit()
+        db.session.add(new_task)
+        db.session.commit()
 
-            return {"task": new_task.to_dict()}, 201
+        return {"task": new_task.to_dict()}, 201
+    else:
+        return {"details": "Invalid data"}, 400
+
+@tasks_bp.route("", methods=["GET"], strict_slashes=False)
+def get_tasks():
+    sort_direction = request.args.get("sort")
+    if sort_direction:
+        if sort_direction == "asc":
+            tasks = Task.query.order_by(Task.title.asc())
+        elif sort_direction == "desc":
+            tasks = Task.query.order_by(Task.title.desc())
         else:
-            return {"details": "Invalid data"}, 400
+            return {"details": "Invalid sort parameter"}, 400
+    else:
+        tasks = Task.query.all()
+    response = []
+    for task in tasks:
+        response.append(task.to_dict())
+    return jsonify(response), 200
 
-    elif request.method == "GET":
-        sort_direction = request.args.get("sort")
-        if sort_direction:
-            if sort_direction == "asc":
-                tasks = Task.query.order_by(Task.title.asc())
-            elif sort_direction == "desc":
-                tasks = Task.query.order_by(Task.title.desc())
-            else:
-                return {"details": "Invalid sort parameter"}, 400
-        else:
-            tasks = Task.query.all()
-        response = []
-        for task in tasks:
-            response.append(task.to_dict())
-        return jsonify(response), 200
-
-@tasks_bp.route('/<id>', methods=["PUT", "GET", "DELETE"], strict_slashes=False)
-def handle_task(id):
+@tasks_bp.route('/<id>', methods=["GET"], strict_slashes=False)
+def get_task(id):
     if not task_id_exists(id):
         return "", 404
     task = Task.query.get(id)
-    if request.method == "GET":
-        return {"task": task.to_dict()}, 200
+    return {"task": task.to_dict()}, 200
 
-    if request.method == "PUT":
-        request_body = request.get_json()
-        if is_put_task_data_valid(request_body):
-            task.description = request_body['description']
-            task.title = request_body['title']
-            completed_at = request_body.get("completed_at")
-            if completed_at:
-                if is_datetime(completed_at):
-                    task.completed_at = completed_at
-                else:
-                    return {"details": "Invalid data"}, 400
-            db.session.commit()
-            return {"task": task.to_dict()}, 200
-        else:
-            return {"details": "Invalid data"}, 400
-    
-    if request.method == "DELETE":
-        db.session.delete(task)
+@tasks_bp.route('/<id>', methods=["PUT"], strict_slashes=False)
+def put_task(id):
+    if not task_id_exists(id):
+        return "", 404
+    task = Task.query.get(id)
+    request_body = request.get_json()
+    if is_put_task_data_valid(request_body):
+        task.description = request_body['description']
+        task.title = request_body['title']
+        completed_at = request_body.get("completed_at")
+        if completed_at:
+            if is_datetime(completed_at):
+                task.completed_at = completed_at
+            else:
+                return {"details": "Invalid data"}, 400
         db.session.commit()
-        return {"details": f"Task {str(task.task_id)} \"{str(task.title)}\" successfully deleted"}, 200
+        return {"task": task.to_dict()}, 200
+    else:
+        return {"details": "Invalid data"}, 400
+    
+@tasks_bp.route('/<id>', methods=["DELETE"], strict_slashes=False)
+def delete_task(id):
+    if not task_id_exists(id):
+        return "", 404
+    task = Task.query.get(id)
+    db.session.delete(task)
+    db.session.commit()
+    return {"details": f"Task {str(task.task_id)} \"{str(task.title)}\" successfully deleted"}, 200
 
 @tasks_bp.route('/<id>/mark_complete', methods=["PATCH"], strict_slashes=False)
 def mark_complete(id):
@@ -125,7 +132,6 @@ def is_post_task_data_valid(input):
 
 def is_put_task_data_valid(input):
     data_types = {"title":str, "description":str}
-    completed_at = input.get("completed_at")
     for name, val_type in data_types.items():
         if type(input.get(name)) != val_type:
             return False
@@ -148,69 +154,78 @@ def task_id_exists(id):
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
-@goals_bp.route("", methods=["POST", "GET"], strict_slashes=False)
-def handle_goals():
-    if request.method == "POST":
-        request_body = request.get_json()
-        if is_goal_data_valid(request_body):
-            new_goal = Goal(title=request_body["title"])
-            db.session.add(new_goal)
-            db.session.commit()
-            return {"goal": new_goal.to_dict()}, 201
-        else:
-            return {"details": "Invalid data"}, 400
-    elif request.method == "GET":
-        goals = Goal.query.all()
-        response = []
-        for goal in goals:
-            response.append(goal.to_dict())
-        return jsonify(response), 200
+@goals_bp.route("", methods=["POST"], strict_slashes=False)
+def post_goals():
+    request_body = request.get_json()
+    if is_goal_data_valid(request_body):
+        new_goal = Goal(title=request_body["title"])
+        db.session.add(new_goal)
+        db.session.commit()
+        return {"goal": new_goal.to_dict()}, 201
+    else:
+        return {"details": "Invalid data"}, 400
 
-@goals_bp.route("/<id>", methods=["GET","PUT","DELETE"], strict_slashes=False)
-def handle_goal(id):
+@goals_bp.route("", methods=["GET"], strict_slashes=False)
+def get_goals():
+    goals = Goal.query.all()
+    response = []
+    for goal in goals:
+        response.append(goal.to_dict())
+    return jsonify(response), 200
+
+@goals_bp.route("/<id>", methods=["GET"], strict_slashes=False)
+def get_goal(id):
     if not goal_id_exists(id):
         return "", 404
     goal = Goal.query.get(id)
+    return {"goal": goal.to_dict()}
 
-    if request.method == "GET":
-        return {"goal": goal.to_dict()}
+@goals_bp.route("/<id>", methods=["PUT"], strict_slashes=False)
+def put_goal(id):
+    if not goal_id_exists(id):
+        return "", 404
+    goal = Goal.query.get(id)
+    request_body = request.get_json()
+    goal.title = request_body["title"]
+    db.session.commit()
+    return {"goal": goal.to_dict()}, 200
 
-    elif request.method == "PUT":
-        request_body = request.get_json()
-        goal.title = request_body["title"]
-        db.session.commit()
-        return {"goal": goal.to_dict()}, 200
+@goals_bp.route("/<id>", methods=["DELETE"], strict_slashes=False)
+def delete_goal(id):
+    if not goal_id_exists(id):
+        return "", 404
+    goal = Goal.query.get(id)
+    db.session.delete(goal)
+    db.session.commit()
+    return {"details": f"Goal {str(goal.goal_id)} \"{str(goal.title)}\" successfully deleted"}, 200
 
-    elif request.method == "DELETE":
-        db.session.delete(goal)
-        db.session.commit()
-        return {"details": f"Goal {str(goal.goal_id)} \"{str(goal.title)}\" successfully deleted"}, 200
-
-@goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"], strict_slashes=False)
-def handle_goals_and_tasks(goal_id):
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"], strict_slashes=False)
+def post_goals_and_tasks(goal_id):
     goal_id = int(goal_id)
     if not goal_id_exists(goal_id):
         return "", 404
+    request_body = request.get_json()
+    task_ids = request_body["task_ids"]
+    for task_id in task_ids:
+        task = Task.query.get(task_id)
+        task.goal_id = goal_id
+        db.session.commit()
+    all_task_ids = []
+    for task in Task.query.filter(Task.goal_id == goal_id):
+        all_task_ids.append(task.task_id)
+    return {"id": goal_id, "task_ids": all_task_ids}, 200
 
-    if request.method == "POST":
-        request_body = request.get_json()
-        task_ids = request_body["task_ids"]
-        for task_id in task_ids:
-            task = Task.query.get(task_id)
-            task.goal_id = goal_id
-            db.session.commit()
-        all_task_ids = []
-        for task in Task.query.filter(Task.goal_id == goal_id):
-            all_task_ids.append(task.task_id)
-        return {"id": goal_id, "task_ids": all_task_ids}, 200
-
-    elif request.method == "GET":
-        tasks = []
-        for task in Task.query.filter(Task.goal_id == goal_id):
-            tasks.append(task.to_dict())
-        goal_dict = Goal.query.get(goal_id).to_dict()
-        goal_dict["tasks"] = tasks
-        return goal_dict
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"], strict_slashes=False)
+def get_goals_and_tasks(goal_id):
+    goal_id = int(goal_id)
+    if not goal_id_exists(goal_id):
+        return "", 404
+    tasks = []
+    for task in Task.query.filter(Task.goal_id == goal_id):
+        tasks.append(task.to_dict())
+    goal_dict = Goal.query.get(goal_id).to_dict()
+    goal_dict["tasks"] = tasks
+    return goal_dict
 
 def goal_id_exists(id):
     id = int(id)
