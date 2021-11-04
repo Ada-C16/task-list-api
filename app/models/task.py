@@ -9,7 +9,7 @@ class Task(db.Model):
     completed_at = db.Column(db.DateTime, nullable = True)
     goal_id = db.Column(db.Integer, db.ForeignKey("goal.goal_id"), nullable = True)
 
-    def task_dict(self): #to dict
+    def task_dict(self): 
         return {
             "id": self.task_id,
             "title": self.title,

@@ -164,14 +164,6 @@ def acquire_tasks_goals(goal_id):
     if goal == None:
         return jsonify(None), 404
     elif request.method == "GET":
-        # task_dicts =[]
-        # for task in goal.tasks:
-        #     task_dicts.append(task.task_dict())
-        # response_body ={
-        #     "id": goal.goal_id,
-        #     "title": goal.title,
-        #     "tasks":task_dicts
-        # }
 
         return jsonify(goal.tasked_goal()), 200
 
