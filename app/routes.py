@@ -108,7 +108,8 @@ def handle_mark_complete(task_id):
         return make_response("", 404)
     else: 
         task.completed_at = datetime.datetime.now()
-        SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
+        SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
+        print(SLACK_BOT_TOKEN)
     
         data = {
                 "channel": "task-notifications",
@@ -156,7 +157,7 @@ def handle_goals():
     # POST
     else: 
         request_body = request.get_json()
-        # if post is missing title, desciption, or completed at, do not post and return 400
+        # if post is missing title, do not post and return 400
         if "title" not in request_body:
             return {"details": "Invalid data"}, 400
         # if all required values are given in the request body, return the task info with 201
