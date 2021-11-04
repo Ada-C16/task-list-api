@@ -12,7 +12,13 @@ tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 def handle_tasks():
 # Wave 1: Get Tasks: Getting Saved Tasks
     if request.method == "GET":
-        tasks = Task.query.all()
+        sort = request.args.get("sort")
+        if sort == "asc":
+            tasks = Task.query.order_by(Task.title)
+        elif sort == "desc":
+            tasks = Task.query.order_by(Task.title.desc())
+        else:
+            tasks = Task.query.all()
 #Wave 1: Get Tasks: No Saved Tasks
         tasks_response = []
         for task in tasks:
