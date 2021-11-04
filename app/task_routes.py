@@ -11,7 +11,7 @@ load_dotenv()
 tasks_bp = Blueprint("task", __name__, url_prefix="/tasks")
 
 @tasks_bp.route("", methods=["POST", "GET"])
-def handle_multiple_tasks(): 
+def handle_tasks(): 
     request_body = request.get_json()
 
     if request.method == "POST": 
@@ -75,11 +75,14 @@ def post_task_completion_to_slack(task):
     url = "https://slack.com/api/chat.postMessage"
     message = f"Somone just completed task {task.title}"
     query_params = {
-        "token": SLACK_BOT_TOKEN, 
         "channel": SLACK_CHANNEL,
         "text": message
     }
-    requests.post(url, data=query_params)
+    headers = {
+        "Authorization": f"Bearer {SLACK_BOT_TOKEN}"
+    }
+    response = requests.post(url, data=query_params, headers=headers)
+
 
 @tasks_bp.route("/<task_id>/<completion_status>", methods=["PATCH"])
 def mark_completion_status(task_id, completion_status): 
@@ -92,6 +95,8 @@ def mark_completion_status(task_id, completion_status):
         post_task_completion_to_slack(task)
     elif completion_status == "mark_incomplete":
         task.completed_at = None
+    # else: 
+        # return something about not found 
         
     task_dict["task"] = task.to_dict()
     return jsonify(task_dict), 200
