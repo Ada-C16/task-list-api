@@ -13,11 +13,18 @@ class Task(db.Model):
     # goal = db.relationship("Goal", backref="tasks", lazy=True)
     # goal = db.relationship("Goal", back_populates="tasks")
 
-    def to_dict(self):
+    def to_dict(self): #if no goal id this else: if goal id add to dict
         complete = False
         if self.completed_at:
             complete = True
-
+        if self.goal_id:
+            return {
+                "id": self.task_id,
+                "title": self.title,
+                "description": self.description,
+                "is_complete": complete,
+                "goal_id": self.goal_id
+            }
         return {
             "id": self.task_id,
             "title": self.title,
