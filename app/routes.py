@@ -204,17 +204,7 @@ def get_tasks_with_goal(goal_id):
   return jsonify({"id": goal.goal_id,
       "title": goal.title, "tasks": tasks_with_goals_list}), 200 
   
-  
-  
-  #   if task.goal_id is not None:
-  #     task_dict["goal_id"] = task.goal_id
-      
-  #   tasks_with_goals_list.append(task_dict)
-      
-  # return {"id": goal.goal_id,
-  #     "title": goal.title,
-  #     "tasks": tasks_with_goals_list}, 200
-    
+
 #POST
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"], strict_slashes=False)
 def post_goals_with_tasks(goal_id):
