@@ -113,13 +113,17 @@ def is_task_data_valid(input):
             return False
     if ("completed_at" not in input.keys()):
         return False
-    elif completed_at == None:
-        return True
+    # elif completed_at == None:
+    #     return True
     else:
-        try:
-            x = datetime.strptime(completed_at, '%a, %d %b %Y %H:%M:%S GMT')
-        except ValueError:
-            return False
+        return not completed_at or is_datetime(completed_at)
+
+
+def is_datetime(string):
+    try:
+        x = datetime.strptime(string, '%a, %d %b %Y %H:%M:%S GMT')
+    except ValueError:
+        return False
     return True
 
     # if "title" not in input.keys() or "description" not in input.keys()\
