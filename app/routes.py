@@ -183,16 +183,6 @@ goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 def handle_goals():
     if request.method == "GET":
         goals = Goal.query.all()
-        
-
-        # # task_sort_order = request.args.get("sort")
-        # if task_sort_order is None:
-        #     tasks = Task.query.all()
-        # elif task_sort_order == "asc":
-        #     tasks = Task.query.order_by(asc(Task.title))
-        # elif task_sort_order == "desc":
-        #     tasks = Task.query.order_by(desc(Task.title))
-
         goals_response = []
         for goal in goals:
             goals_response.append({
