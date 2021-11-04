@@ -93,10 +93,11 @@ def handle_one_task(task_id):
     if task is None:
         return jsonify(None), 404
 
-    elif request.method == "GET":
+    if request.method == "GET":
         if task.goal_id:
             response_body = {"task": task_goals_dict(task)}
             return jsonify(response_body), 200
+        return jsonify({"task": task_dict(task)}), 200
 
 
     elif request.method == "PUT":
