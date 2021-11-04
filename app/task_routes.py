@@ -1,10 +1,9 @@
 from flask import Blueprint
-from app import db
+from app import db, SLACK_API_KEY
 from app.models.task import Task
 from flask import Blueprint, jsonify, make_response, request, abort
 from datetime import datetime
-# make response works well for when you want to turn a dict into json
-# otherwise jsonify is better to use bc it will always jsonify
+import requests
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -18,15 +17,6 @@ def valid_int(number, parameter_type):
 def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description="{task not found}")
-
-# @tasks_bp.route("/<task_id>/formalize", methods=["PATCH"])
-# def formalize_task(task_id):
-#     task = get_task_from_id(task_id)
-#     task.title = f"Mx. {task.title}"
-
-#     db.session.commit()
-
-    # return jsonify() - not sure what we are returning from this one yet
 
 #Wave 2 asc and desc
 @tasks_bp.route("", methods=["GET"])
@@ -71,8 +61,7 @@ def create_tasks():
         description=request_body["description"],
         completed_at=request_body["completed_at"]
     )
-    # if request_body["completed_at"]:
-    #     new_task.is_complete=True
+    
     db.session.add(new_task)
     db.session.commit()
     return jsonify({"task": new_task.to_dict()}), 201
@@ -104,16 +93,29 @@ def delete_task(task_id):
     db.session.commit()
     return make_response({"details":f'Task {task.task_id} "{task.title}" successfully deleted'}), 200
 
+def slack_bot(task):
+    url = 'https://slack.com/api/chat.postMessage'
+    message = f"Someone just completed the task {task.title}"
+    query_params = {
+        "token": SLACK_API_KEY,
+        "channel": 'lizet-bot-practice',
+        "text": message
+    }
+    return requests.post(url, data=query_params).json()
+
 # Wave 3/new endpoints updates task as complete
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def update_task_completion(task_id):
     task= get_task_from_id(task_id)
     task.is_complete=True
     task.completed_at = datetime.now()
+    # db.session.add(task)
     db.session.commit()
+    slack_bot(task)
     return jsonify({"task": task.to_dict()}), 200
 
-# route that will mark item as incomplete
+
+# Wave 3/new endpoints will mark item as incomplete
 @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
 def update_task_incomplete(task_id):
     task= get_task_from_id(task_id)

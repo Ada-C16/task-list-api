@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 db = SQLAlchemy()
 migrate = Migrate()
 load_dotenv()
+SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
 
 def create_app(test_config=None):
     app = Flask(__name__)
@@ -29,12 +30,12 @@ def create_app(test_config=None):
 
     # Register Blueprints here
     from app.models.task import Task
-
-    from .routes import tasks_bp
-    # why isn't it:
-    #from app.routes import tasks_bp
+    from .task_routes import tasks_bp
     app.register_blueprint(tasks_bp)
 
     # Will need to register goal Blueprints 
+    from app.models.goal import Goal
+    from .goal_routes import goals_bp
+    app.register_blueprint(goals_bp)
 
     return app
