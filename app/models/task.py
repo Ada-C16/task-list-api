@@ -64,11 +64,11 @@ class Task(db.Model):
         return new_task
 
     @classmethod
-    def task_arguments(cls, name_from_url):
-        if name_from_url:
-            tasks = Task.query.filter_by(name=name_from_url).all()
+    def task_arguments(cls, title_from_url):
+        if title_from_url:
+            tasks = Task.query.filter_by(title=title_from_url).all()
             if not tasks:
-                tasks = Task.query.filter(Task.name.contains(name_from_url))
+                tasks = Task.query.filter(Task.title.contains(title_from_url))
         sort_query = request.args.get("sort")
         if sort_query == "desc":
             tasks = Task.query.order_by(desc(Task.title))

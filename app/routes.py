@@ -25,8 +25,8 @@ def home_page():
 
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
-    name_from_url = request.args.get("name")
-    tasks = Task.task_arguments(name_from_url)
+    title_from_url = request.args.get("title")
+    tasks = Task.task_arguments(title_from_url)
 
     tasks_response = []
     tasks_response = [task.create_dict() for task in tasks]
@@ -130,9 +130,9 @@ def task_incomplete(task_id):
 
 @goals_bp.route("", methods=["GET"])
 def get_all_goals():
-    name_from_url = request.args.get("name")
+    title_from_url = request.args.get("title")
 
-    goals = Goal.goal_arguments(name_from_url)
+    goals = Goal.goal_arguments(title_from_url)
     goals_response = []
     goals_response = [goal.create_dict() for goal in goals]
 

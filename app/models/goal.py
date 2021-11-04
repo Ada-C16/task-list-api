@@ -14,11 +14,11 @@ class Goal(db.Model):
         }
 
     @classmethod
-    def goal_arguments(cls, name_from_url):
-        if name_from_url:
-            goals = Goal.query.filter_by(name=name_from_url).all()
+    def goal_arguments(cls, title_from_url):
+        if title_from_url:
+            goals = Goal.query.filter_by(title=title_from_url).all()
             if not goals:
-                goals = Goal.query.filter(Goal.name.contains(name_from_url))
+                goals = Goal.query.filter(Goal.title.contains(title_from_url))
         else:
             goals = Goal.query.all()
         return goals
