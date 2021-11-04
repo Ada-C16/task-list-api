@@ -56,10 +56,11 @@ def assign_tasks_to_goal(goal_id):
         selected_goal.tasks.append(selected_task)
     db.session.add(selected_goal)
     db.session.commit()
-    return make_response({
+    response = {
             "id": selected_goal.id,
             "task_ids": task_ids
-        }, 200)
+        }
+    return make_response(response, 200)
 
 @goals_bp.route("/<goal_id>/tasks", methods=["GET"], strict_slashes=False)
 def get_tasks_belonging_to_goal(goal_id):

@@ -19,14 +19,13 @@ def get_goal_from_id(id):
     confirm_valid_id(id, "goal_id")
     return Goal.query.get_or_404(id)
 
-# send slack message
 def send_completion_slack_message(selected_task):
     load_dotenv()
     token = os.environ.get("SLACK_BOT_TOKEN")
     channel = "task-notifications"
-    text = f"Woohoo!! You've completed {selected_task.title}!"
-    url = 'https://slack.com/api/chat.postMessage'
-    headers = {'Authorization': f'Bearer {token}'}
-    payload = {'channel': channel, "text": text}
+    text = f"Woohoo!! Someone has completed {selected_task.title}!"
+    url = "https://slack.com/api/chat.postMessage"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"channel": channel, "text": text}
     response = requests.post(url, headers=headers, params=payload)
     return response
