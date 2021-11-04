@@ -2,6 +2,7 @@ from app.models.goal import Goal
 from flask import jsonify
 from flask import Blueprint, make_response, request, jsonify, abort
 from app import db
+from app.models.task import Task
 
 
 #helper functions
@@ -64,5 +65,31 @@ def handle_goal(goal_id):
         db.session.delete(goal)
         db.session.commit()
         return jsonify({"details":f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}), 200
-
-
+    
+###WAVE 6 routes###
+@goal_bp.route("/<goal_id>/tasks", methods=["POST"])
+def create_one_to_many(goal_id):
+    request_body = request.get_json()
+    goal = Goal.query.get(goal_id)
+    task_ids = request_body["task_ids"]
+    for task_id in task_ids:
+        task=Task.query.get(task_id)
+        goal.tasks.append(task) #list of task objects
+        
+    db.session.commit()
+    return jsonify({"id": goal.goal_id,
+                "task_ids":[task.task_id for task in goal.tasks]}), 200
+    
+@goal_bp.route("/<goal_id>/tasks", methods=["GET"])
+def get_task_for_goal(goal_id):
+    # request_body = request.get_json()
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return make_response("", 404)
+    
+    db.session.commit()    
+    return jsonify({
+        "id": goal.goal_id,
+        "title": goal.title,
+        "tasks": [task.to_dict() for task in goal.tasks]
+        }), 200
