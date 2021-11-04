@@ -4,8 +4,7 @@ from app.models.task import Task
 from app import db
 from datetime import datetime
 import os, requests, sys
-from ..cli.main import run_cli, delete_all_tasks, change_task_complete_status, delete_task_ui, edit_task, view_task, create_task, print_single_row_of_stars, print_surround_stars, print_all_tasks, print_task, get_task_from_user, make_choice, list_options, OPTIONS
-from ..cli.task_list import mark_complete, mark_incomplete, delete_task, update_task, get_task, list_tasks, create_task, parse_response
+
 
 task_list_bp = Blueprint("task_list", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
@@ -13,11 +12,8 @@ welcome_bp = Blueprint("homescreen", __name__)
 
 @welcome_bp.route("", methods=["GET"])
 def welcome_screen():
-    print("Welcome to Task List CLI")
-    print("These are the actions you can take:")
-    print_single_row_of_stars()
-    list_options()
-    run_cli()
+    print("Welcome to Task List webpage")
+    print("Please modify your url to get the appropriate information")
 
 
 @task_list_bp.route("", methods=["GET"])
