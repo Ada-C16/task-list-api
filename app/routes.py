@@ -45,13 +45,8 @@ def handle_tasks():
         
         response_body = []
         for task in tasks:
-            response_body.append({
-                "id": task.id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": task.is_complete
-            })
-        return jsonify(response_body), 200
+            response_body.append(task.to_dict())
+        return jsonify(response_body)
 
 @task_bp.route("/<task_id>", methods=["GET", "PUT", "DELETE"])
 def handle_task(task_id):
@@ -61,12 +56,7 @@ def handle_task(task_id):
 
     if request.method == "GET":
         response = {}
-        response["task"] = {
-            "id": task.id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": task.is_complete
-        }
+        response["task"] = task.to_dict()
         if task.goal_id:
             response["task"]["goal_id"]=task.goal_id
         return jsonify(response)
@@ -81,21 +71,15 @@ def handle_task(task_id):
         db.session.commit()
 
         response_body = {}
-        response_body["task"] = {
-            "id": task.id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": task.is_complete
-        }
-        return jsonify(response_body), 200
+        response_body["task"] = task.to_dict()
+        return jsonify(response_body)
 
     elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
-        response_body = {
-            "details": f"Task {task.id} \"{task.title}\" successfully deleted"
-        }
-        return jsonify(response_body), 200
+        
+        response_body = {"details": f"Task {task.id} \"{task.title}\" successfully deleted"}
+        return jsonify(response_body)
 
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
