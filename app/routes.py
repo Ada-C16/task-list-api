@@ -32,14 +32,14 @@ def create_task():
     request_body = request.get_json()
     try:
         new_task = Task.from_dict(request_body)
-        
+
         db.session.add(new_task)
         db.session.commit()
 
-        response = {
-            "task": new_task.to_dict()
-        }
+        response = {"task": new_task.to_dict()}
+
         return jsonify(response), 201
+
     except KeyError:
         return jsonify({"details": "Invalid data"}), 400
 
@@ -68,9 +68,8 @@ def update_one_task(id):
 
     db.session.commit()
 
-    response = {
-        "task": task.to_dict()
-    }
+    response = {"task": task.to_dict()}
+
     return jsonify(response), 200
 
 
@@ -83,9 +82,8 @@ def delete_one_task(id):
     db.session.delete(task)
     db.session.commit()
 
-    response = {
-        'details': f'Task {task.id} "{task.title}" successfully deleted'
-    }
+    response = {'details': f'Task {task.id} "{task.title} successfully deleted'}
+
     return jsonify(response), 200
 
 
@@ -96,8 +94,8 @@ def slack_chat_post_message(task):
     channel_id = "task-notifications"
     text = f"Someone just completed the task {task.title}"
 
-    result = requests.post(url, headers=dict(
-        authorization=auth), data=dict(channel=channel_id, text=text))
+    requests.post(url, headers=dict(authorization=auth),
+                  data=dict(channel=channel_id, text=text))
 
 
 @tasks_bp.route("/<id>/mark_complete", methods=["PATCH"])
@@ -109,9 +107,8 @@ def update_task_completed(id):
     task.completed_at = date.today()
     db.session.commit()
 
-    response = {
-        "task": task.to_dict()
-    }
+    response = {"task": task.to_dict()}
+
     slack_chat_post_message(task)
 
     return jsonify(response), 200
@@ -126,16 +123,15 @@ def update_task_not_completed(id):
     task.completed_at = None
     db.session.commit()
 
-    response = {
-        "task": task.to_dict()
-    }
+    response = {"task": task.to_dict()}
+
     return jsonify(response), 200
 
 
 @goals_bp.route("", methods=["GET"])
 def read_goals():
     goals = Goal.query.all()
-    goals_response = [{"id": goal.id,"title": goal.title} for goal in goals]
+    goals_response = [{"id": goal.id, "title": goal.title} for goal in goals]
 
     return jsonify(goals_response), 200
 
@@ -227,7 +223,6 @@ def link_task_to_goal(id):
         "id": goal.id,
         "task_ids": task_ids
     }
-
     return jsonify(response)
 
 
@@ -244,11 +239,10 @@ def read_tasks_from_goal(id):
         "title": goal.title,
         "tasks": tasks_response
     }
-
     return jsonify(response_body)
 
 
 # potential refactors:
     # formating of the resopnse {task :  {}} repeated throughout, as well as {details: "fka;df"}
 
-    #adding to_dict() to goal model that uses task as an optional argument ? 
+    # adding to_dict() to goal model that uses task as an optional argument ?
