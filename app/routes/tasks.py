@@ -23,10 +23,15 @@ def validate_task(f):
 @tasks_bp.route("", methods=["GET"])
 def get_all_tasks():
     sort_query = request.args.get("sort")
+    title_query = request.args.get("title")
     if sort_query == "asc":
         tasks = Task.query.order_by(Task.title)
     elif sort_query == "desc":
         tasks = Task.query.order_by(Task.title.desc())
+    elif sort_query == "id":
+        tasks = Task.query.order_by(Task.id)
+    elif title_query:
+        tasks = Task.query.filter(Task.title.ilike(f"%{title_query}%")).all()
     else:
         tasks = Task.query.all()
     return jsonify([task.to_dict() for task in tasks])

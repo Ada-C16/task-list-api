@@ -20,7 +20,18 @@ def validate_goal(f):
 
 @goals_bp.route("", methods=["GET"])
 def get_all_goals():
-    goals = Goal.query.all()
+    sort_query = request.args.get("sort")
+    title_query = request.args.get("title")
+    if sort_query == "asc":
+        goals = Goal.query.order_by(Goal.title)
+    elif sort_query == "desc":
+        goals = Goal.query.order_by(Goal.title.desc())
+    elif sort_query == "id":
+        goals = Goal.query.order_by(Goal.id)
+    elif title_query:
+        goals = Goal.query.filter(Goal.title.ilike(f"%{title_query}%")).all()
+    else:
+        goals = Goal.query.all()
     response_body = [goal.to_dict() for goal in goals]
     return jsonify(response_body)
 
