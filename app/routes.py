@@ -4,9 +4,9 @@ from app.models.task import Task
 from app.models.goal import Goal
 import datetime
 import requests
-import os 
-from sqlalchemy import Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import relationship
+# import os 
+# from sqlalchemy import Table, Column, Integer, ForeignKey
+# from sqlalchemy.orm import relationship
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
@@ -188,16 +188,8 @@ def handle_one_goal(goal_id):
         return jsonify({"details": (f'Goal {goal.goal_id} "{goal.title}" successfully deleted')}), 200
     
 @goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"], strict_slashes=False)
-def handle_related_tasks(goal_id):
-###### POST ######
-# example endpoint: /goals/1/tasks
-# input {"task_ids": [1, 2, 3]}
-# updates tasks' FK with the goal_id 
-# response body: {"id": 1, "task_ids": [1 , 2, 3]} & 200 response
-
-# add guard clause for no matching goals
-# loop through task_ids and find cooresponding task and update FK to the goal.goal_id
-
+def handle_tasks_related_to_goals(goal_id):
+    ###### POST ######
     goal = Goal.query.get(goal_id)
 
     if goal is None:
@@ -206,13 +198,16 @@ def handle_related_tasks(goal_id):
     if request.method == "POST":
         request_body = request.get_json()
 
-        for id in request_body["task_ids"]:
-            task = Task.query.get(id)
-            task.goal_id == goal.goal_id
-            
+        task_list = request_body["task_ids"]
+
+        for task_id in task_list:
+            task = Task.query.get(task_id)
+            task.goal_id == goal_id
+            goal.tasks.append(task)
+   
         db.session.commit()
 
-        return jsonify({"id": goal.goal_id, "task_ids": request_body["task_ids"]}), 200
+        return jsonify({"id": int(goal_id), "task_ids": task_list}), 200
 
     elif request.method == "GET":
         tasks = Task.query.filter(Task.goal_id == goal_id)
@@ -230,25 +225,6 @@ def handle_related_tasks(goal_id):
         
 
         
-            
-
-
-
-##### GET #####
-# example endpoint: /goals/333/tasks
-# # {
-#   "id": 333,
-#   "title": "Build a habit of going outside daily",
-#   "tasks": [
-#     {
-#       "id": 999,
-#       "goal_id": 333,
-#       "title": "Go on my daily walk 🏞",
-#       "description": "Notice something new every day",
-#       "is_complete": false
-#     }
-#   ]
-# } & 200 response
 
 
 
