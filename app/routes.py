@@ -1,12 +1,15 @@
 import re
+from flask.helpers import make_response
 
 from werkzeug.datastructures import HeaderSet
 from app import db
 from app.models.task import Task
+from app.models.goal import Goal
 from flask import Blueprint, request, jsonify
 import requests, os, json
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 @task_bp.route("", methods=["POST", "GET"])
@@ -56,7 +59,7 @@ def handle_tasks():
 def handle_task(task_id):
     task = Task.query.get(task_id)
     if task is None:
-        return jsonify(), 404
+        return make_response("", 404)
 
     if request.method == "GET":
         response = {}
@@ -97,6 +100,7 @@ def mark_complete(task_id):
     task.is_complete = True
     db.session.commit()
     
+    
     # posts to slack
     url = 'https://slack.com/api/chat.postMessage'
     slack_request = {
@@ -130,3 +134,21 @@ def mark_incomplete(task_id):
         "is_complete": task.is_complete
     }
     return jsonify(response_body)
+
+@goal_bp.route("", methods=["POST"])
+def handle_tasks():
+    if request.method == "POST":
+        request_body = request.get_json()
+        if "title" not in request_body:
+            return jsonify({"details": "Invalid data"}), 400
+        new_goal = Goal(title= request_body["title"])
+        db.session.add(new_goal)
+        db.session.commit()
+        
+        response = {}
+        # posted_task = Task.query.all()
+        response["task"] = {
+            "id": new_goal.goal_id,
+            "title": new_goal.title
+        }
+        return jsonify(response), 201
