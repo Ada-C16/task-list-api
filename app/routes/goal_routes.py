@@ -79,9 +79,7 @@ def update_goal(goal_id):
 
         if "title" in request_body:
             goal.title = request_body["title"]
-        if "goal" in request_body:
-            goal.goal = request_body["goal"]
- 
+
         goal_response = goal.to_dict()
 
         db.session.commit()
