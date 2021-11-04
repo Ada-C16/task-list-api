@@ -24,7 +24,6 @@ def create_tasks():
         title = request_body["title"], 
         description = request_body["description"], 
         completed_at = request_body["completed_at"]) 
-        #difficulty = request_body["difficulty"])
 
         db.session.add(new_task)
         db.session.commit()
@@ -82,7 +81,7 @@ def completed_task(task_id):
             "token": os.environ.get("IGOR"),
             "channel": "task-notifications",
             "text": f"Someone just completed the task {task.title}"
-        }
+            }
 
         requests.post(PATH, data=params)
 
@@ -109,8 +108,7 @@ def create_goals():
             return jsonify({"details": "Invalid data"}), 400
     
         new_goal = Goal(
-        title = request_body["title"] 
-        )
+        title = request_body["title"] )
 
         db.session.add(new_goal)
         db.session.commit()
