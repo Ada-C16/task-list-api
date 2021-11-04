@@ -143,7 +143,7 @@ def mark_incomplete(task_id):
     }
     return jsonify(response_body)
 
-@goal_bp.route("", methods=["POST"])
+@goal_bp.route("", methods=["POST", "GET"])
 def handle_tasks():
     if request.method == "POST":
         request_body = request.get_json()
@@ -155,8 +155,52 @@ def handle_tasks():
         
         response = {}
         # posted_task = Task.query.all()
-        response["task"] = {
+        response["goal"] = {
             "id": new_goal.goal_id,
             "title": new_goal.title
         }
         return jsonify(response), 201
+    elif request.method == "GET":
+        goals = Goal.query.all()
+
+        response_body = []
+        for goal in goals:
+            response_body.append({
+                "id": goal.goal_id,
+                "title": goal.title
+            })
+        return jsonify(response_body)
+
+@goal_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
+def handle_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return make_response("", 404)
+
+    if request.method == "GET":
+        response_body = {}
+        response_body["goal"] = {
+            "id": goal.goal_id,
+            "title": goal.title
+        }
+        return jsonify(response_body)
+
+    elif request.method == "PUT":
+        request_body = request.get_json()
+        goal.title = request_body["title"]
+        db.session.commit()
+
+        response_body = {}
+        response_body["goal"] = {
+            "id": goal.goal_id,
+            "title": goal.title
+        }
+        return jsonify(response_body)
+
+    elif request.method == "DELETE":
+        db.session.delete(goal)
+        db.session.commit()
+        response_body = {
+            "details": f"Goal {goal.goal_id} \"{goal.title}\" successfully deleted"
+        }
+        return jsonify(response_body)
