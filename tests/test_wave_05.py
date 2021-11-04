@@ -34,7 +34,7 @@ def test_get_goal(client, one_goal):
 
     # Assert
     assert response.status_code == 200
-    assert "goal" in response_body
+    # assert "goal" in response_body
     assert response_body == {
         "goal": {
             "id": 1,
@@ -61,7 +61,7 @@ def test_create_goal(client):
 
     # Assert
     assert response.status_code == 201
-    assert "goal" in response_body
+    # assert "goal" in response_body
     assert response_body == {
         "goal": {
             "id": 1,
@@ -77,7 +77,7 @@ def test_update_goal(client, one_goal):
 
     # Assert
     assert response.status_code == 200
-    assert "goal" in response_body
+    # assert "goal" in response_body
     assert response_body == {
         "goal": {
             "id": 1,
@@ -110,7 +110,7 @@ def test_delete_goal(client, one_goal):
 
     # Assert
     assert response.status_code == 200
-    assert "details" in response_body
+    # assert "details" in response_body
     assert response_body == {
         "details": 'Goal 1 "Build a habit of going outside daily" successfully deleted'
     }

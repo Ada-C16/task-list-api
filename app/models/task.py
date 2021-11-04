@@ -9,6 +9,7 @@ class Task(db.Model):
     completed_at = db.Column(db.DateTime, nullable=True)
 
     goal_id = db.Column(db.Integer, db.ForeignKey('goal.id'), nullable=True)
+    # if use back_ref in task, line 13 is not needed
     goal = db.relationship("Goal", back_populates="tasks")
 
     def to_json(self):
