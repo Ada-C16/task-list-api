@@ -80,7 +80,7 @@ def get_items_slash_command(class_name, data, filter=None):
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": f"Here are your {qualifier}{object}s",
+                    "text": f"Here are your {qualifier}{type}s",
                 }
             }]
 
