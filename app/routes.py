@@ -67,6 +67,8 @@ def handle_task(id):
         request_body = request.get_json()
         task.description = request_body['description']
         task.title = request_body['title']
+        if request_body.get('completed_at'):
+            task.completed_at = request_body.get('completed_at')
         db.session.commit()
         return {"task": task.to_dict()}, 200
     
@@ -104,17 +106,26 @@ def mark_incomplete(id):
     return {"task": task.to_dict()}, 200
 
 def is_task_data_valid(input):
-    # data_types = {"title":str, "description":str}
-    # for name, val_type in data_types.items():
-    #     if type(input.get(name)) != val_type:
-    #         return False
-    # if ("completed_at" not in input.keys()) or (input.get("completed_at") != None and type(input.get("completed_at")) != db.DateTime):
+    data_types = {"title":str, "description":str}
+    completed_at = input.get("completed_at")
+    for name, val_type in data_types.items():
+        if type(input.get(name)) != val_type:
+            return False
+    if ("completed_at" not in input.keys()):
+        return False
+    elif completed_at == None:
+        return True
+    else:
+        try:
+            x = datetime.strptime(completed_at, '%a, %d %b %Y %H:%M:%S GMT')
+        except ValueError:
+            return False
+    return True
+
+    # if "title" not in input.keys() or "description" not in input.keys()\
+    #     or "completed_at" not in input.keys():
     #     return False
     # return True
-    if "title" not in input.keys() or "description" not in input.keys()\
-        or "completed_at" not in input.keys():
-        return False
-    return True
 
 def task_id_exists(id):
     id = int(id)
