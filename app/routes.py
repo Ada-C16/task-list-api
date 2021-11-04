@@ -11,6 +11,7 @@ from app.models.goal import Goal
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
+# Alternate --> util module/helper functions, route_wrappers.py
 def require_task_or_404(endpoint):
     """Decorator to validate input data."""
     @wraps(endpoint) # Makes fn look like func to return
@@ -140,5 +141,46 @@ def get_goals():
 @goals_bp.route("/<goal_id>", methods=["GET"])
 def get_goal(goal_id):
     """Retrieve one stored goal by id."""
-    goal = Goal.get_or_404(goal_id)
+    goal = Goal.query.get_or_404(goal_id)
 
+    return jsonify({"goal": goal.to_dict()}), 200
+
+# @goals_bp.route("", methods=["POST"])
+# def create_goal():
+#     pass
+
+@goals_bp.route("", methods=["POST"])
+def create_goal():
+    """Create a new goal from JSON data."""
+    form_data = request.get_json()
+
+    new_goal = Goal(
+        title=form_data["title"]
+    )
+    db.session.add(new_goal)
+    db.session.commit()
+
+    return jsonify({"goal": new_goal.to_dict()}), 201
+
+@goals_bp.route("/<goal_id>", methods=["PATCH"])
+def update_goal(goal_id):
+    """Updates goal by id."""
+    form_data = request.get_json()
+
+    goal = Goal.query.get(goal_id)
+    new_goal = goal.update_from_dict(form_data)
+    db.session.commit()
+
+    return jsonify({"goal": new_goal.to_dict()}), 200
+
+@goals_bp.route("/<goal_id>", methods=["DELETE"])
+def delete_goal(goal_id):
+    """Deletes goal by id."""
+    goal = Goal.query.get(goal_id)
+
+    db.session.delete(goal_id)
+    db.session.commit()
+
+    return {
+        "details": f"Goal {goal.id} \"{goal.title}\" successfully deleted"
+    }, 200
