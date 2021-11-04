@@ -33,7 +33,17 @@ class Task(db.Model):
 
     def send_task_complete_slack_message(self):
         load_dotenv()
-
+        # I tried to get this to work by putting the token into the headers argument
+        # but it never worked:
+        # data = {"channel": os.environ.get("CHANNEL_ID"),
+        #         "text": f"Someone just completed the task {self.title}"}
+        # headers = {"authorization": os.environ.get("SLACK_TOKEN")}
+        # I tried editing the headers variable 
+        # to include the "Bearer" beginning too, but that didn't work
+        # url = os.environ.get("SLACK_URL")
+        # requests.post(url=url, data=data, headers=headers)
+        
+        
         data = {"token": os.environ.get("SLACK_TOKEN"),
                 "channel": os.environ.get("CHANNEL_ID"),
                 "text": f"Someone just completed the task {self.title}"}
