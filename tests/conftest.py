@@ -86,3 +86,12 @@ def one_task_belongs_to_one_goal(app, one_goal, one_task):
     goal = Goal.query.first()
     goal.tasks.append(task)
     db.session.commit()
+
+@pytest.fixture
+def completed_task_old(app):
+    new_task = Task(
+        title="Make lentil soup", 
+        description="Prepare Thursday night dinner", 
+        completed_at="2021-10-24 18:07:55")
+    db.session.add(new_task)
+    db.session.commit()
