@@ -67,37 +67,31 @@ def delete_goal(goal_id):
     return {
         "details":f'Goal {response_goal.goal_id} "{response_goal.title}" successfully deleted'
     } 
-@goal_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])  # to post tasks to specific goal
-def handle_goal_tasks(goal_id): # this scenario is when there is already tasks defined without creating relationship with goal at first
+@goal_bp.route("/<goal_id>/tasks", methods=["POST"])  # to update tasks giving a specific goal
+def update_tasks_with_specific_goal(goal_id): # this scenario is when there is already tasks defined without creating relationship with goal at first
+     # the tasks were created in the db by the test, I am accessing these tasks,
+    # and link them with their goal and commit back
     
-    if request.method == "POST":
-        goal = get_goal_from_id(goal_id)
-        request_body = request.get_json()
-         # since i am given only task ids, no title, description etc,
-        #i am assuming they were created in the db
-       
-        for ids in request_body["task_ids"]:
-            task = Task.query.get(ids)
-            goal.tasks.append(task)
-            # task.goal = goal
+    goal = get_goal_from_id(goal_id)
+    request_body = request.get_json()   
+    for ids in request_body["task_ids"]:
+        task = Task.query.get(ids)
+        goal.tasks.append(task)
+        # task.goal = goal...this also works instead of line 79
 
-            db.session.commit()
-        
-        return {
-            "id":goal.goal_id,
-            "task_ids":[task.task_id for task in goal.tasks]
-        }
+        db.session.commit()
     
-    elif request.method == "GET":
-        goal = get_goal_from_id(goal_id)
-        tasks_response = []      
-        for task in goal.tasks:
-            task_dict = task.to_dict()
-            task_dict['goal_id'] = goal.goal_id
-            tasks_response.append(task_dict)
-      
-        return jsonify({
-                    "id": goal.goal_id,
-                    "title": goal.title,
-                    "tasks": tasks_response
-        })
+    return {
+        "id":goal.goal_id,
+        "task_ids":[task.task_id for task in goal.tasks]
+    }
+@goal_bp.route("/<goal_id>/tasks", methods=["GET"]) 
+def read_tasks_with_specific_goal(goal_id):  
+    goal = get_goal_from_id(goal_id)
+    tasks_response = [task.to_dict() for task in goal.tasks]      
+    
+    return jsonify({
+                "id": goal.goal_id,
+                "title": goal.title,
+                "tasks": tasks_response
+    })
