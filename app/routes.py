@@ -7,8 +7,6 @@ import requests
 from dotenv import load_dotenv
 import os
 from .models.messages import *
-import json
-import pprint
 import slack
 
 load_dotenv()
