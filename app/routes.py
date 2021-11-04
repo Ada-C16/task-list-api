@@ -72,7 +72,10 @@ def handle_task(task_id):
             "description": task.description,
             "is_complete": task.is_complete
         }
-        return jsonify(response), 200
+        if task.goal_id:
+            response["task"]["goal_id"]=task.goal_id
+        return jsonify(response)
+
     elif request.method == "PUT":
         request_body = request.get_json()
         task.title = request_body["title"]
@@ -90,6 +93,7 @@ def handle_task(task_id):
             "is_complete": task.is_complete
         }
         return jsonify(response_body), 200
+
     elif request.method == "DELETE":
         db.session.delete(task)
         db.session.commit()
@@ -204,7 +208,7 @@ def handle_goal(goal_id):
         }
         return jsonify(response_body)
 
-@goal_bp.route("/<goal_id>/tasks", methods=["POST"])
+@goal_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
 def handle_relationship(goal_id):
     goal = Goal.query.get(goal_id)
     if goal is None:
@@ -212,12 +216,8 @@ def handle_relationship(goal_id):
 
     if request.method == "POST":
         request_body = request.get_json()
-        # Goal.query.get(goal_id).task
         for task_id in request_body["task_ids"]:
             goal.tasks.append(Task.query.get(task_id))
-            # Goal.query.get(goal_id).tasks.append(task_id)
-            # task = Task.query.get(task_id)
-            # goal.tasks.append(task)
         db.session.commit()
 
         response_body = {
@@ -225,3 +225,19 @@ def handle_relationship(goal_id):
             "task_ids": request_body["task_ids"]
         }
         return jsonify(response_body)
+    
+    elif request.method == "GET":
+        goal_dict = {
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks":[]
+        }
+        for task in goal.tasks:
+            goal_dict["tasks"].append({
+                "id": task.id,
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": task.is_complete
+            })
+        return jsonify(goal_dict)
