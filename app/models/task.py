@@ -9,7 +9,7 @@ class Task(db.Model):
     title = db.Column(db.String)
     description = db.Column(db.String)
     completed_at = db.Column(db.DateTime, nullable=True)
-    goal_id = db.Column(db.Integer, db.ForeignKey("goal.goal_id"))
+    goal_id = db.Column(db.Integer, db.ForeignKey("goal.goal_id"), nullable=True)
 
     def to_dict(self):
         is_complete = True
@@ -22,6 +22,7 @@ class Task(db.Model):
         "description": self.description, 
         "is_complete": is_complete
         }) 
+        
 
 
 
