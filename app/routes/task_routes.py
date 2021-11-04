@@ -1,7 +1,7 @@
 from app import db
 from flask import Blueprint, jsonify, make_response, request
 from app.models.task import Task
-import datetime 
+from datetime import datetime
 from .helpers import get_task_from_id, send_completion_slack_message
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -27,10 +27,15 @@ def create_new_task():
     if "title" not in request_body or "description" not in request_body or \
         "completed_at" not in request_body:
         return make_response({"details": "Invalid data"}, 400)
+    if request_body['completed_at']:
+        try:
+            date = datetime.strptime(request_body['completed_at'], '%d/%m/%y %H:%M')
+        except:
+            return make_response({"details": "completed_at must be a date formatted as: dd/mm/yy HH/MM"})
     new_task = Task(
         title = request_body["title"],
         description = request_body["description"],
-        completed_at = request_body["completed_at"]
+        completed_at = date
     )
     db.session.add(new_task)
     db.session.commit()
@@ -50,6 +55,12 @@ def update_task(task_id):
         selected_task.title = request_body["title"]
     if "description" in request_body:
         selected_task.description = request_body["description"]
+    if request_body['completed_at']:
+        try:
+            date = datetime.strptime(request_body['completed_at'], '%d/%m/%y %H:%M')
+            selected_task.completed_at = date
+        except:
+            return make_response({"details": "completed_at must be a date formatted as: dd/mm/yy HH/MM"})
     return make_response({"task": selected_task.to_dict()}, 200)
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"], strict_slashes=False)
