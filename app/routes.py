@@ -9,6 +9,8 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix = "/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 
+# THE LINK TO TEST IN HEROKU IS https://task-list-project2.herokuapp.com/tasks
+
 
 @tasks_bp.route("",methods=["POST", "GET"])
 def handle_tasks():
