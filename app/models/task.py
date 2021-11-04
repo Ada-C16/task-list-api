@@ -1,7 +1,7 @@
 from app import db
 
 class Task(db.Model):
-    __tablename__="tasks"
+    __tablename__ = "tasks"
     task_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(200))
     description = db.Column(db.String(200))
@@ -9,8 +9,8 @@ class Task(db.Model):
 
     def to_dict(self):
         """converts task data to dictionary"""
-        return {"is_complete": False,
-        "id": self.task_id,
-        "title": self.title,
-        "description": self.description
-        }
+        return {"is_complete": True if self.completed_at else False,
+                "title": self.title,
+                "id": self.task_id,
+                "description": self.description
+                }

@@ -2,19 +2,19 @@ from flask import Blueprint, jsonify, request, abort, make_response
 from app.models.task import Task
 from app import db
 from datetime import date
-import requests, os
+import requests
+import os
 TOKEN = os.environ.get('TOKEN')
 
 task_bp = Blueprint("task", __name__, url_prefix="/tasks")
 
-
 # Helper Functions
+
+
 def valid_int(number, parameter_type):
     try:
         int(number)
     except:
-        # abort(make_response(
-        #     {"error": f"{parameter_type} must be an int"}, 400))
         abort(jsonify({"error": f"{parameter_type} must be an int"}), 400)
 
 
@@ -118,18 +118,19 @@ def completed_task(task_id):
         db.session.commit
 
         PATH = 'https://slack.com/api/chat.postMessage'
-        params ={
+        params = {
             "token": TOKEN,
             "channel": "task-notifications",
             "text": f"Someone just completed the task {task.title}"
         }
 
         task_dict["task"] = task.to_dict()
-        requests.potst(PATH, data=params)
-        return jsonify(task_dict),200
+        requests.post(PATH, data=params)
+        return jsonify(task_dict), 200
+
 
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
-def completed_task(task_id):
+def incompleted_task(task_id):
     """UPDATES completion status of task by given id with incomplete"""
     task = get_task_from_id(task_id)
     task_dict = {}
@@ -139,4 +140,4 @@ def completed_task(task_id):
         task.completed_at = None
         db.session.commit
         task_dict["task"] = task.to_dict()
-        return jsonify(task_dict),200
+        return jsonify(task_dict), 200
