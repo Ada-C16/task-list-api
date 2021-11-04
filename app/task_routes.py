@@ -9,8 +9,14 @@ task_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 @task_bp.route("", methods=["GET"])
 def get_tasks():
     sort_query = request.args.get("sort")
+    title_query = request.args.get("title")
+    id_sort = request.args.get("idsort")
     if sort_query:
         tasks = Task.query.order_by(eval(sort_query)(Task.title))
+    elif title_query:
+        tasks = Task.query.filter(Task.title.ilike(('%'+title_query+'%')))
+    elif id_sort:
+        tasks = Task.query.order_by(eval(id_sort)(Task.task_id))
     else:
         tasks = Task.query.all()
     tasks_response = [Task.to_json(task) for task in tasks]
@@ -21,10 +27,8 @@ def post_tasks():
     request_body = request.get_json()
     try:
         new_task = Task.from_json(request_body)
-
         db.session.add(new_task)
         db.session.commit()
-
         return {"task": Task.to_json(new_task)}, 201
     except KeyError:
         return {"details": "Invalid data"}, 400 
