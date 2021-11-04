@@ -109,7 +109,6 @@ def handle_mark_complete(task_id):
     else: 
         task.completed_at = datetime.datetime.now()
         SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
-        print(SLACK_BOT_TOKEN)
     
         data = {
                 "channel": "task-notifications",
