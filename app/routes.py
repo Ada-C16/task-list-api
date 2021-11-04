@@ -3,19 +3,33 @@ from app.models.task import Task
 from flask import Blueprint, jsonify,request, make_response, abort
 from datetime import date
 from app.models.goal import Goal
-import slack
 import os
 from dotenv import load_dotenv
 from slack import WebClient
 from slack.errors import SlackApiError
 
-tasks_bp = Blueprint("tasks",__name__,url_prefix="/tasks")
+
 def valid_int(number,parameter_type):
     try:
         int(number)
     except:
         abort(make_response({"error":f"{parameter_type} must be an int"},400))
-        
+
+def slack_notification():
+    load_dotenv()
+    slack_token = os.environ["SLACK_TOKENS"]
+    client = WebClient(token=slack_token)
+    try:
+        response = client.chat_postMessage(
+            channel ="CNEEJDLAW",
+            text = "Task completed"
+        )
+    except SlackApiError as e:
+        return jsonify({"Error": "chanel not found"})
+            
+tasks_bp = Blueprint("tasks",__name__,url_prefix="/tasks")
+goals_bp = Blueprint("goals", __name__,url_prefix="/goals")
+
 @tasks_bp.route("",methods=["GET"])
 def handle_tasks():
     sort_query = request.args.get("sort")
@@ -34,7 +48,6 @@ def handle_tasks():
 def get_task(task_id):
     valid_int(task_id, "task_id")
     task = Task.query.get_or_404(task_id)
-    
     if request.method == "GET":
         return jsonify({"task":task.to_dict()}),200
     elif request.method == "PUT":
@@ -74,8 +87,7 @@ def mark_complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     task.completed_at = date.today()
     db.session.commit()
-    task.slack_notification()
-    
+    slack_notification()
     return jsonify({"task":task.to_dict()}),200
 
 @tasks_bp.route("/<task_id>/mark_incomplete",methods=["PATCH"])
@@ -85,10 +97,6 @@ def mark_incomplete_task(task_id):
     task.completed_at = None 
     db.session.commit()
     return jsonify({"task":task.to_dict()}),200     
-
-
-
-goals_bp = Blueprint("goals", __name__,url_prefix="/goals")
 
 @goals_bp.route("", methods=["POST"])
 def create_goal():
@@ -112,7 +120,6 @@ def handle_goals():
 def get_goal(goal_id):
     valid_int(goal_id,"goal_id")
     goal = Goal.query.get_or_404(goal_id)
-    
     if request.method == "GET":
         return jsonify({"goal":goal.to_dict()}),200
     elif request.method == "DELETE":
@@ -127,8 +134,8 @@ def get_goal(goal_id):
     
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"])
 def post_task_ids_to_goal(goal_id):
+    valid_int(goal_id,"goal_id")
     request_body = request.get_json()
-    
     goal = Goal.query.get(goal_id)
     task_ids = request_body["task_ids"]
     for task_id in task_ids:
@@ -139,7 +146,7 @@ def post_task_ids_to_goal(goal_id):
 
 @goals_bp.route("/<goal_id>/tasks", methods=["GET"])
 def get_tasks_for_goal(goal_id):
-    
+    valid_int(goal_id,"goal_id")
     goal = Goal.query.get_or_404(goal_id)
     response_body = {"id":goal.id,
         "title":goal.title,

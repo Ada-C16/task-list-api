@@ -3,15 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
-import slack
-from slack import WebClient
-import logging
-
 
 db = SQLAlchemy()
 migrate = Migrate()
 load_dotenv()
-
 
 def create_app(test_config=None):
     app = Flask(__name__)
@@ -32,12 +27,12 @@ def create_app(test_config=None):
     db.init_app(app)
     migrate.init_app(app, db)
     
+    # Register Blueprints here
+    
     from .routes import tasks_bp
     app.register_blueprint(tasks_bp)
     
     from .routes import goals_bp
     app.register_blueprint(goals_bp)
-
-    # Register Blueprints here
 
     return app
