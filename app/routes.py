@@ -11,6 +11,10 @@ goal_bp = Blueprint("goals", __name__, url_prefix="/goals")
 @goal_bp.before_request
 @task_bp.before_request
 def get_model_and_label():
+    """This is a function that runs before the request is processed.
+    It will set g.model and g.label based on the blueprint being accessed,
+    both of which are accessible globally to use in other functions.
+    """
     bps = {
         "tasks": (Task, "task"),
         "goals": (Goal, "goal")
