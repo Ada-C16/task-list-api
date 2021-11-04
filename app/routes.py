@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request, make_response, abort 
 from app.models.task import Task 
 from app import db 
-from datetime import datetime 
+from datetime import date 
+import requests, os 
+
+TOKEN = os.environ.get('TOKEN')
 
 task_bp = Blueprint("task", __name__, url_prefix="/tasks")
 #GOAL
@@ -25,15 +28,15 @@ def get_task_from_id(task_id):
 def create_task():
     """CREATES new task in database"""
 
-    request_data = request.get_json()
+    request_body = request.get_json()
 
-    if "title" not in request_data or "description" not in request_data or "completed_at" not in request_data:
+    if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
         return make_response({"details": "Invalid data"}, 400)
 
     new_task = Task(
-        title=request_data["title"],
-        description=request_data["description"],
-        completed_at=request_data["completed_at"]
+        title=request_body["title"],
+        description=request_body["description"],
+        completed_at=request_body["completed_at"]
     )
     db.session.add(new_task)
     db.session.commit()
@@ -107,17 +110,41 @@ def delete_task(task_id):
     return jsonify({"details": f'Task {task_id} "{task.title}" successfully deleted'}), 200
 
 
-@task_bp.route("/<task_id>/<completion_status>", methods=["PATCH"])
-def mark_complete(task_id, completion_status):
+@task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
+def completed_task(task_id):
     """UPDATES completion status of task by given id"""
     task = get_task_from_id(task_id)
     task_dict = {} 
+    # posts to slack
+    if not task:
+        abort(404)
+    else:
+        task.completed_at = date.today()
+        db.session.commit
 
-    if completion_status == "mark_complete":
-        task.completed_at = datetime.date
-    if completion_status == "mark_incomplete":
+        PATH = 'https://slack.com/api/chat.postMessage'
+        params = {
+            "token": TOKEN,
+            "channel": "slack-api-test-channel", 
+            "text": f"Someone just completed the task {task.title}"
+        }
+        task_dict["task"] = task.to_dict()
+        requests.post(PATH, data=params)
+
+        return jsonify(task_dict), 200
+
+@task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+def mark_incomplete(task_id):
+    """UPDATES completion status of task by given id to incomplete"""
+    task = get_task_from_id(task_id)
+    task_dict = {} 
+    if not task:
+        abort(404)
+    else:
         task.completed_at = None
+        db.session.commit
+        task_dict["task"] = task.to_dict()
 
-    task_dict["task"] = task.to_dict()
+        return jsonify(task_dict), 200 
 
-    return jsonify(task_dict)
+
