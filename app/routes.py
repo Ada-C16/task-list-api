@@ -8,101 +8,114 @@ from app.models.goal import Goal
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
+# POST /tasks Create a new task to the db and return the task body.
+@tasks_bp.route("", methods = ["POST"])
+def post_new_task():
+    request_body = request.get_json()
 
-@tasks_bp.route("", methods = ["POST", "GET"])
-def handle_tasks():
+    if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
+        response_body = create_details("Invalid data")
+        return response_body, 400
+
+    new_task = Task(title=request_body["title"], description=request_body["description"], completed_at=request_body["completed_at"])
+    db.session.add(new_task)
+    db.session.commit()
+
+    response_body = create_task_body(new_task)
+    return response_body, 201
+
+# GET /tasks Get a list of all tasks. Handle sort requests via query params.
+@tasks_bp.route("", methods = ["GET"])
+def get_tasks():
+    sort_query = request.args.get("sort")
+
+    if sort_query:
     
-    if request.method == "POST":
-        request_body = request.get_json()
+        if sort_query == "asc":
+            tasks = Task.query.order_by(Task.title.asc())
 
-        if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-            return jsonify(create_details("Invalid data")), 400
+        if sort_query == "desc":
+            tasks = Task.query.order_by(Task.title.desc())
+    else:
+        tasks = Task.query.all()
 
-        new_task = Task(title = request_body["title"], description = request_body["description"], completed_at = request_body["completed_at"])
-        db.session.add(new_task)
-        db.session.commit()
+    response_body = list_of_tasks(tasks)
+    return response_body, 200
 
-        response_body = create_task_body(new_task)
-
-        return jsonify(response_body), 201
-    
-    elif request.method == "GET":
-        sort_query = request.args.get("sort")
-
-        if sort_query:
-        
-            if sort_query == "asc":
-                tasks = Task.query.order_by(Task.title.asc())
-
-            if sort_query == "desc":
-                tasks = Task.query.order_by(Task.title.desc())
-        else:
-            tasks = Task.query.all()
-
-        return jsonify_list_of_tasks(tasks)
-
-@tasks_bp.route("/<task_id>", methods = ["GET", "PUT", "DELETE"])
-def handle_one_task(task_id):
-
+# GET /tasks/<task_id>  Get a specific task.
+@tasks_bp.route("/<task_id>", methods = ["GET"])
+def get_one_task(task_id):
     task = Task.query.get(task_id)
-
     if not task: 
         return make_response("", 404)
 
-    if request.method == "GET":
-        if task.goal_id:
-            response_body = create_task_body_goal(task)
-        else:    
-            response_body = create_task_body(task)
-        return jsonify(response_body), 200
-
-    elif request.method == "DELETE":
-        db.session.delete(task)
-        db.session.commit()
-
-        return jsonify(create_details(f"Task {task.task_id} \"{task.title}\" successfully deleted"
-        )), 200 
-
-    elif request.method == "PUT":
-        updated_task_information = request.get_json()
-        task.title = updated_task_information["title"]
-        task.description = updated_task_information["description"]
-
-        db.session.commit()
-
+    if task.goal_id:
+        response_body = create_task_body_goal(task)
+    else:    
         response_body = create_task_body(task)
-        return jsonify(response_body), 200
+    return response_body, 200
 
+# PUT /tasks/<task_id> Update a specific task in the db and return the updated task body.
+@tasks_bp.route("/<task_id>", methods = ["PUT"])
+def update_one_task(task_id):
+    task = Task.query.get(task_id)
+    if not task: 
+        return make_response("", 404)
+
+    updated_task_information = request.get_json()
+    task.title = updated_task_information["title"]
+    task.description = updated_task_information["description"]
+
+    db.session.commit()
+
+    response_body = create_task_body(task)
+    return response_body, 200
+
+# DELETE /tasks/<task_id>  Delete a specific task and return details of deletion.
+@tasks_bp.route("/<task_id>", methods = ["DELETE"])
+def delete_one_task(task_id):
+    task = Task.query.get(task_id)
+    if not task: 
+        return make_response("", 404)
+
+    db.session.delete(task)
+    db.session.commit()
+
+    response_body = create_details(f"Task {task.task_id} \"{task.title}\" successfully deleted")
+    return response_body, 200 
+
+# PATCH /tasks/<task_id>/<completion_status> Update completed at date if marked complete; change to None if marked incomplete.
 @tasks_bp.route("/<task_id>/<completion_status>", methods = ["PATCH"])
 def mark_completion_status(task_id, completion_status):
     task = Task.query.get(task_id)
-
     if not task: 
         return make_response("", 404)
     
     if completion_status == "mark_complete":
         task.completed_at = datetime.utcnow()
-
-        # Send Slack post to notify task has been completed
-        import requests
-        import os
-        from dotenv import load_dotenv
-        load_dotenv()
-
-        url = "https://slack.com/api/chat.postMessage"
-        headers = {"Authorization": os.environ.get("SLACK_API_TOKEN")}
-        text = f"Someone just completed the task {task.title}"
-        data = {"channel": "task-notifications", "text": text}
-
-        requests.post(url=url, params=data, headers=headers)
-
+        send_slack_notification(task)
+    
     elif completion_status == "mark_incomplete":
         task.completed_at = None
 
     db.session.commit()
 
     response_body = create_task_body(task)
-    return jsonify(response_body), 200
+    return response_body, 200
+
+# Post a notification on Slack when a task has been marked as completed.
+def send_slack_notification(task):
+    import requests
+    import os
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    url = "https://slack.com/api/chat.postMessage"
+    headers = {"Authorization": os.environ.get("SLACK_API_TOKEN")}
+    text = f"Someone just completed the task {task.title}"
+    data = {"channel": "task-notifications", "text": text}
+
+    requests.post(url=url, params=data, headers=headers)
 
 ### Helper functions TASKS###
 
@@ -142,7 +155,7 @@ def create_details(details):
     
     return response
 
-def jsonify_list_of_tasks(tasks):
+def list_of_tasks(tasks):
         
     list_of_tasks = []
         
