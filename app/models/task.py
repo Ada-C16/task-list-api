@@ -24,3 +24,10 @@ class Task(db.Model):
             "is_complete": True if self.completed_at else False,
             "goal_id": self.goal_id
         }
+    @classmethod
+    def from_json(self, json):
+        return Task(
+            title=json["title"],
+            description=json["description"],
+            completed_at=json["completed_at"]
+        )

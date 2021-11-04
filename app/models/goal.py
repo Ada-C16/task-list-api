@@ -20,3 +20,9 @@ class Goal(db.Model):
             "title": self.title,
             "tasks": [task.to_dict() for task in self.tasks]
         }
+
+    @classmethod
+    def from_json(self, json):
+        return Goal(
+            title=json["title"]
+        )

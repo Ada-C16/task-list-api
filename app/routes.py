@@ -59,11 +59,7 @@ def create_task():
         }
         return jsonify(response_body), 400
 
-    new_task = Task(
-        title=request_body["title"],
-        description=request_body["description"],
-        completed_at=request_body["completed_at"]
-    )
+    new_task = Task.from_json(request_body)
 
     db.session.add(new_task)
     db.session.commit()
@@ -176,9 +172,7 @@ def create_one_goal():
         }
         return jsonify(response_body), 400
 
-    new_goal = Goal(
-        title=request_body["title"]
-    )
+    new_goal = Goal.from_json(request_body)
 
     db.session.add(new_goal)
     db.session.commit()
@@ -233,7 +227,7 @@ def delete_one_goal(goal_id):
 # Wave 06 Nested Routes
 
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"])
-def create_tasks_for_goal(goal_id):
+def update_tasks_for_goal(goal_id):
     goal = get_goal_from_id(goal_id)
     request_body = request.get_json()
 
