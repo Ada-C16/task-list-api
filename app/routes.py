@@ -113,8 +113,6 @@ def is_task_data_valid(input):
             return False
     if ("completed_at" not in input.keys()):
         return False
-    # elif completed_at == None:
-    #     return True
     else:
         return not completed_at or is_datetime(completed_at)
 
