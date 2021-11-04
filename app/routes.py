@@ -175,7 +175,10 @@ def handle_relationship(goal_id):
             goal.tasks.append(Task.query.get(task_id))
         db.session.commit()
         
-        response_body = goal.to_dict()
+        task_ids = [task.id for task in goal.tasks]
+        response_body = {
+            "id": goal.goal_id,
+            "task_ids": task_ids}
         return jsonify(response_body)
     
     elif request.method == "GET":
