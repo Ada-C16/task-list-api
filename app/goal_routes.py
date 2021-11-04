@@ -10,26 +10,18 @@ def get_goals():
     goals = Goal.query.all()
     goals_response = []
     for goal in goals:
-        goals_response.append({
-            "id": goal.goal_id,
-            "title": goal.title,   
-        })
+        goals_response.append(Goal.to_json(goal))
     return jsonify(goals_response), 200
 
 @goal_bp.route("", methods=["POST"])
 def post_goals():
     request_body = request.get_json()
     try:
-        new_goal = Goal(title=request_body["title"])
+        new_goal = Goal.from_json(request_body)
         db.session.add(new_goal)
         db.session.commit()
 
-        return {
-            "goal": {
-            "id": new_goal.goal_id,
-            "title": new_goal.title  
-            }
-        }, 201
+        return {"goal": Goal.to_json(new_goal)}, 201
     except KeyError:
         return {"details": "Invalid data"}, 400
 
@@ -38,12 +30,7 @@ def get_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if goal is None:
         return ("", 404)
-    return {
-        "goal": {
-        "id": goal.goal_id,
-        "title": goal.title
-        }
-    }, 200
+    return {"goal": Goal.to_json(goal)}, 200
 
 @goal_bp.route("/<goal_id>", methods=["PUT"])
 def put_goal(goal_id):
@@ -54,12 +41,7 @@ def put_goal(goal_id):
     goal.title = request_body["title"]
     db.session.commit()
     goal = Goal.query.get(goal_id)
-    return {
-        "goal": {
-        "id": goal.goal_id,
-        "title": goal.title 
-        }
-    }, 200
+    return {"goal": Goal.to_json(goal)}, 200
 
 @goal_bp.route("/<goal_id>", methods=["DELETE"])
 def delete_goal(goal_id):
@@ -97,14 +79,7 @@ def get_goal_tasks(goal_id):
         return ("", 404)
     tasks_response = []
     for task in goal.tasks:
-        tasks_response.append({
-            "id": task.task_id,
-            "goal_id": task.goal_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": bool(task.completed_at)
-        })
-    return {
-        "id": goal.goal_id,
-        "title": goal.title,
-        "tasks": tasks_response}, 200
+        tasks_response.append(Task.to_json_with_goal(task))
+    goal_tasks = Goal.to_json(goal)
+    goal_tasks["tasks"] = tasks_response
+    return goal_tasks, 200

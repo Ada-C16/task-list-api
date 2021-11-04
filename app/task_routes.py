@@ -18,33 +18,19 @@ def get_tasks():
         tasks = Task.query.all()
     tasks_response = []
     for task in tasks:
-        tasks_response.append({
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": bool(task.completed_at)    
-        })
+        tasks_response.append(Task.to_json(task))
     return jsonify(tasks_response), 200
     
 @task_bp.route("", methods=["POST"])
 def post_tasks():
     request_body = request.get_json()
     try:
-        new_task = Task(title=request_body["title"],
-        description=request_body["description"],
-        completed_at=request_body["completed_at"])
+        new_task = Task.from_json(request_body)
 
         db.session.add(new_task)
         db.session.commit()
 
-        return {
-            "task": {
-            "id": new_task.task_id,
-            "title": new_task.title,
-            "description": new_task.description,
-            "is_complete": bool(new_task.completed_at)  
-            }
-        }, 201
+        return {"task": Task.to_json(new_task)}, 201
     except KeyError:
         return {"details": "Invalid data"}, 400 
 
@@ -53,13 +39,7 @@ def get_task(task_id):
     task = Task.query.get(task_id)
     if task is None:
         return ("", 404)
-    response_body = {
-        "task": {
-        "id": task.task_id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": bool(task.completed_at)    
-    }}
+    response_body = {"task": Task.to_json(task)}
     if task.goal_id:
         response_body["task"]["goal_id"] = task.goal_id
     return (response_body, 200)
@@ -74,14 +54,7 @@ def put_task(task_id):
     task.description = request_body["description"]
     db.session.commit()
     task = Task.query.get(task_id)
-    return {
-        "task": {
-        "id": task.task_id,
-        "title": task.title,
-        "description": task.description,
-        "is_complete": bool(task.completed_at)  
-        }
-    }, 200
+    return {"task": Task.to_json(task)}, 200
 
 @task_bp.route("/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
@@ -101,21 +74,8 @@ def handle_task_completion(task_id, completion_status):
         return ("", 404)
     if completion_status == "complete":
         task.completed_at = datetime.now(timezone.utc)
-        requests.post(
-            "https://slack.com/api/chat.postMessage",
-            headers={"Authorization": f"Bearer {os.environ.get('SLACK_API_KEY')}"},
-            params={
-                "channel": "task-notifications",
-                "text": f"Someone just completed the task {task.title}"
-            })        
+        task.slack_post()        
     elif completion_status == "incomplete":
         task.completed_at = None
     db.session.commit()
-    return {
-            "task": {
-            "id": task.task_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": bool(task.completed_at)  
-            }
-        }, 200
+    return {"task": Task.to_json(task)}, 200
