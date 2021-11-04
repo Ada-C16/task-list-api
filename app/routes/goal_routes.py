@@ -1,27 +1,9 @@
 from app import db
-from flask import Blueprint, jsonify, make_response, request, abort 
-from app.models.task import Task
+from flask import Blueprint, jsonify, make_response, request 
 from app.models.goal import Goal
-import datetime, requests, os
-from dotenv import load_dotenv
+from .helpers import get_goal_from_id, get_task_from_id
 
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
-
-# Helper functions
-def confirm_valid_id(id, id_type):
-    try:
-        int(id)
-    except:
-        abort(make_response({"error": f"{id_type} must be an int"}, 400))
-
-def get_task_from_id(id):
-    confirm_valid_id(id, "task_id")
-    return Task.query.get_or_404(id)
-
-def get_goal_from_id(id):
-    confirm_valid_id(id, "goal_id")
-    return Goal.query.get_or_404(id)
-
 
 # Goals CRUD routes
 @goals_bp.route("", methods=["POST"], strict_slashes=False)
