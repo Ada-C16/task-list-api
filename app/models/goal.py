@@ -1,4 +1,6 @@
 from app import db
+from flask import request, current_app
+
 
 # parent class 
 # goal can have many tasks

@@ -1,4 +1,4 @@
-from flask import Blueprint,jsonify, request, make_response
+from flask import Blueprint,jsonify, request
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
@@ -98,7 +98,6 @@ def handle_one_task(task_id):
         if task.goal_id:
             response_body = {"task": task_goals_dict(task)}
             return jsonify(response_body), 200
-        return jsonify({"task": task_dict(task)}), 200
 
 
     elif request.method == "PUT":
