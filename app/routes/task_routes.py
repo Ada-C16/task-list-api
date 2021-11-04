@@ -10,7 +10,6 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 # Task CRUD routes
 @tasks_bp.route("", methods=["GET"], strict_slashes=False)
 def get_all_tasks():
-
     sort_query = request.args.get("sort")
     if sort_query == "asc":
         tasks = Task.query.order_by(Task.title.asc())
@@ -20,7 +19,6 @@ def get_all_tasks():
         tasks = Task.query.all()
     tasks_response = [task.to_dict() for task in tasks]
     return make_response(jsonify(tasks_response), 200)
-# should I respond with error code if table is empty?
 
 @tasks_bp.route("", methods=["POST"], strict_slashes=False)
 def create_new_task():
@@ -32,7 +30,7 @@ def create_new_task():
         try:
             d1.strptime(request_body['completed_at'], '%a, %d %b %Y %H:%M:%S %Z')
         except:
-            return make_response({"details": "completed_at must be a date formatted as: Thu, 04 Nov 2021 21:53:34 GMT"})
+            return make_response({"details": "completed_at must be a date formatted as: Thu, 04 Nov 2021 21:53:34 GMT"}, 404)
 
     new_task = Task(
         title = request_body["title"],
