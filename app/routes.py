@@ -3,6 +3,11 @@ from app.models.task import Task
 from flask import Blueprint, jsonify,request, make_response, abort
 from datetime import date
 from app.models.goal import Goal
+import slack
+import os
+from dotenv import load_dotenv
+from slack import WebClient
+from slack.errors import SlackApiError
 
 tasks_bp = Blueprint("tasks",__name__,url_prefix="/tasks")
 def valid_int(number,parameter_type):
@@ -69,6 +74,8 @@ def mark_complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     task.completed_at = date.today()
     db.session.commit()
+    task.slack_notification()
+    
     return jsonify({"task":task.to_dict()}),200
 
 @tasks_bp.route("/<task_id>/mark_incomplete",methods=["PATCH"])
@@ -128,4 +135,15 @@ def post_task_ids_to_goal(goal_id):
         task = Task.query.get(task_id)
         goal.tasks.append(task)
         db.session.commit()
-    return jsonify({"id":goal.id, "task_ids": [task.id for task in goal.tasks]}),200   
+    return jsonify({"id":goal.id, "task_ids": [task.id for task in goal.tasks]}),200 
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+def get_tasks_for_goal(goal_id):
+    
+    goal = Goal.query.get_or_404(goal_id)
+    response_body = {"id":goal.id,
+        "title":goal.title,
+        "tasks":goal.task_lists() 
+    }
+    print(response_body)
+    return jsonify(response_body),200
