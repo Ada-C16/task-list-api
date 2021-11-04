@@ -108,7 +108,6 @@ def update_task(id):
     task = get_task_from_id(id)
     request_body = request.get_json()
     
-    #if "title" or "description" not in request body return 400
     if "title" in request_body:
         task.title = request_body["title"]
     if "description" in request_body:
@@ -117,6 +116,17 @@ def update_task(id):
     db.session.commit()
     
     return make_response(jsonify({"task" : task.to_dict()}),200)
+
+@goals_bp.route("/<id>", methods=["PUT"]) 
+def update_goal(id):
+    goal = get_goal_from_id(id)
+    request_body = request.get_json()
+    
+    goal.title = request_body["title"]
+
+    db.session.commit()
+    
+    return make_response(jsonify({"goal" : goal.to_dict()}),200)
 
 #-----------------
 #UPDATE --TASK-- COMPLETION STATUS
