@@ -12,10 +12,27 @@ class Task(db.Model):
 
 
 # Create helper function for task dictionary
-
-
-
-
+    def get_task_dict(self):
+        if self.completed_at:
+            complete = True
+        else:
+            complete = False
+        
+        if self.goal_id:
+            return {
+            "id": self.id,
+            "goal_id": self.goal_id,
+            "title": self.title,
+            "description": self.description,
+            "is_complete": complete
+            }     
+        else:
+            return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "is_complete": complete
+            }
 # Create helper function for "completed_at"
 
 

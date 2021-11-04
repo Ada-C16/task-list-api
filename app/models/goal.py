@@ -8,4 +8,8 @@ class Goal(db.Model):
     tasks = db.relationship("Task", back_populates="goal", lazy=True)
     
     # Guard Clause Function (Catch None)
-
+    def get_goal_dict(self):
+        return {
+                "id": self.goal_id,
+                "title": self.title
+        }
