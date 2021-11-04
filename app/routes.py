@@ -56,6 +56,8 @@ def handle_one_task(task_id):
         return jsonify(task), 404
 
     if request.method == "GET":
+        if task.goal_id:
+            return jsonify({"task": task.task_and_goal_dict()})
         return ({"task": task.task_dict()}), 200
 
     elif request.method == "PUT":
@@ -75,21 +77,18 @@ def handle_one_task(task_id):
 
 @tasks_bp.route("<task_id>/mark_complete", methods=["PATCH"])
 def mark_task_complete(task_id):
-    URL = "https://slack.com/api/chat.postMessage"
     task= Task.query.get(task_id)
-
     if task is None:
         return jsonify(task), 404
 
     current_time = datetime.now()
     task.completed_at = current_time
+
     BOT_TOKEN = os.environ.get('BOT_TOKEN')
     requests.post(
-        URL, headers= {"Authorization": f"Bearer {BOT_TOKEN}"}, 
-        data={
-            "channel", "task_notifications", 
-            "text", f"Someone just completed the task {task.title}"
-        }
+        url="https://slack.com/api/chat.postMessage", 
+        headers={"Authorization": f"Bearer {BOT_TOKEN}"}, 
+        data={"channel": "task_notifications", "text": f"Someone just completed the task {task.title}"}
     )
 
     db.session.commit()
@@ -152,3 +151,29 @@ def handle_one_goal(goal_id):
         db.session.delete(goal)
         db.session.commit()
         return jsonify({'details': f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
+
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
+def handle_goal_and_task(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+            return jsonify(goal), 404
+
+    if request.method=="POST":
+        request_body = request.get_json()
+
+        for task_id in request_body["task_ids"]:
+            task = Task.query.get(task_id)
+            if task is None:
+                return jsonify(None), 404
+            goal.tasks.append(task)
+            db.session.commit()
+
+        task_ids = []
+        for task in goal.tasks:
+            task_ids.append(task.task_id)
+
+        return jsonify({"id": goal.goal_id, "task_ids": task_ids}), 200
+
+    elif request.method == "GET":
+        return jsonify(goal.goal_and_task_dict()), 200
