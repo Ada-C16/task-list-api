@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, make_response
+from flask import Blueprint, jsonify, request, make_response, abort
 from app import db
 from app.models.task import Task
 from app.models.goal import Goal
@@ -13,8 +13,23 @@ load_dotenv()
 tasks_bp = Blueprint("tasks_bp",__name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
-# TASK ROUTES
+# helper function to query one task and return 404 if falsey
+def query_one_task(task_id):
+    task = Task.query.get(task_id)
+    if not task:
+        abort(404)
+    else:
+        return task
 
+# helper function to query one goal and return 404 if falsey
+def query_one_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        abort(404)
+    else:
+        return goal
+
+# TASK ROUTES
 # add new task to database
 @tasks_bp.route('', methods=["POST"])
 def new_task():
@@ -54,11 +69,10 @@ def get_all_tasks():
 # gets, updates or deletes a task of a specific ID
 @tasks_bp.route('/<task_id>', methods=["GET", "PUT", "DELETE"])
 def get_one_task(task_id):
-    task = Task.query.get(task_id)
+    
+    task = query_one_task(task_id)
 
-    if not task:
-        return make_response('', 404)
-    elif request.method == "GET":
+    if request.method == "GET":
         return {"task": task.to_dict()}, 200
     elif request.method == "PUT":
         request_body = request.get_json()
@@ -76,10 +90,8 @@ def get_one_task(task_id):
 # updates a task of a specific ID to True or False at "is_complete"
 @tasks_bp.route('<task_id>/<complete_status>', methods=["PATCH"])
 def mark_task_complete(task_id, complete_status):
-    task = Task.query.get(task_id)
-
-    if not task:
-        return make_response('', 404)
+    
+    task = query_one_task(task_id)
 
     if complete_status == "mark_complete":
         task.completed_at = date.today()
@@ -134,11 +146,10 @@ def get_all_goals():
 # gets, updates or deletes a goal of a specific ID
 @goals_bp.route('/<goal_id>', methods=["GET", "PUT", "DELETE"])
 def get_one_goal(goal_id):
-    goal = Goal.query.get(goal_id)
     
-    if not goal:
-            return make_response('', 404)
-    elif request.method == "GET":
+    goal = query_one_goal(goal_id)
+
+    if request.method == "GET":
         return {"goal": goal.to_dict()}, 200
     elif request.method == "PUT":
         request_body = request.get_json()
@@ -156,9 +167,8 @@ def get_one_goal(goal_id):
 # adds tasks to a specific goal (updates)
 @goals_bp.route("<goal_id>/tasks", methods=["GET", "POST"])
 def handle_goals_tasks(goal_id):
-    goal = Goal.query.get(goal_id)
-    if not goal:
-        return make_response("", 404)
+    
+    goal = query_one_goal(goal_id)
 
     if request.method == "POST":
         request_body = request.get_json()
@@ -174,10 +184,6 @@ def handle_goals_tasks(goal_id):
         "task_ids": [task.task_id for task in goal.tasks]}, 200)
 
     if request.method == "GET":
-        goal = Goal.query.get(goal_id)
-        if not goal:
-            return make_response("", 404)
-
         goal_dict = goal.to_dict()
         goal_dict["tasks"] = [task.to_dict() for task in goal.tasks]
 
