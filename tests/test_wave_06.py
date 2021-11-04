@@ -1,5 +1,4 @@
-from app.models.goal import Goal
-
+from app.models.Goal import Goal
 
 def test_post_task_ids_to_goal(client, one_goal, three_tasks):
     # Act
