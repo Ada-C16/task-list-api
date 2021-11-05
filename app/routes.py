@@ -96,7 +96,8 @@ def send_slack_notice(this_task_title):
     myNotice = urllib.parse.quote_plus("Someone just completed the task " + this_task_title)
     my_url = "https://slack.com/api/chat.postMessage?channel=task-notifications&text=" + myNotice + "&pretty=1"
     #add a request.header "Authorization", "super secret"
-    my_headers = {'Authorization': os.environ.get("MY_SLACK_TOKEN")}
+    my_token = os.environ.get("MY_SLACK_TOKEN")
+    my_headers = {"Authorization": f"Bearer {my_token}"}
     #send
     r = requests.post(my_url, data="", headers=my_headers)
 
