@@ -2,6 +2,9 @@ from app import db
 from app.models.task import Task
 from flask import Blueprint, jsonify, request, abort, make_response
 from datetime import datetime, timezone
+import os
+from dotenv import load_dotenv
+import requests
 
 tasks_bp = Blueprint("task_list", __name__, url_prefix="/tasks")
 
@@ -17,13 +20,11 @@ def get_task_from_id(task_id):
 
 @tasks_bp.route("", methods=["POST"])
 def post_new_task():
+    
     request_body = request.get_json()
-
     if "title" not in request_body or "description" not in request_body\
          or "completed_at" not in request_body:
-        return jsonify({
-            "details": "Invalid data"
-        }), 400
+        return jsonify({"details": "Invalid data"}), 400
 
     new_task = Task(title=request_body["title"],
     description=request_body["description"],
@@ -101,6 +102,12 @@ def update_task_completion(task_id):
     task.is_complete=True
     task.completed_at = datetime.now()
     db.session.commit()
+    
+    slack_key = os.environ.get("SLACK_KEY")
+    slack_url = os.environ.get("SLACK_URL")
+    channel_id = os.environ.get("CHANNEL_ID")
+    requests.post(slack_url, headers= {'Authorization': f"Bearer {slack_key}"}, \
+        data= {'channel' : f"{channel_id}", 'text' : f"Someone just completed the task My Beautiful Task"})
     return jsonify({"task": task.to_dict()}), 200
 
 # route that will mark item as incomplete
