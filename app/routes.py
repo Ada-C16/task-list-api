@@ -95,6 +95,10 @@ def mark_task_incompleted(task_id):
     return make_response({"task": task.to_dict()}, 200)
 
 
+
+# ********************************************
+# '/goals' routes
+# ********************************************
 @goals_bp.route("", methods = ["POST", "GET"])
 def handle_goals():
     if request.method == "POST":
@@ -133,8 +137,6 @@ def handle_goal(goal_id):
         db.session.delete(goal)
         db.session.commit()
         return make_response({"details":f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
-
-
 
 @goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
 def save_tasks_for_goal(goal_id):
