@@ -8,11 +8,11 @@ class Goal(db.Model):
     tasks = db.relationship("Task", back_populates="goal", lazy=True)
 
     def to_dict(self):
-        tasks = [task.name for task in self.tasks]
+        tasks = [task.id for task in self.tasks]
         return {
             "id": self.id,
             "title": self.title,
-            "tasks": tasks
+            "task_ids": tasks
         }
     
     def update_from_dict(self, data):

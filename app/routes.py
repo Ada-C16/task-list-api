@@ -192,8 +192,11 @@ def get_tasks_related_to_goal(goal_id):
         return jsonify(None), 404
 
     form_data = request.get_json()
+    print(form_data)
 
-    for task in form_data["tasks"]:
-        goal.tasks.append(Task.query.get(id))
+    for task_id in form_data["task_ids"]:
+        goal.tasks.append(Task.query.get(task_id))
 
-    return jsonify({"id": goal.id, "task_ids": [tasks]}), 200
+    db.session.commit()
+
+    return jsonify(goal.to_dict()), 200
