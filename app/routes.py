@@ -198,7 +198,10 @@ def post_tasks_related_to_goal(goal_id):
 
     db.session.commit()
 
-    return jsonify(goal.to_dict()), 200
+    return jsonify({
+        "id": goal.id,
+        "task_ids": [task.id for task in goal.tasks]
+    }), 200
 
 @goals_bp.route("/<goal_id>/tasks", methods=["GET"])
 def get_tasks_related_to_goal(goal_id):
@@ -207,4 +210,4 @@ def get_tasks_related_to_goal(goal_id):
     if not goal:
         return jsonify(None), 404
 
-    return jsonify(goal.to_dict()), 200
+    return jsonify(goal.tasks_to_dict()), 200
