@@ -3,6 +3,8 @@ from app import db
 from app.models.task import Task
 from datetime import datetime
 from flask import abort, Blueprint, jsonify, make_response, request
+import os
+import requests
 from sqlalchemy import desc 
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -66,6 +68,16 @@ def patch_task(task_id, patch_complete):
         return make_response("", 404)
     if patch_complete == "mark_complete":
         task.completed_at=datetime.now()
+        # ID of the channel you want to send the message to
+        channel_id = "C02LA52J4AW"
+        SLACK_KEY = os.environ.get("SLACK_API_KEY")
+        text=f"Someone just completed the task {task.title}"
+        data = {
+            'channel': channel_id, 
+            'as_user': True,
+            'text': text
+        }
+        requests.post("https://slack.com/api/chat.postMessage", headers={"Authorization": f"Bearer {SLACK_KEY}"}, data=data)
     elif patch_complete == "mark_incomplete":
         task.completed_at=None
     db.session.commit()
