@@ -5,6 +5,7 @@ from app.models.goal import Goal
 import requests
 from dotenv import load_dotenv
 import os
+from datetime import date
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
@@ -70,7 +71,7 @@ def mark_task_completed(task_id):
     task = Task.query.get(task_id)
     if not task:
         return make_response("", 404)
-    task.completed_at = str(True)
+    task.completed_at = date.today()
     SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
     path = "https://slack.com/api/chat.postMessage"
     payload = {
