@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, make_response, request
 from datetime import datetime, timezone
 import os
 from slack_sdk import WebClient
-from slack.errors import SlackApiError
+from slack_sdk.errors import SlackApiError
 
 #create the blueprint for the endpoints
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
