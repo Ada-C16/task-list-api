@@ -2,7 +2,6 @@ from app import db
 from flask import Blueprint, request, abort, jsonify, make_response
 from datetime import datetime
 from dotenv import load_dotenv
-# from functools import wraps
 import os
 import requests
 from app.models.task import Task
@@ -11,34 +10,6 @@ from app.utils.route_wrappers import require_instance_or_404
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
-
-# # Alternate --> util module/helper functions, route_wrappers.py
-# def require_instance_or_404(endpoint):
-#     """Decorator to validate input data."""
-#     @wraps(endpoint) # Makes fn look like func to return
-#     def fn(*args, **kwargs):
-#         if "task_id" in kwargs:
-#             task_id = kwargs.get("task_id", None)
-#             task = Task.query.get(task_id)
-
-#             if not task:
-#                 return jsonify(None), 404 # null
-
-#             kwargs.pop("task_id")
-#             return endpoint(*args, task=task, **kwargs)
-        
-#         elif "goal_id" in kwargs:
-#             goal_id = kwargs.get("goal_id", None)
-#             goal = Goal.query.get(goal_id)
-
-#             if not goal:
-#                 return jsonify(None), 404
-
-#             kwargs.pop("goal_id")
-#             return endpoint(*args, goal=goal, **kwargs)
-
-#     return fn
-
 
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
@@ -72,8 +43,6 @@ def get_task(task):
 def post_task():
     """Create a new task from JSON data."""
     form_data = request.get_json()
-
-    #TODO: Refactor to validation decorator helper method
 
     # All fields must be provided
     mandatory_fields = ["title", "description", "completed_at"]
