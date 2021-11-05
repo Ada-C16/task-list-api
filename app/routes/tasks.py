@@ -62,7 +62,7 @@ def read_all_tasks():
         abort(400)
 
 
-''' GET <task_id>  - this functions returns a functions when 
+''' GET <task_id>  - this function returns a function when 
                     an unique id is passed in the request body
                     if not found returns 404 error
 '''
@@ -82,7 +82,7 @@ def read_one_drink(task_id):
         abort(400)
 
 
-''' DELETE      - this functions handles the deletion of a task by its id
+''' DELETE      - this function handles the deletion of a task by its id
 '''
 
 @task_bp.route("/<task_id>", methods=['DELETE'])
@@ -100,7 +100,7 @@ def delete_one_task(task_id):
 
 
 
-''' PATCH   - this functions updates a task by its id'''
+''' PUT   - this function updates a task by its id'''
 
 @task_bp.route("/<task_id>", methods=["PUT"])
 def update_task(task_id):
@@ -128,7 +128,7 @@ def update_task(task_id):
         abort(400)
 
 
-# use a dynamic route to handle is complete and else 
+# use a dynamic route to handle is complete and else - CUSTOM ROUTE
 # SLACK API
 @task_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
 def mark_complete(task_id):
@@ -138,12 +138,11 @@ def mark_complete(task_id):
     try:
         if task.completed_at == None:
             task.completed_at = date
-
         db.session.commit()
         response_body = {
                 "task": task.to_dict()} 
 
-        # send slack notification 
+        # send slack notificatios
         message = f"Someone just completed the task {task.title}"     
         post_msg_slack(message)
 

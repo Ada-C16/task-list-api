@@ -24,8 +24,7 @@ def create_goal():
         response_body = {
             "goal": new_goal.to_dict()
         }
-        return make_response(jsonify(response_body),201)
-    
+        return make_response(jsonify(response_body),201)  
     except:
         abort(422)
 
@@ -38,8 +37,7 @@ def read_all_goals():
         response_body = []
         for goal in goals:
             response_body.append(goal.to_dict())     
-        return  make_response(jsonify(response_body), 200)
-    
+        return  make_response(jsonify(response_body), 200)   
     except:
         abort(400)
 
@@ -51,7 +49,6 @@ def read_one_goal(goal_id):
     try:
         response_body = {"goal": goal.to_dict()}
         return make_response(jsonify(response_body)), 200
-
     except Exception: 
         abort(400)
 
@@ -64,9 +61,7 @@ def delete_goal(goal_id):
         db.session.delete(goal)
         db.session.commit()
         response_body ={"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
-
         return make_response(response_body), 200
-
     except Exception:
         abort(422)
 
@@ -74,7 +69,6 @@ def delete_goal(goal_id):
 @goal_bp.route("/<goal_id>", methods=["PUT"])
 def update_goal(goal_id):
     goal = get_goal_by_id(goal_id)
-
     try:
         request_body = request.get_json()
         if not request_body: 
@@ -83,17 +77,15 @@ def update_goal(goal_id):
             goal.title = request_body["title"]
         # commit changes to db
         db.session.commit()
-    
         response_body = {
             "goal": goal.to_dict()
         }
         return make_response(response_body, 200)
-
     except Exception: 
         abort(400)
 
 
-''' -------- GOAL/TASK RELATIONSHIP --------'''
+''' -------- GOAL/TASK ONE-TO-MANY RELATIONSHIP --------'''
 
 
 # POST
@@ -134,8 +126,7 @@ def read_tasks_goals(goal_id):
         response_body = {"id": goal.goal_id, 
                         "title": goal.title,
                         "tasks": tasks_list}
-        return make_response(jsonify(response_body)), 200
-        
+        return make_response(jsonify(response_body)), 200    
     except Exception:
         abort(422)
 
@@ -168,6 +159,3 @@ def valid_int(number, parameter_type):
         int(number)
     except:
         abort(make_response({"error": f'{parameter_type} must be an integer'}, 400))
-def get_task_by_id(task_id):
-    valid_int(task_id, "task_id")
-    return Task.query.get_or_404(task_id, description='{Task not found}')
