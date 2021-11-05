@@ -139,10 +139,14 @@ def mark_task_complete(task_id):
 # now db record shows timestamp for completed_at
     db.session.commit()
     is_complete = task.completed_at is not None
-    query_params = {"channel": "slack-api-test-channel",
+    
+    try:
+        query_params = {"channel": "slack-api-test-channel",
         "text": f"Someone just completed the task {task.title}"}
-    header_param = {"Authorization": "Bearer "+ os.environ.get("slack_oauth_token")}
-    slack_post_body = requests.post(slack_path, params=query_params, headers= header_param)
+        header_param = {"Authorization": "Bearer "+ os.environ.get("slack_oauth_token")}
+        slack_post_body = requests.post(slack_path, params=query_params, headers= header_param)
+    except TypeError:
+        pass
 # response body doesn't want to show timestamp, just True, so changing is_complete to True
     return make_response({"task": {"id": task.task_id,
                                     "title": task.title,
