@@ -39,8 +39,6 @@ def get_task(task_id):
     if task is None:
         return ("", 404)
     response_body = {"task": Task.to_json(task)}
-    if task.goal_id:
-        response_body["task"]["goal_id"] = task.goal_id
     return (response_body, 200)
     
 @task_bp.route("/<task_id>", methods=["PUT"])

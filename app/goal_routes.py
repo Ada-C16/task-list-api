@@ -83,7 +83,7 @@ def get_goal_tasks(goal_id):
     goal = Goal.query.get(goal_id)
     if goal is None:
         return ("", 404)
-    tasks_response = [Task.to_json_with_goal(task) for task in goal.tasks]
+    tasks_response = [Task.to_json(task) for task in goal.tasks]
     goal_tasks = Goal.to_json(goal)
     goal_tasks["tasks"] = tasks_response
     return goal_tasks, 200
