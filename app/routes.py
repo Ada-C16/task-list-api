@@ -12,20 +12,32 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
 # Alternate --> util module/helper functions, route_wrappers.py
-def require_task_or_404(endpoint):
+def require_instance_or_404(endpoint):
     """Decorator to validate input data."""
     @wraps(endpoint) # Makes fn look like func to return
     def fn(*args, **kwargs):
-        task_id = kwargs.get("task_id", None)
-        task = Task.query.get(task_id)
+        if "task_id" in kwargs:
+            task_id = kwargs.get("task_id", None)
+            task = Task.query.get(task_id)
 
-        if not task:
-            return jsonify(None), 404             ## null
+            if not task:
+                return jsonify(None), 404 # null
 
-        kwargs.pop("task_id")
-        return endpoint(*args, task=task, **kwargs)
+            kwargs.pop("task_id")
+            return endpoint(*args, task=task, **kwargs)
+        
+        elif "goal_id" in kwargs:
+            goal_id = kwargs.get("goal_id", None)
+            goal = Goal.query.get(goal_id)
+
+            if not goal:
+                return jsonify(None), 404
+
+            kwargs.pop("goal_id")
+            return endpoint(*args, goal=goal, **kwargs)
 
     return fn
+
 
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
@@ -47,7 +59,7 @@ def get_tasks():
     return jsonify([task.to_dict() for task in query]), 200
 
 @tasks_bp.route("/<task_id>", methods=["GET"])
-@require_task_or_404
+@require_instance_or_404
 def get_task(task):
     """Retrieve one stored task by id."""
     if task.goal_id:
@@ -79,7 +91,7 @@ def post_task():
     return {"task": new_task.to_dict()}, 201
 
 @tasks_bp.route("/<task_id>", methods=["PUT"])
-@require_task_or_404
+@require_instance_or_404
 def put_task(task):
     """Updates task by id."""
     form_data = request.get_json()
@@ -91,7 +103,7 @@ def put_task(task):
     return {"task": task.to_dict()}, 200
 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
-@require_task_or_404
+@require_instance_or_404
 def update_task_to_complete(task):
     """Updates task at particular id to completed using PATCH."""
     # Make call to Slack API if task newly completed
@@ -116,7 +128,7 @@ def update_task_to_complete(task):
     return {"task": task.to_dict()}, 200
 
 @tasks_bp.route("<task_id>/mark_incomplete", methods=["PATCH"])
-@require_task_or_404
+@require_instance_or_404
 def update_task_to_incomplete(task):
     """Updates task at particular id to incomplete using PATCH."""
     task.completed_at = None
@@ -124,7 +136,7 @@ def update_task_to_incomplete(task):
     return {"task": task.to_dict()}, 200
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
-@require_task_or_404
+@require_instance_or_404
 def delete_task(task):
     """Deletes task by id."""
     db.session.delete(task)
@@ -142,10 +154,9 @@ def get_goals():
     return jsonify([goal.to_dict() for goal in goals]), 200
 
 @goals_bp.route("/<goal_id>", methods=["GET"])
-def get_goal(goal_id):
+@require_instance_or_404
+def get_goal(goal):
     """Retrieve one stored goal by id."""
-    goal = Goal.query.get_or_404(goal_id)
-
     return jsonify({"goal": goal.to_dict()}), 200
 
 @goals_bp.route("", methods=["POST"])
@@ -165,21 +176,20 @@ def create_goal():
     return jsonify({"goal": new_goal.to_dict()}), 201
 
 @goals_bp.route("/<goal_id>", methods=["PUT"])
-def update_goal(goal_id):
+@require_instance_or_404
+def update_goal(goal):
     """Updates goal by id."""
     form_data = request.get_json()
 
-    goal = Goal.query.get(goal_id)
     goal.update_from_dict(form_data)
     db.session.commit()
 
     return jsonify({"goal": goal.to_dict()}), 200
 
 @goals_bp.route("/<goal_id>", methods=["DELETE"])
-def delete_goal(goal_id):
+@require_instance_or_404
+def delete_goal(goal):
     """Deletes goal by id."""
-    goal = Goal.query.get(goal_id)
-
     db.session.delete(goal)
     db.session.commit()
 
@@ -188,12 +198,9 @@ def delete_goal(goal_id):
     }, 200
 
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"])
-def post_tasks_related_to_goal(goal_id):
+@require_instance_or_404
+def post_tasks_related_to_goal(goal):
     """Adds tasks to goal wiht id."""
-    goal = Goal.query.get(goal_id)
-    if not goal:
-        return jsonify(None), 404
-
     form_data = request.get_json()
 
     for task_id in form_data["task_ids"]:
@@ -207,10 +214,7 @@ def post_tasks_related_to_goal(goal_id):
     }), 200
 
 @goals_bp.route("/<goal_id>/tasks", methods=["GET"])
-def get_tasks_related_to_goal(goal_id):
+@require_instance_or_404
+def get_tasks_related_to_goal(goal):
     """Retrieves all tasks associated with goal id."""
-    goal = Goal.query.get(goal_id)
-    if not goal:
-        return jsonify(None), 404
-
     return jsonify(goal.tasks_to_dict()), 200
