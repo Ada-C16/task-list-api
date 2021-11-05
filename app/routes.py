@@ -5,7 +5,7 @@ from app.models.goal import Goal
 from flask import Blueprint, jsonify, make_response, request
 from datetime import datetime, timezone
 import os
-from slack import WebClient
+from slack_sdk import WebClient
 from slack.errors import SlackApiError
 
 #create the blueprint for the endpoints
