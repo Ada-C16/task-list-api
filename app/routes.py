@@ -1,12 +1,13 @@
 from app import db
 from app.models.task import Task
-from flask import Blueprint, jsonify,request, make_response, abort
+from flask import Blueprint, jsonify,request, make_response, abort 
 from datetime import date
 from app.models.goal import Goal
 import os
+import requests
 from dotenv import load_dotenv
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
+# from slack_sdk import WebClient
+# from slack_sdk.errors import SlackApiError
 
 
 def valid_int(number,parameter_type):
@@ -15,17 +16,17 @@ def valid_int(number,parameter_type):
     except:
         abort(make_response({"error":f"{parameter_type} must be an int"},400))
 
-def slack_notification():
-    load_dotenv()
-    slack_token = os.environ["SLACK_TOKENS"]
-    client = WebClient(token=slack_token)
-    try:
-        response = client.chat_postMessage(
-            channel ="CNEEJDLAW",
-            text = "Task completed"
-        )
-    except SlackApiError as e:
-        return jsonify({"Error": "chanel not found"})
+# def slack_notification():
+#     load_dotenv()
+#     slack_token = os.environ["SLACK_TOKENS"]
+#     client = WebClient(token=slack_token)
+#     try:
+#         response = client.chat_postMessage(
+#             channel ="CNEEJDLAW",
+#             text = "Task completed"
+#         )
+#     except SlackApiError as e:
+#         return jsonify({"Error": "chanel not found"})
             
 tasks_bp = Blueprint("tasks",__name__,url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__,url_prefix="/goals")
@@ -87,7 +88,16 @@ def mark_complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     task.completed_at = date.today()
     db.session.commit()
-    slack_notification()
+    path = "https://slack.com/api/chat.postMessage"
+    SLACK_TOKENS = os.environ.get("SLACK_TOKENS")
+    query_param = {
+        "token":SLACK_TOKENS,
+        "channel":"CNEEJDLAW",
+        "text": "Task completed"
+    }
+    requests.post(path,query_param)
+    # slack_notification()
+    
     return jsonify({"task":task.to_dict()}),200
 
 @tasks_bp.route("/<task_id>/mark_incomplete",methods=["PATCH"])
