@@ -185,18 +185,26 @@ def delete_goal(goal_id):
     }, 200
 
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"])
-def get_tasks_related_to_goal(goal_id):
-    """Retrieves all tasks associated with goal id."""
+def post_tasks_related_to_goal(goal_id):
+    """Adds tasks to goal wiht id."""
     goal = Goal.query.get(goal_id)
     if not goal:
         return jsonify(None), 404
 
     form_data = request.get_json()
-    print(form_data)
 
     for task_id in form_data["task_ids"]:
         goal.tasks.append(Task.query.get(task_id))
 
     db.session.commit()
+
+    return jsonify(goal.to_dict()), 200
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+def get_tasks_related_to_goal(goal_id):
+    """Retrieves all tasks associated with goal id."""
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return jsonify(None), 404
 
     return jsonify(goal.to_dict()), 200
