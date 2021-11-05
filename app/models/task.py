@@ -1,10 +1,10 @@
 from flask import current_app
 from app import db
-import datetime
-
-# MAC - Don't forget migrate and upgrade!
 
 class Task(db.Model):
+    """Database model with task_id, title, description, \
+        data and time for completion, \
+        and relationship with the one goal it is connected to"""
     task_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String)
     description = db.Column(db.String)
@@ -12,6 +12,8 @@ class Task(db.Model):
     goal_id = db.Column(db.Integer, db.ForeignKey("goal.goal_id"), nullable=True)
 
     def to_dict(self):
+        """Returns a dictionary with Task id, title, description, T/F is_complete,\
+            and goal_ids IF goal_ids are present."""
         is_complete = True
         if not self.completed_at: 
             is_complete = False
