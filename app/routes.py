@@ -183,3 +183,17 @@ def delete_goal(goal_id):
     return {
         "details": f"Goal {goal.id} \"{goal.title}\" successfully deleted"
     }, 200
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def get_tasks_related_to_goal(goal_id):
+    """Retrieves all tasks associated with goal id."""
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return jsonify(None), 404
+
+    form_data = request.get_json()
+
+    for task in form_data["tasks"]:
+        goal.tasks.append(Task.query.get(id))
+
+    return jsonify({"id": goal.id, "task_ids": [tasks]}), 200
