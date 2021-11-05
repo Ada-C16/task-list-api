@@ -9,7 +9,9 @@ import os
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
 
-
+# ********************************************
+# '/tasks' routes
+# ********************************************
 @tasks_bp.route("", methods = ["POST", "GET"])
 def handle_tasks():
     if request.method == "POST":
@@ -21,7 +23,8 @@ def handle_tasks():
         new_task = Task(
             title = request_body["title"],
             description = request_body["description"],
-            completed_at = request_body["completed_at"]
+            completed_at = request_body["completed_at"],
+            
         )
         db.session.add(new_task)
         db.session.commit()
@@ -131,6 +134,43 @@ def handle_goal(goal_id):
         return make_response({"details":f'Goal {goal.goal_id} "{goal.title}" successfully deleted'})
 
 
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
+def save_tasks_for_goal(goal_id):
+    request_body = request.get_json()
+    if request.method == "POST":
+        for task_id in request_body["task_ids"]:
+            task = Task.query.get(task_id)
+            if task is None:
+                return make_response("", 404)
+            task.goal_id_fk = goal_id
+            db.session.commit()
+
+        return make_response({
+            "id": int(goal_id),
+            "task_ids": request_body["task_ids"]
+        }, 200)
+
+
+    elif request.method == "GET":
+        goal = Goal.query.get(goal_id)
+        if not goal:
+            return make_response("", 404)
+        tasks_response = []
+        for tasks in goal.tasks:
+            tasks_response.append(
+                tasks.to_dict()
+                )    
+        return jsonify({
+            "id": goal.goal_id,
+            "title": goal.title,
+            "tasks": tasks_response
+        })
+        
+     
+
+        
+    
 
 
 

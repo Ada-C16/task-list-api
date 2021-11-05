@@ -11,10 +11,20 @@ class Task(db.Model):
     __tablename__ = 'tasks'
 
     def to_dict(self):
-        return({
-            "id": self.task_id,
-            "title": self.title,
-            "description": self.description,
-            "is_complete": bool(self.completed_at)
-        })
+        if self.goal_id_fk: 
+            return({
+                "id": self.task_id,
+                "title": self.title,
+                "description": self.description,
+                "is_complete": bool(self.completed_at),
+                "goal_id": self.goal_id_fk
+            })
+        else:
+            return({
+                "id": self.task_id,
+                "title": self.title,
+                "description": self.description,
+                "is_complete": bool(self.completed_at)
+                
+            })
 
