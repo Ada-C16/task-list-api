@@ -2,8 +2,6 @@ from flask import Blueprint, jsonify, abort, request
 from app import db
 from app.models.goal import Goal
 from app.models.task import Task
-import requests
-import os
 from dotenv import load_dotenv 
 
 load_dotenv()
@@ -78,6 +76,8 @@ def handle_tasks_realted_to_goal(goal_id):
         return {"id": int(goal_id), "task_ids": request_body["task_ids"]}, 200
 
     if request.method == "GET": 
-        goal = goal.to_dict()
-        goal["tasks"] = [valid_id(Task, task_id) for task_id in goal.tasks]
-        return goal, 200
+        goal_dict = goal.to_dict()
+        
+        goal_dict["tasks"] = [valid_id(Task, task.task_id).to_dict() for task in goal.tasks]
+
+        return goal_dict, 200
