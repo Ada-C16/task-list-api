@@ -174,7 +174,10 @@ def post_tasks_related_to_goal(goal):
     form_data = request.get_json()
 
     for task_id in form_data["task_ids"]:
-        goal.tasks.append(Task.query.get(task_id))
+        query = Task.query.get(task_id)
+        if not query:
+            continue
+        goal.tasks.append(query)
 
     db.session.commit()
 
