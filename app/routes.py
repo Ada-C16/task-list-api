@@ -50,7 +50,10 @@ def get_tasks():
 @require_task_or_404
 def get_task(task):
     """Retrieve one stored task by id."""
-    return jsonify({"task": task.to_dict()}), 200
+    if task.goal_id:
+        return jsonify({"task": task.goals_to_dict()}), 200
+    else:
+        return jsonify({"task": task.to_dict()}), 200
 
 @tasks_bp.route("", methods=["POST"])
 def post_task():
