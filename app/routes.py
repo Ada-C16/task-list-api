@@ -14,6 +14,8 @@ load_dotenv()
 tasks_bp = Blueprint("tasks", __name__, url_prefix ="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix ="/goals")
 
+#Task section 
+
 @tasks_bp.route("", methods=["POST"])
 def create_new_task():
     request_body = request.get_json()
@@ -60,12 +62,7 @@ def change_data(task_id):
         task.description = form_data["description"]
         db.session.commit()
         return {
-            "task":{
-                "id": task.task_id, 
-                "title": task.title, 
-                "description": task.description, 
-                "is_complete": bool(task.completed_at)
-                }}
+            "task":task.to_dict()}
     else:
         return jsonify(None), 404
 
@@ -101,7 +98,7 @@ def task_complete(task_id):
 
     return {"task": task.to_dict()}
 
-
+#Slack message function 
 def post_message_to_slack(text):
     slack_token = os.environ.get('SLACK_BOT_TOKEN')
     slack_channel = os.environ.get('slack_channel_num')
@@ -138,10 +135,8 @@ def get_single_goal(goal_id):
     goal = Goal.query.get(goal_id)
     if goal:
         return {
-            "goal":{
-                "id": goal.goal_id, 
-                "title": goal.title, 
-                }}, 200
+            "goal":goal.to_dict_goal(), 
+                }, 200
     else:
         return jsonify(None), 404
 
@@ -153,11 +148,7 @@ def change_goal_data(goal_id):
     if goal:
         goal.title = form_data["title"]
         db.session.commit()
-        return {
-            "goal":{
-                "id": goal.goal_id, 
-                "title": goal.title, 
-                }}
+        return {"goal":goal.to_dict_goal(),}
     else:
         return jsonify(None), 404
 
@@ -193,13 +184,7 @@ def get_goal_task(goal_id):
     tasks = Task.query.filter_by(goal_id=goal.goal_id)
     task_list = []
     for task in tasks:
-        task_list.append({
-            "id": task.task_id,
-            "goal_id": task.goal_id,
-            "title": task.title,
-            "description": task.description,
-            "is_complete": bool(task.completed_at)
-        })
+        task_list.append(task.to_dict())
 
     return make_response({"id":goal.goal_id, "title": goal.title, "tasks": task_list}, 200)
 

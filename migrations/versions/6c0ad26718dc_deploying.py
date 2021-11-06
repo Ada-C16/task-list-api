@@ -1,8 +1,8 @@
-"""empty message
+"""deploying
 
-Revision ID: 331a96b67fcf
+Revision ID: 6c0ad26718dc
 Revises: 
-Create Date: 2021-11-03 15:32:55.987100
+Create Date: 2021-11-03 20:24:53.480046
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '331a96b67fcf'
+revision = '6c0ad26718dc'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -28,8 +28,8 @@ def upgrade():
     sa.Column('title', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=True),
     sa.Column('completed_at', sa.DateTime(), nullable=True),
-    sa.Column('goal_id_a', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['goal_id_a'], ['goals.goal_id'], ),
+    sa.Column('goal_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['goal_id'], ['goals.goal_id'], ),
     sa.PrimaryKeyConstraint('task_id')
     )
     # ### end Alembic commands ###
