@@ -39,13 +39,13 @@ def handle_tasks():
         sort_query = request.args.get("sort")
         if sort_query == "asc":
             tasks = Task.query.order_by(asc("title"))
-            task_response = [task.task_dict() for task in tasks]
         elif sort_query == "desc":
             tasks = Task.query.order_by(desc("title"))
-            task_response = [task.task_dict() for task in tasks]
         else:
             tasks = Task.query.all()
-            task_response = [task.task_dict() for task in tasks]
+
+        task_response = [task.task_dict() for task in tasks]
+
         return jsonify(task_response), 200
 
 
@@ -159,7 +159,10 @@ def handle_goal_and_task(goal_id):
     if goal is None:
             return jsonify(goal), 404
 
-    if request.method=="POST":
+    if request.method == "GET":
+        return jsonify(goal.goal_and_task_dict()), 200
+
+    elif request.method=="POST":
         request_body = request.get_json()
 
         for task_id in request_body["task_ids"]:
@@ -174,6 +177,3 @@ def handle_goal_and_task(goal_id):
             task_ids.append(task.task_id)
 
         return jsonify({"id": goal.goal_id, "task_ids": task_ids}), 200
-
-    elif request.method == "GET":
-        return jsonify(goal.goal_and_task_dict()), 200
