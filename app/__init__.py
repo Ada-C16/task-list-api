@@ -5,13 +5,15 @@ import os
 from dotenv import load_dotenv
 
 
+
 db = SQLAlchemy()
 migrate = Migrate()
 load_dotenv()
 
 
+#Factory Function:
 def create_app(test_config=None):
-    app = Flask(__name__)
+    app = Flask(__name__) #line that creates the flask app
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     if test_config is None:
@@ -19,6 +21,7 @@ def create_app(test_config=None):
             "SQLALCHEMY_DATABASE_URI")
     else:
         app.config["TESTING"] = True
+        
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
             "SQLALCHEMY_TEST_DATABASE_URI")
 
@@ -30,5 +33,8 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
 
     # Register Blueprints here
-
+    #Blueprints group the endpoints of our models
+    from .routes import task_bp, goal_bp
+    app.register_blueprint(task_bp)
+    app.register_blueprint(goal_bp)
     return app
