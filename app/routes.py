@@ -7,6 +7,8 @@ from datetime import datetime
 import requests
 import os
 
+
+
 # DEFINE BLUEPRINT
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
@@ -151,7 +153,6 @@ def read_goal_tasks(goal_id):
             "is_complete": task.is_complete(),
         })
 
-
     return (jsonify({"id": int(goal_id), "title": goal.title, "tasks": goal_tasks_response}), 200)
     
 #-----------------
@@ -192,17 +193,18 @@ def mark_complete(id, completion_status):
         task.completed_at = datetime.date
         
         #SLACK MESSAGING
-        # SLACK_MSG_URL = 'https//slack.com/api/com.postMessage'
-        # SLACK_MSG_CHANNEL = 'task-notifications'
-        # SLACK_BOT_USERNAME = 'AliesBot'
-        # SLACK_TOKEN = 'xoxb21582911322942688710391650efd5ToZNAmN0gXxyri2orNvT'
-        # slack_msg = "Someone did a thing!"
-        # slack_response = request.post(SLACK_MSG_URL,{
-        #     "token": SLACK_TOKEN, 
-        #     "channel": SLACK_MSG_CHANNEL,
-        #     "text": slack_msg,
-        #     "username": SLACK_BOT_USERNAME
-        #     })
+        SLACK_MSG_URL = 'https//slack.com/api/com.postMessage'
+        SLACK_MSG_CHANNEL = 'task-notifications'
+        SLACK_BOT_USERNAME = 'AliesBot'
+        SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
+        slack_msg = "Someone did a thing!"
+        
+        requests.post(SLACK_MSG_URL,{
+            "token": SLACK_TOKEN, 
+            "channel": SLACK_MSG_CHANNEL,
+            "text": slack_msg,
+            "username": SLACK_BOT_USERNAME
+            })
 
     if completion_status == "mark_incomplete":
         task.completed_at = None
