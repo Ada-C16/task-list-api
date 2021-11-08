@@ -83,8 +83,8 @@ def test_create_task_with_none_completed_at(client):
     assert new_task.description == "Test Description"
     assert new_task.completed_at == None
 
-
 def test_update_task(client, one_task):
+
     # Act
     response = client.put("/tasks/1", json={
         "title": "Updated Task Title",
