@@ -1,10 +1,11 @@
+import re
 from flask import Blueprint, jsonify, request
 from flask.helpers import make_response
 from app.models.task import Task
 from app.models.goal import Goal
 import requests
-from datetime import datetime # datetime is a Python package so no need for "from datetime"
-from app import db # Why from app and not app.__init___?
+from datetime import datetime 
+from app import db
 import os
 from dotenv import load_dotenv
 
@@ -23,9 +24,6 @@ def create_task():
         completed_at=request_body["completed_at"]
         )
     
-    # SQLAlachemy has a class named session. Inside that class there is an instane method call add.
-    # This is telling SQLAlachemy to add new_task to the database. Think of add as a staging process
-
     db.session.add(new_task) 
     db.session.commit()
     
@@ -42,17 +40,15 @@ def create_task():
 
 @tasks_bp.route("", methods=["GET"])
 def read_tasks():
-    title_query = request.args.get("sort") 
-    # Is "sort" a keyword? Can you replace it with "low" or "high"? Why not pass in "title"?
-    # Queries are the records (i.e. rows)
+    title_query = request.args.get("sort")
+
     if title_query == "asc":
         tasks = Task.query.order_by(Task.title.asc())
     elif title_query == "desc":
         tasks = Task.query.order_by(Task.title.desc())
     else:
         tasks = Task.query.all() 
-    # Because Task is referring to a table, we are capturing all the records (rows) in the table and holding it in tasks.
-
+    
     task_responses = []
     for task in tasks:
         task_responses.append(
@@ -71,20 +67,28 @@ def read_task(task_id):
     task_id = int(task_id)
     task = Task.query.get(task_id)
     
-    task_dict = {}
     if task == None:
         return jsonify(None), 404
-    else: 
-        task_dict = {
+
+    if not task.goal_id:
+        return jsonify({
             "task": {
-                "id": task.task_id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": task.completed_at is not None
+            "id": task.task_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": False if task.completed_at == None else True
         }
-    }
-    
-    return jsonify(task_dict), 200
+        }), 200
+    else:
+        return jsonify({
+            "task": {
+            "id": task.task_id,
+            "goal_id": task.goal_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": False if task.completed_at == None else True
+        }
+        }), 200
 
 @tasks_bp.route("/<task_id>",methods=["PUT"])
 def update_task(task_id):
@@ -118,8 +122,6 @@ def update_task(task_id):
 def delete_task(task_id):
     task_id = int(task_id)
     task = Task.query.get(task_id)
-
-    # deleted_body = request.get_json()
     
     if task == None:
         return jsonify(None), 404
@@ -152,18 +154,6 @@ def update_complete(task_id):
 
     slack_bot(task.title)
 
-    # updated_body = request.get_json()
-
-
-    # if "title" in updated_body:
-    #     task.title = updated_body["title"]
-    # elif "description" in updated_body:
-    #     task.description = updated_body["description"]
-    # elif "completed_at" in updated_body:
-    #     task.completed_at = updated_body["completed_at"]
-    
-    # db.session.commit()
-    # Isn't task updated with the correct/updated title, description, and completed_at at this point? 
     task_dict = {}
     task_dict = {
             "task": {
@@ -183,17 +173,11 @@ def update_incomplete(task_id):
 
     if task == None:
         return jsonify(None), 404
+    
     task.completed_at = None
 
     db.session.commit()
-    # updated_body = request.get_json()
 
-
-    # if "title" in updated_body:
-    #     task.title = updated_body["title"]
-    # elif "description" in updated_body:
-    #     task.description = updated_body["description"]
-    
     task_dict = {}
     task_dict = {
             "task": {
@@ -234,15 +218,13 @@ def create_goal():
 @goals_bp.route("", methods=["GET"])
 def read_goals():
     title_query = request.args.get("sort") 
-    # Is "sort" a keyword? Can you replace it with "low" or "high"? Why not pass in "title"?
-    # Queries are the records (i.e. rows)
+
     if title_query == "asc":
         goals = Goal.query.order_by(Goal.title.asc())
     elif title_query == "desc":
         goals = Goal.query.order_by(Goal.title.desc())
     else:
         goals = Goal.query.all() 
-    # Because Task is referring to a table, we are capturing all the records (rows) in the table and holding it in tasks.
 
     goal_responses = []
     for goal in goals:
@@ -303,7 +285,6 @@ def delete_goal(goal_id):
     goal_id = int(goal_id)
     goal = Goal.query.get(goal_id)
 
-    # deleted_body = request.get_json()
     
     if goal == None:
         return jsonify(None), 404
@@ -317,75 +298,36 @@ def delete_goal(goal_id):
         "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
     return jsonify(response_body), 200
 
-# def slack_bot(title):
-#     query_path = {'channel':'slack_api_test_channel', 'text': title}
-#     header = {'Authorization': os.environ.get('BOT')}
-#     response = requests.post('https://slack.com/api/chat.postMessage', params = query_path, headers = header)
-#     return response.json()
+@goals_bp.route("/<goal_id>/tasks", methods=["POST", "GET"])
+def create_list(goal_id):
+    goal_id = int(goal_id)
+    goal = Goal.query.get(goal_id)
 
-# @goals_bp.route("/<goal_id>/mark_complete", methods=["PATCH"])
-# def update_complete(task_id):
-#     task_id = int(task_id)
-#     task = Task.query.get(task_id)
+    if goal == None:
+        return jsonify(None), 404
 
-#     if task == None:
-#         return jsonify(None), 404
+    if request.method == "POST":
+        request_body = request.get_json()
+        task_ids = request_body["task_ids"]
 
-#     task.completed_at = datetime.now()
-#     db.session.commit()
+        for task_id in task_ids:
+            task = Task.query.get(task_id)
+            task.goal_id = goal.goal_id
+        
+        db.session.commit()
+        
+        return jsonify({"id": goal.goal_id, "task_ids": request_body["task_ids"]}), 200
 
-#     slack_bot(task.title)
+    elif request.method == "GET":
+        tasks_and_goals = []
 
-#     # updated_body = request.get_json()
-
-
-#     # if "title" in updated_body:
-#     #     task.title = updated_body["title"]
-#     # elif "description" in updated_body:
-#     #     task.description = updated_body["description"]
-#     # elif "completed_at" in updated_body:
-#     #     task.completed_at = updated_body["completed_at"]
-    
-#     # db.session.commit()
-#     # Isn't task updated with the correct/updated title, description, and completed_at at this point? 
-#     task_dict = {}
-#     task_dict = {
-#             "task": {
-#                 "id": task.task_id,
-#                 "title": task.title,
-#                 "description": task.description,
-#                 "is_complete": task.completed_at is not None
-#             }
-#         }
-    
-#     return jsonify(task_dict), 200
-
-# @tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
-# def update_incomplete(task_id):
-#     task_id = int(task_id)
-#     task = Task.query.get(task_id)
-
-#     if task == None:
-#         return jsonify(None), 404
-#     task.completed_at = None
-
-#     db.session.commit()
-#     # updated_body = request.get_json()
-
-
-#     # if "title" in updated_body:
-#     #     task.title = updated_body["title"]
-#     # elif "description" in updated_body:
-#     #     task.description = updated_body["description"]
-    
-#     task_dict = {}
-#     task_dict = {
-#             "task": {
-#                 "id": task.task_id,
-#                 "title": task.title,
-#                 "description": task.description,
-#                 "is_complete": task.completed_at is not None
-#             }
-#         }
-    
-#     return jsonify(task_dict), 200
+        for task in goal.tasks:
+            tasks_and_goals.append({
+                "id": task.task_id,
+                "goal_id": task.goal_id,
+                "title": task.title,
+                "description": task.description,
+                "is_complete": False if task.completed_at == None else True
+            })
+        
+        return jsonify({"id": goal.goal_id, "title": goal.title, "tasks": tasks_and_goals}), 200
