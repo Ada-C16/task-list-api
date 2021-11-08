@@ -67,8 +67,7 @@ def change_data(task_id):
         return jsonify(None), 404
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"])
-def delete_planet(task_id):
-    """Defines an endpoint DELETE to delete planet out of existence"""
+def delete_task(task_id):
     task = Task.query.get(task_id)
 
     if task:
@@ -153,8 +152,7 @@ def change_goal_data(goal_id):
         return jsonify(None), 404
 
 @goals_bp.route("/<goal_id>", methods=["DELETE"])
-def delete_planet(goal_id):
-    """Defines an endpoint DELETE to delete planet out of existence"""
+def delete_goal(goal_id):
     goal = Goal.query.get(goal_id)
 
     if goal:
