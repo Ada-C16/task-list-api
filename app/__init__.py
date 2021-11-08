@@ -4,16 +4,15 @@ from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
 
-
 db = SQLAlchemy()
 migrate = Migrate()
 load_dotenv()
-
+SLACK_API_KEY = os.environ.get("SLACK_API_KEY")
 
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
+    
     if test_config is None:
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
             "SQLALCHEMY_DATABASE_URI")
@@ -30,5 +29,12 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
 
     # Register Blueprints here
+    from .task_routes import tasks_bp
+    app.register_blueprint(tasks_bp)
+
+    # Will need to register goal Blueprints 
+    from app.models.goal import Goal
+    from .goal_routes import goals_bp
+    app.register_blueprint(goals_bp)
 
     return app
