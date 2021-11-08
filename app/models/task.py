@@ -12,6 +12,11 @@ class Task(db.Model):
     goal = db.relationship("Goal", back_populates= "tasks") #NEW
 
     def is_complete(self):
+        if not self.completed_at:
+            is_complete = False
+        else:
+            is_complete = True
+
         return bool(self.completed_at)
 
     def to_dict(self):
