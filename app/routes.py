@@ -4,7 +4,8 @@ from flask import Blueprint, request, make_response, jsonify, abort
 from app.models.task import Task
 from app.models.goal import Goal
 from datetime import datetime
-
+import requests
+import os
 
 # DEFINE BLUEPRINT
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
@@ -61,9 +62,29 @@ def create_goal():
     db.session.commit()
 
     return make_response(jsonify({"goal": new_goal.to_dict()}), 201)
+
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"])
+def create_goal_tasks(goal_id):
+    request_body = request.get_json()
+
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return make_response("Invalid Goal ID", 404)
+    
+    goal_task_ids = []
+
+    for task_id in request_body["task_ids"]:
+        task = Task.query.get(task_id)
+        task.goal = goal
+        goal_task_ids.append(task.task_id)
+        db.session.add(task)
+    db.session.commit
+    
+    return jsonify({"id": int(goal_id), "task_ids": goal_task_ids}) 
+
     
 #-----------------
-#READ (aka GET)
+#READ ALL (aka GET)
 @tasks_bp.route("", methods=["GET"])
 def read_all_tasks():
     sort_query = request.args.get("sort")
@@ -82,11 +103,6 @@ def read_all_tasks():
         tasks_response.append(task.to_dict())
     return jsonify(tasks_response)
 
-@tasks_bp.route("/<id>", methods=["GET"])
-def read_one_task(id):
-    task = get_task_from_id(id)
-    return make_response(jsonify({"task" : task.to_dict()}),200)
-
 @goals_bp.route("", methods=["GET"])
 def read_all_goals():
     goals = Goal.query.all()
@@ -96,10 +112,47 @@ def read_all_goals():
         goals_response.append(goal.to_dict())
     return jsonify(goals_response)
 
+#-----------------
+#READ ONE (aka GET)
+@tasks_bp.route("/<id>", methods=["GET"])
+def read_one_task(id):
+    task = get_task_from_id(id)
+    request_body = request.get_json()
+
+    if not task.goal_id:
+        return make_response(jsonify({"task" : task.to_dict()}),200)
+        
+    else:
+        task_goal_response = {
+            "id": task.task_id,
+            "goal_id": task.goal_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": task.is_complete(),
+        }
+        return jsonify({"task" : task_goal_response})
+        
 @goals_bp.route("/<id>", methods=["GET"])
 def read_one_task(id):
     goal = get_goal_from_id(id)
     return make_response(jsonify({"goal" : goal.to_dict()}),200)
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"])
+def read_goal_tasks(goal_id):
+    goal = get_goal_from_id(goal_id)
+    goal_tasks_response = []
+
+    for task in goal.tasks:
+        goal_tasks_response.append({
+            "id": task.task_id,
+            "goal_id": task.goal_id,
+            "title": task.title,
+            "description": task.description,
+            "is_complete": task.is_complete(),
+        })
+
+
+    return (jsonify({"id": int(goal_id), "title": goal.title, "tasks": goal_tasks_response}), 200)
     
 #-----------------
 #UPDATE 
@@ -137,6 +190,20 @@ def mark_complete(id, completion_status):
     
     if completion_status == "mark_complete":
         task.completed_at = datetime.date
+        
+        #SLACK MESSAGING
+        # SLACK_MSG_URL = 'https//slack.com/api/com.postMessage'
+        # SLACK_MSG_CHANNEL = 'task-notifications'
+        # SLACK_BOT_USERNAME = 'AliesBot'
+        # SLACK_TOKEN = 'xoxb21582911322942688710391650efd5ToZNAmN0gXxyri2orNvT'
+        # slack_msg = "Someone did a thing!"
+        # slack_response = request.post(SLACK_MSG_URL,{
+        #     "token": SLACK_TOKEN, 
+        #     "channel": SLACK_MSG_CHANNEL,
+        #     "text": slack_msg,
+        #     "username": SLACK_BOT_USERNAME
+        #     })
+
     if completion_status == "mark_incomplete":
         task.completed_at = None
 
