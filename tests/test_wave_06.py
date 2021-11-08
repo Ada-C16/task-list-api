@@ -96,6 +96,7 @@ def test_get_task_includes_goal_id(client, one_task_belongs_to_one_goal):
     assert response.status_code == 200
     assert "task" in response_body
     assert "goal_id" in response_body["task"]
+    print(response_body)
     assert response_body == {
         "task": {
             "id": 1,
