@@ -10,8 +10,8 @@ def test_get_goals_no_saved_goals(client):
     assert response.status_code == 200
     assert response_body == []
 
-
 def test_get_goals_one_saved_goal(client, one_goal):
+
     # Act
     response = client.get("/goals")
     response_body = response.get_json()
