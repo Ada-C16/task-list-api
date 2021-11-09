@@ -3,6 +3,9 @@ from app.models.task import Task
 from app import db
 from flask import Blueprint, jsonify, make_response, request, abort
 from datetime import date
+import os
+import requests
+from dotenv import load_dotenv
 
 # handle_tasks handles GET and POST requests for the /tasks endpoint
 
@@ -100,6 +103,17 @@ def handle_one_task(task_id):
         json_response = jsonify(response)
         return make_response(json_response, 200)
 
+def slack_bot(title):
+    query_path = {
+        "channel": "melinda-bot",
+        "text": f"Someone completed the task {title}"
+    }
+    header = {
+        "Authorization": f"Bearer {os.environ.get('BOT')}"
+    }
+    response = requests.post("https://slack.com/api/chat.postMessage",params = query_path, headers = header)
+    return response.json()
+
 
 #Wave 3 
 @tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"])
@@ -108,9 +122,11 @@ def handle_completed_task(task_id):
     task = Task.query.get_or_404(task_id)
     task.completed_at = date.today()
     db.session.commit()
+    slack_bot(task.title)
     return jsonify ({"task":task.to_dict()}),200
+    
 
-@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"]) 
 def handle_incompleted_task(task_id):
     valid_int(task_id,"task_id")
     task = Task.query.get_or_404(task_id)
