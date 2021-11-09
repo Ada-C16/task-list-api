@@ -137,7 +137,6 @@ def mark_task_incomplete(task_id):
 
     task = Task.query.get(task_id)
     task.completed_at = None
-    response_body = {}
     response_body = task.to_dict()
 
     db.session.commit()
