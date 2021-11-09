@@ -11,7 +11,9 @@ class Task(db.Model):
 
     def to_dict(self):
         if not self.completed_at:
-            self.completed_at = None
+             is_complete = False
+        else:
+             is_complete = True
         if not self.completed_at:
             task_dict = {
                 "id": self.task_id,
