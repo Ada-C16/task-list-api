@@ -60,7 +60,7 @@ When I send a `POST` request to `/goals/1/tasks` with this request body:
 }
 ```
 
-Then the three `Task`s belong to the `Goal` and it gets updated in the database, and we get back a `200 OK` with the following response body:
+Then the three `Task`s belong to the `Goal`, and it gets updated in the database, and we get back a `200 OK` with the following response body:
 
 ```json
 {
