@@ -2,8 +2,8 @@ from app import db
 from flask import Blueprint, jsonify, make_response, request
 from app.models.task import Task
 import datetime
-from datetime import datetime as d1
 from .helpers import get_task_from_id, send_completion_slack_message
+from sqlalchemy.exc import DataError
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
@@ -26,19 +26,20 @@ def create_new_task():
     if "title" not in request_body or "description" not in request_body or \
         "completed_at" not in request_body:
         return make_response({"details": "Invalid data"}, 400)
-    if request_body['completed_at']:
-        try:
-            d1.strptime(request_body['completed_at'], '%a, %d %b %Y %H:%M:%S %Z')
-        except:
-            return make_response({"details": "completed_at must be a date formatted as: Thu, 04 Nov 2021 21:53:34 GMT"}, 404)
-
     new_task = Task(
         title = request_body["title"],
         description = request_body["description"],
         completed_at = request_body["completed_at"]
     )
-    db.session.add(new_task)
-    db.session.commit()
+    try:
+        db.session.add(new_task)
+        db.session.commit()
+    except DataError:
+        db.session.rollback()
+        return make_response({"error": "Invalid data type in request body"}, 400)
+    # except Exception as e:
+    #     db.session.rollback()
+    #     return f"failed: {e.__class__.__name__}"
     return make_response({"task": new_task.to_dict()}, 201)
 
 # Single task CRUD routes
@@ -56,13 +57,12 @@ def update_task(task_id):
     if "description" in request_body:
         selected_task.description = request_body["description"]
     if "completed_at" in request_body:
-        if request_body['completed_at']:
-            try:
-                d1.strptime(request_body['completed_at'], '%a, %d %b %Y %H:%M:%S %Z')
-            except:
-                return make_response({"details": "completed_at must be a date formatted as: Thu, 04 Nov 2021 21:53:34 GMT"}, 404)
         selected_task.completed_at = request_body["completed_at"]
-    db.session.commit()
+    try:
+        db.session.commit()
+    except DataError:
+        db.session.rollback()
+        return make_response({"error": "Invalid data type in request body"}, 400)
     return make_response({"task": selected_task.to_dict()}, 200)
 
 @tasks_bp.route("/<task_id>", methods=["DELETE"], strict_slashes=False)
