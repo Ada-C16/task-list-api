@@ -6,6 +6,7 @@ from datetime import date
 import os
 import requests
 from dotenv import load_dotenv
+from app.models.goal import Goal
 
 # handle_tasks handles GET and POST requests for the /tasks endpoint
 
@@ -68,7 +69,7 @@ def handle_tasks():
 def handle_one_task(task_id):
     valid_int(task_id,"task_id")
     task = Task.query.get_or_404(task_id)
-#Wave 1: Get One Task: One Saved Task
+# Wave 1: Get One Task: One Saved Task
     if request.method == "GET":
         has_complete = task.completed_at
         task_response={   
@@ -133,4 +134,99 @@ def handle_incompleted_task(task_id):
     task.completed_at = None
     db.session.commit()
     return jsonify ({"task":task.to_dict()}),200
+
+
+# Wave 5 Creating a Goal Model Blueprint
+goals_bp = Blueprint("goals_bp", __name__, url_prefix="/goals")
+
+# Wave 5 Create A Goal: Valid Goal
+@goals_bp.route("", methods=["POST"])
+def handle_post_goals():
+
+    request_body = request.get_json()
+
+    if "title" not in request_body:
+        response_body= {
+            "details": "Invalid data"
+        }
+        return make_response(response_body, 400)
+
+    new_goal = Goal(
+        title = request_body["title"]
+    )
+    db.session.add(new_goal)
+    db.session.commit()
+    response_body = {
+        "goal": {
+        "id": new_goal.goal_id,
+        "title": new_goal.title
+        }
+    }
+
+    return jsonify(response_body), 201
+
+# Wave 5 Get Goals: Getting Saved Goals
+@goals_bp.route("", methods=["GET"])
+def handle_get_goals():
+        goals = Goal.query.all()
+        goals_response = []
+        for goal in goals:
+            goals_response.append(
+        {
+            
+            "id": goal.goal_id,
+            "title": goal.title, 
+        }
+            )
+        return jsonify(goals_response)
+
+# Wave 5 Get One Goal: Getting One Saved Goal/No Matching Goal
+@goals_bp.route("/<goal_id>", methods=["GET"])
+def handle_get_one_goal(goal_id):
+    # Need to query through the data base
+    goal = Goal.query.get_or_404(goal_id)
+    # Need to prepare response to give to client 
+    goal_response = {
+        "goal": {
+        "id": goal.goal_id,
+        "title": goal.title,
+        }
+    }
+    return jsonify(goal_response)
+
+# Wave 5 Update Goal: Update Goal/No Matching Goal
+@goals_bp.route("/<goal_id>", methods=["PUT"])
+def handle_update_one_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    form_data = request.get_json()
+    if "title" not in form_data:
+        response_body= {
+            "details": "title required"
+        }
+        return make_response(response_body, 400)
+    goal.title = form_data["title"]
+
+    db.session.commit()
+    return jsonify({"goal":goal.to_dict()}),200
+
+# Wave 5 Deleting A Goal: Deleting A Goal/No Matching Goal
+@goals_bp.route("/<goal_id>", methods=["DELETE"])
+def handle_delete_one_goal(goal_id):
+    goal = Goal.query.get_or_404(goal_id)
+    db.session.delete(goal)
+    db.session.commit()
+    response = {
+            "details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'
+        }
+    json_response = jsonify(response)
+    return make_response(json_response, 200)
+
+
+
+
+
+
+
+
+
 
