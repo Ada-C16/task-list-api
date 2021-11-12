@@ -180,19 +180,7 @@ def handle_get_goals():
             )
         return jsonify(goals_response)
 
-# Wave 5 Get One Goal: Getting One Saved Goal/No Matching Goal
-@goals_bp.route("/<goal_id>", methods=["GET"])
-def handle_get_one_goal(goal_id):
-    # Need to query through the data base
-    goal = Goal.query.get_or_404(goal_id)
-    # Need to prepare response to give to client 
-    goal_response = {
-        "goal": {
-        "id": goal.goal_id,
-        "title": goal.title,
-        }
-    }
-    return jsonify(goal_response)
+
 
 # Wave 5 Update Goal: Update Goal/No Matching Goal
 @goals_bp.route("/<goal_id>", methods=["PUT"])
