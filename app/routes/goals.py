@@ -32,55 +32,49 @@ def create_goal():
 def read_all_goals():
     goals = Goal.query.all()
 
-    try:
-        response_body = []
-        for goal in goals:
-            response_body.append(goal.to_dict())     
-        return  make_response(jsonify(response_body), 200)   
-    except:
-        abort(400)
+
+    response_body = []
+    for goal in goals:
+        response_body.append(goal.to_dict())     
+    return  make_response(jsonify(response_body), 200)   
+
 
 # GET one goal by id
 @goal_bp.route('/<goal_id>', methods = ['GET'])
 def read_one_goal(goal_id):
     goal = get_goal_by_id(goal_id)
+    response_body = {"goal": goal.to_dict()}
+    return make_response(jsonify(response_body)), 200
 
-    try:
-        response_body = {"goal": goal.to_dict()}
-        return make_response(jsonify(response_body)), 200
-    except Exception: 
-        abort(400)
 
 # DELETE one goal by id
 @goal_bp.route('/<goal_id>', methods = ['DELETE'])
 def delete_goal(goal_id):
     goal = get_goal_by_id(goal_id)
-    try:
+    
         # delete entity and commit it
-        db.session.delete(goal)
-        db.session.commit()
-        response_body ={"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
-        return make_response(response_body), 200
-    except Exception:
-        abort(422)
+    db.session.delete(goal)
+    db.session.commit()
+    response_body ={"details": f'Goal {goal.goal_id} "{goal.title}" successfully deleted'}
+    return make_response(response_body), 200
+
 
 # UPDATE one goal by id
 @goal_bp.route("/<goal_id>", methods=["PUT"])
 def update_goal(goal_id):
     goal = get_goal_by_id(goal_id)
-    try:
-        request_body = request.get_json()
-        if not request_body: 
-            abort(400)
-        elif "title" in request_body:
-            goal.title = request_body["title"]
-        db.session.commit()
-        response_body = {
-            "goal": goal.to_dict()
-        }
-        return make_response(response_body, 200)
-    except Exception: 
+
+    request_body = request.get_json()
+    if not request_body: 
         abort(400)
+    elif "title" in request_body:
+        goal.title = request_body["title"]
+    db.session.commit()
+    response_body = {
+        "goal": goal.to_dict()
+    }
+    return make_response(response_body, 200)
+
 
 
 ''' -------- GOAL/TASK ONE-TO-MANY RELATIONSHIP --------'''
