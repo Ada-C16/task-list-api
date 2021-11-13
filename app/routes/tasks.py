@@ -15,26 +15,23 @@ task_bp = Blueprint('task', __name__, url_prefix="/tasks")
 def create_task():
     request_body = request.get_json()
 
-    try:
-        if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
-            response_body = {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
-            return make_response(jsonify(response_body), 400)
+    if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
+        response_body = {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
+        return make_response(jsonify(response_body), 400)
 
 
-        new_task = Task(title=request_body["title"],
-                        description=request_body["description"],
-                        completed_at=request_body["completed_at"])
+    new_task = Task(title=request_body["title"],
+                    description=request_body["description"],
+                    completed_at=request_body["completed_at"])
 
-        db.session.add(new_task)
-        db.session.commit()
+    db.session.add(new_task)
+    db.session.commit()
 
-        response_body = {
-            "task": new_task.to_dict()
-        }
-        return make_response(jsonify(response_body),201)
+    response_body = {
+        "task": new_task.to_dict()
+    }
+    return make_response(jsonify(response_body),201)
 
-    except Exception:
-        abort(400)
 
 
 
@@ -46,20 +43,19 @@ def read_all_tasks():
 
     sort_by_title_query = request.args.get("sort")
     task_response = []
-    try:
-        if sort_by_title_query == "asc":
-            tasks = Task.query.order_by(Task.title.asc()).all()
-        elif sort_by_title_query == "desc":
-            tasks = Task.query.order_by(Task.title.desc()).all()     
-        else:
-            tasks = Task.query.all()
 
-        for task in tasks:
-            task_response.append(task.to_dict())     
-        return  make_response(jsonify(task_response),200)
+    if sort_by_title_query == "asc":
+        tasks = Task.query.order_by(Task.title.asc()).all()
+    elif sort_by_title_query == "desc":
+        tasks = Task.query.order_by(Task.title.desc()).all()     
+    else:
+        tasks = Task.query.all()
 
-    except Exception:
-        abort(400)
+    for task in tasks:
+        task_response.append(task.to_dict())     
+    return  make_response(jsonify(task_response),200)
+
+
 
 
 ''' GET <task_id>  - this function returns a function when 
@@ -70,16 +66,14 @@ def read_all_tasks():
 def read_one_drink(task_id):
     task = get_task_by_id(task_id)
 
-    try:
-        if task.goal_id:
-            task_response = {"task": task.to_dict_goal_task() }                     
-        else:
-            task_response = {"task": task.to_dict() }
+    
+    if task.goal_id:
+        task_response = {"task": task.to_dict_goal_task() }                     
+    else:
+        task_response = {"task": task.to_dict() }
 
-        return jsonify(task_response), 200
+    return jsonify(task_response), 200
 
-    except Exception: 
-        abort(400)
 
 
 ''' DELETE      - this function handles the deletion of a task by its id
@@ -88,15 +82,14 @@ def read_one_drink(task_id):
 @task_bp.route("/<task_id>", methods=['DELETE'])
 def delete_one_task(task_id):
     task = get_task_by_id(task_id)
-    try:
-        db.session.delete(task)
-        db.session.commit()
-        response_body = {"details": f'Task {task.task_id} "{task.title}" successfully deleted'}
 
-        return make_response(response_body, 200)
+    db.session.delete(task)
+    db.session.commit()
+    response_body = {"details": f'Task {task.task_id} "{task.title}" successfully deleted'}
 
-    except Exception: 
-        abort(400)
+    return make_response(response_body, 200)
+
+    
 
 
 
@@ -106,26 +99,25 @@ def delete_one_task(task_id):
 def update_task(task_id):
     task = get_task_by_id(task_id)
 
-    try:
-        request_body = request.get_json()
-        if not request_body: 
-            abort(400)
 
-        if "title" in request_body:
-            task.title = request_body["title"]
-        if "description" in request_body:
-            task.description = request_body["description"]
-    
-        # commit session after patching 
-        db.session.commit()
-
-        response_body = {
-            "task": task.to_dict()
-        }
-        return make_response(response_body, 200)
-
-    except Exception: 
+    request_body = request.get_json()
+    if not request_body: 
         abort(400)
+
+    if "title" in request_body:
+        task.title = request_body["title"]
+    if "description" in request_body:
+        task.description = request_body["description"]
+
+    # commit session after patching 
+    db.session.commit()
+
+    response_body = {
+        "task": task.to_dict()
+    }
+    return make_response(response_body, 200)
+
+
 
 
 # use a dynamic route to handle is complete and else - CUSTOM ROUTE
@@ -135,21 +127,18 @@ def mark_complete(task_id):
     task =  get_task_by_id(task_id)
     date = datetime.utcnow()
 
-    try:
-        if task.completed_at == None:
-            task.completed_at = date
-        db.session.commit()
-        response_body = {
-                "task": task.to_dict()} 
+    if task.completed_at == None:
+        task.completed_at = date
+    db.session.commit()
+    response_body = {
+            "task": task.to_dict()} 
 
-        # send slack notificatios
-        message = f"Someone just completed the task {task.title}"     
-        post_msg_slack(message)
+    message = f"Someone just completed the task {task.title}"     
+    post_msg_slack(message)
 
-        return response_body
+    return response_body
 
-    except Exception:
-        abort(400)
+
 
 
 @task_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"])
