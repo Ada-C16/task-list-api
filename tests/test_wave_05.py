@@ -41,9 +41,8 @@ def test_get_goal(client, one_goal):
         }
     }
 
-@pytest.mark.skip(reason="test to be completed by student")
+
 def test_get_goal_not_found(client):
-    pass
     # Act
     response = client.get("/goals/1")
     response_body = response.get_json()
@@ -51,7 +50,9 @@ def test_get_goal_not_found(client):
     # Assert
     # ---- Complete Test ----
     # assertion 1 goes here
+    assert response.status_code == 404
     # assertion 2 goes here
+    assert response_body == None
     # ---- Complete Test ----
 
 def test_create_goal(client):
@@ -71,29 +72,42 @@ def test_create_goal(client):
         }
     }
 
-@pytest.mark.skip(reason="test to be completed by student")
+
 def test_update_goal(client, one_goal):
-    pass
     # Act
     # ---- Complete Act Here ----
+    response = client.put("goals/1", json={
+        "title": "Make up my bed first thing in the morning."})
+    response_body = response.get_json()
 
     # Assert
     # ---- Complete Assertions Here ----
     # assertion 1 goes here
+    assert response.status_code == 200
     # assertion 2 goes here
+    assert len(response_body) == 1
     # assertion 3 goes here
+    assert response_body == {
+        "goal": {
+            "id": 1,
+            "title": "Make up my bed first thing in the morning."
+        }
+    }
     # ---- Complete Assertions Here ----
 
-@pytest.mark.skip(reason="test to be completed by student")
+
 def test_update_goal_not_found(client):
-    pass
     # Act
     # ---- Complete Act Here ----
+    response = client.put("goals/1")
+    response_body = response.get_json()
 
     # Assert
     # ---- Complete Assertions Here ----
     # assertion 1 goes here
+    assert response.status_code == 404
     # assertion 2 goes here
+    assert response_body == None
     # ---- Complete Assertions Here ----
 
 
@@ -113,17 +127,19 @@ def test_delete_goal(client, one_goal):
     response = client.get("/goals/1")
     assert response.status_code == 404
 
-@pytest.mark.skip(reason="test to be completed by student")
-def test_delete_goal_not_found(client):
-    pass
 
+def test_delete_goal_not_found(client):
     # Act
     # ---- Complete Act Here ----
+    response = client.delete("/goals/1")
+    response_body = response.get_json()
 
     # Assert
     # ---- Complete Assertions Here ----
     # assertion 1 goes here
+    assert response.status_code == 404
     # assertion 2 goes here
+    assert response_body == None
     # ---- Complete Assertions Here ----
 
 
