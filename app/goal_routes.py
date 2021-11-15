@@ -8,7 +8,7 @@ goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 @goals_bp.route("", methods=["GET"])
 def read_goals():
     goals = Goal.query.all()
-    goals_response = [{"id": goal.id, "title": goal.title} for goal in goals]
+    goals_response = [goal.to_dict() for goal in goals]
 
     return jsonify(goals_response), 200
 
@@ -23,12 +23,8 @@ def add_goal():
         db.session.add(new_goal)
         db.session.commit()
 
-        response = {
-            "goal": {
-                "id": new_goal.id,
-                "title": new_goal.title,
-            }
-        }
+        response = {"goal": new_goal.to_dict()}
+        
         return jsonify(response), 201
 
     except KeyError:
@@ -41,12 +37,7 @@ def read_one_goal(id):
     if goal is None:
         return jsonify(None), 404
 
-    return {
-        "goal": {
-            "id": goal.id,
-            "title": goal.title
-        }
-    }
+    return {"goal": goal.to_dict()}
 
 
 @goals_bp.route("/<id>", methods=["DELETE"])
@@ -75,12 +66,7 @@ def update_a_goal(id):
 
     db.session.commit()
 
-    response = {
-        "goal": {
-            "id": goal.id,
-            "title": goal.title
-        }
-    }
+    response = {"goal": goal.to_dict()}
     return jsonify(response), 200
 
 
@@ -111,9 +97,7 @@ def read_tasks_from_goal(id):
 
     tasks_response = [task.to_dict() for task in goal.tasks]
 
-    response_body = {
-        "id": goal.id,
-        "title": goal.title,
-        "tasks": tasks_response
-    }
-    return jsonify(response_body)
+    response = goal.to_dict()
+    response["tasks"] = tasks_response
+
+    return jsonify(response)

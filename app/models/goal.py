@@ -13,7 +13,4 @@ class Goal(db.Model):
             "title": self.title
         }
 
-        if self.tasks:
-            goal["tasks"] = self.tasks
-
         return goal
