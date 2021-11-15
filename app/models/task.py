@@ -7,19 +7,29 @@ from app import db
 # completed_at: a datetime that has the date that a task is completed on. Can be nullable, and contain a null value. A task with a null value for completed_at has not been completed.
 
 class Task(db.Model):
-    task_id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String)
     description = db.Column(db.String)
     completed_at = db.Column(db.DateTime,nullable=True)
-    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable=True)
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.id'), nullable=True)
 
     def to_dict(self):
-        return{
-            
-                "id": self.task_id,
+        if self.goal_id is None:
+            return {
+                "id": self.id,
                 "title": self.title,
                 "description": self.description,
-                "is_complete": self.check_for_complete_task()
+                "is_complete": self.check_for_complete_task(),
+            }
+        else:
+
+            return{
+            
+                "id": self.id,
+                "title": self.title,
+                "description": self.description,
+                "is_complete": self.check_for_complete_task(),
+                "goal_id": self.goal_id
                 
                 }
 
