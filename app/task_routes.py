@@ -12,11 +12,11 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 @tasks_bp.route("", methods=["GET"])
 def read_tasks():
     sort_query = request.args.get("sort")
-    if sort_query:
-        if sort_query == "asc":
-            tasks = Task.query.order_by(Task.title)
-        else:
-            tasks = Task.query.order_by(desc(Task.title))
+    
+    if sort_query == "asc":
+        tasks = Task.query.order_by(Task.title)
+    elif sort_query == "desc":
+        tasks = Task.query.order_by(desc(Task.title))
     else:
         tasks = Task.query.all()
 
