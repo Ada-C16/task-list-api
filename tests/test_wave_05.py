@@ -1,4 +1,5 @@
 import pytest
+from app.models.goal import Goal
 
 def test_get_goals_no_saved_goals(client):
     # Act
@@ -41,17 +42,17 @@ def test_get_goal(client, one_goal):
         }
     }
 
-@pytest.mark.skip(reason="test to be completed by student")
+# @pytest.mark.skip(reason="test to be completed by student")
 def test_get_goal_not_found(client):
-    pass
+    # pass
     # Act
     response = client.get("/goals/1")
     response_body = response.get_json()
 
     # Assert
     # ---- Complete Test ----
-    # assertion 1 goes here
-    # assertion 2 goes here
+    assert response.status_code == 404
+    assert response_body == None
     # ---- Complete Test ----
 
 def test_create_goal(client):
@@ -71,29 +72,47 @@ def test_create_goal(client):
         }
     }
 
-@pytest.mark.skip(reason="test to be completed by student")
+# @pytest.mark.skip(reason="test to be completed by student")
 def test_update_goal(client, one_goal):
-    pass
+    # pass
     # Act
+    response = client.put("/goals/1", json={
+        "title": "Updated Goal Title",
+    })
+    #what server gave back on the client's response
+    response_body = response.get_json()
     # ---- Complete Act Here ----
 
     # Assert
     # ---- Complete Assertions Here ----
-    # assertion 1 goes here
-    # assertion 2 goes here
-    # assertion 3 goes here
+    assert response.status_code == 200
+    assert "goal" in response_body
+    assert response_body == {
+        "goal": {
+            "id": 1,
+            "title": "Updated Goal Title"
+        }
+    }
+    #validating our server gave us the correct response to the client, this is the only part a client will get
+    goal = Goal.query.get(1)
+    assert goal.title == "Updated Goal Title"
+    #asking server does the goal updated recenlty have the changes we expect, we can see this because we own the server
     # ---- Complete Assertions Here ----
 
-@pytest.mark.skip(reason="test to be completed by student")
+# @pytest.mark.skip(reason="test to be completed by student")
 def test_update_goal_not_found(client):
-    pass
+    # pass
     # Act
+    response = client.put("/goals/1", json={
+        "title": "Updated Goal Title"
+    })
+    response_body = response.get_json()
     # ---- Complete Act Here ----
 
     # Assert
     # ---- Complete Assertions Here ----
-    # assertion 1 goes here
-    # assertion 2 goes here
+    assert response.status_code == 404
+    assert response_body == None
     # ---- Complete Assertions Here ----
 
 
@@ -113,17 +132,20 @@ def test_delete_goal(client, one_goal):
     response = client.get("/goals/1")
     assert response.status_code == 404
 
-@pytest.mark.skip(reason="test to be completed by student")
+# @pytest.mark.skip(reason="test to be completed by student")
 def test_delete_goal_not_found(client):
-    pass
+    # pass
 
     # Act
+    response = client.delete("/goals/1")
+    response_body = response.get_json()
     # ---- Complete Act Here ----
 
     # Assert
     # ---- Complete Assertions Here ----
-    # assertion 1 goes here
-    # assertion 2 goes here
+    assert response.status_code == 404
+    assert response_body == None
+    assert Goal.query.all() == []
     # ---- Complete Assertions Here ----
 
 

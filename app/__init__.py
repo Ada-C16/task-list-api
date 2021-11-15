@@ -5,13 +5,13 @@ import os
 from dotenv import load_dotenv
 
 
-db = SQLAlchemy()
+db = SQLAlchemy() #instantiating SQLAlchemy
 migrate = Migrate()
 load_dotenv()
 
 
 def create_app(test_config=None):
-    app = Flask(__name__)
+    app = Flask(__name__) #instanting Flask app
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     if test_config is None:
@@ -26,9 +26,14 @@ def create_app(test_config=None):
     from app.models.task import Task
     from app.models.goal import Goal
 
-    db.init_app(app)
+    db.init_app(app) #attaches SQLA to Flask app
     migrate.init_app(app, db)
 
     # Register Blueprints here
+    from .routes import tasks_bp
+    app.register_blueprint(tasks_bp)
+
+    from .routes import goals_bp
+    app.register_blueprint(goals_bp)
 
     return app

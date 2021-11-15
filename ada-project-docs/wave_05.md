@@ -8,7 +8,7 @@ Goals are entities that describe a task a user wants to complete.
 
 They contain a title to name the goal.
 
-Our goal for this wave is to be able to create, read, update, and delete different goals.
+Our goal for this wave is to be able to create, read, update, and delete different goals.#post patch and get and delete
 
 ## Writing Tests
 
@@ -36,6 +36,7 @@ Goals should contain these attributes. Feel free to change the name of the `goal
 - Don't forget to run:
   - `flask db migrate` every time there's a change in models, in order to generate migrations
   - `flask db upgrade` to run all generated migrations
+  #change anytime we change the model, create new model, import new module, 
 
 ## CRUD for Goals
 
