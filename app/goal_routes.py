@@ -37,13 +37,7 @@ def read_one_goal(id):
     if goal is None:
         return jsonify(None), 404
 
-<<<<<<< HEAD
     return {"goal": goal.to_dict()}
-=======
-    return {
-        "goal": goal.to_dict()
-    }
->>>>>>> a8ba5d978b9952aab0fc6cb1a3dc4ddd0d6ac7e8
 
 
 @goals_bp.route("/<id>", methods=["DELETE"])
