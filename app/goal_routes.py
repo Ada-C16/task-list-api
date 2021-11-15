@@ -42,10 +42,7 @@ def read_one_goal(id):
         return jsonify(None), 404
 
     return {
-        "goal": {
-            "id": goal.id,
-            "title": goal.title
-        }
+        "goal": goal.to_dict()
     }
 
 
