@@ -86,3 +86,20 @@ def one_task_belongs_to_one_goal(app, one_goal, one_task):
     goal = Goal.query.first()
     goal.tasks.append(task)
     db.session.commit()
+
+
+# This fixture gets called in every test that
+# references "three_goals"
+# This fixture creates three goals and saves
+# them in the database
+@pytest.fixture
+def three_goals(app):
+    db.session.add_all([
+        Goal(
+            title="Build a habit of going outside daily"),
+        Goal(
+            title="Tell the best dad jokes"),
+        Goal(
+            title="Relax on a regular basis")
+    ])
+    db.session.commit()
