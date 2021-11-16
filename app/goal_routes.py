@@ -18,7 +18,11 @@ def valid_int(number):
 #Helper function
 def get_goal_from_id(goal_id):
     goal_id = valid_int(goal_id)
-    return Goal.query.get_or_404(goal_id, description="{Goal not found}")
+    goal = Goal.query.get(goal_id)
+    if goal:
+        return goal
+    else:
+        abort(make_response({"description": "Goal not found"}, 404))
 
 
 @goal_bp.route("", methods=["POST"])
