@@ -72,15 +72,27 @@ def handle_one_task(task_id):
 # Wave 1: Get One Task: One Saved Task
     if request.method == "GET":
         has_complete = task.completed_at
-        task_response={   
-                "task": {
-                "id": task.id,
-                "title": task.title,
-                "description": task.description,
-                "is_complete": False if has_complete == None else has_complete,
-                
-            }
-            }
+        if task.goal_id:
+            task_response={   
+                    "task": {
+                    "id": task.id,
+                    "goal_id": task.goal_id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": False if has_complete == None else has_complete,
+                    
+                }
+                }
+        else:
+            task_response={   
+                    "task": {
+                    "id": task.id,
+                    "title": task.title,
+                    "description": task.description,
+                    "is_complete": False if has_complete == None else has_complete,
+                    
+                }
+                }
         
         return jsonify(task_response)
 #Wave 1: Update Task, #Wave 1 Update Task: No Matching Task, Update Task 200 OK
@@ -167,20 +179,6 @@ def handle_goals():
     for goal in goals:
         goals_response.append(goal.to_dict())
     return jsonify(goals_response), 200
-# @goals_bp.route("", methods=["GET"])
-# def handle_get_goals():
-#         goals = Goal.query.all()
-#         goals_response = []
-#         for goal in goals:
-#             goals_response.append(goal.to_dict())
-#         # {
-            
-#         #     "id": goal.goal_id,
-#         #     "title": goal.title
-#         # }
-#             #)
-#         return jsonify(goals_response), 200
-
 
 
 # Wave 5 Update Goal: Update Goal/No Matching Goal
@@ -213,7 +211,7 @@ def handle_delete_one_goal(goal_id):
     # json_response = jsonify(response)
     # return make_response(json_response), 200 
 
-
+#Wave # 6 
 @goals_bp.route("/<goal_id>/tasks", methods=["POST"])
 def post_task_ids_to_goal(goal_id):
     valid_int(goal_id,"goal_id")
@@ -230,11 +228,17 @@ def post_task_ids_to_goal(goal_id):
 def get_tasks_for_goal(goal_id):
     valid_int(goal_id,"goal_id")
     goal = Goal.query.get_or_404(goal_id)
+    
+    tasks = goal.tasks
+    tasks_list = []
+    for task in tasks:
+        tasks_list.append(task.to_dict())
     response_body = {"id":goal.id,
         "title":goal.title,
-        "tasks":goal.task_list() 
+        "tasks": tasks_list
     }
-    print(response_body)
+
+    
     return jsonify(response_body),200
 
 
@@ -252,68 +256,7 @@ def get_tasks_for_goal(goal_id):
 
 
 
-# def handle_goals_tasks(goal_id):
-#     valid_int(goal_id,"goal_id")
-#     goal = Goal.query.get_or_404(goal_id)
-#     # if request.method == "POST":
-#     request_body = request.get_json()
 
-#     if "task_ids" not in request_body:
-#             return jsonify( {
-#                 "details": "task_ids required"
-#             }), 400  
-        
-#         # tasks_with_relations = []
-#     task_ids = request_body["task_ids"]
-#     for task_id in task_ids:
-        
-
-#             # tasks_with_relations.append(task_id)
-#         task = Task.query.get(task_id)
-        
-#         if task == None:
-#             # TODO: change this back to correct response
-#             return jsonify ({"details": "there is no tasks"}), 400
-#         goal.tasks.append(task)
-#         # task.goal_id = goal.goal_id
-
-#         db.session.commit()
-#         return jsonify({"id":goal.id, "task_ids":[task.id for task in goal.tasks]}), 200
-
-#         #     response_body= {
-#         #         "id": goal.goal_id,
-#         #         "task_ids": tasks_with_relations
-                
-#         #     }
-
-#         # return (response_body), 200
-# @goals_bp.route("/<goal_id>/tasks", methods=["GET"])
-# def get_tasks_for_goal(goal_id):
-    
-#     goal = Goal.query.get(goal_id)
-#         # task_with_relationship_goals = goal.tasks
-#         # task_list = []
-#         # if task_with_relationship_goals:
-            
-#             # for thing in task_with_relationship_goals:
-#                 # task_object = {}
-#                 # value_if_true if condition else value_if_false
-#                 # completed = '' if thing.is_complete == '' else thing.is_complete
-#                 # task_object["id"]= thing.task_id
-#                 # task_object["goal_id"]=goal_id
-#                 # task_object["title"]=thing.title
-#                 # task_object["description"]=thing.description
-#                 # # task_object["is_complete"]=completed
-#                 # task_list.append(task_object)
-
-
-#     response_body = {
-#         "id": goal_id,
-#         "title": goal.title,
-#         "tasks": goal.task_list()
-#     }
-
-#     return jsonify(response_body), 200
 
 
 
