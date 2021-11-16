@@ -1,4 +1,3 @@
-# Task List API
 
 ## Skills Assessed
 
