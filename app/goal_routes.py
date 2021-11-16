@@ -54,7 +54,7 @@ def update_goal(goal_id):
     response_goal = get_goal_from_id(goal_id)
     request_body = request.get_json()
     if "title" not in request_body:
-        return "Incomplete data", 400
+        return jsonify("Incomplete data"), 400
     response_goal.title = request_body["title"]
 
     db.session.commit()
