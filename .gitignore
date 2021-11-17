@@ -139,3 +139,8 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Testing files
+tester.py
+tests/extra_tests.py
+
