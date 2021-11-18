@@ -1,6 +1,8 @@
-
 from flask import current_app
 from app import db
+from sqlalchemy.orm import backref
+
+
 
 
 class Task(db.Model):
@@ -8,14 +10,16 @@ class Task(db.Model):
     title=db.Column(db.String(50))
     description=db.Column(db.String(200))
     completed_at=db.Column(db.DateTime, nullable=True)#default=None
+    goal_id=db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable=True)
     
     def to_dict(self):
-        if self.completed_at == None:
+        if self.goal_id:
             return {
             "id":self.task_id,
             "title": self.title,
             "description": self.description,
-            "is_complete": False
+            "is_complete": True if self.completed_at else False,
+            "goal_id": self.goal_id
         }
 
         else:
@@ -23,7 +27,7 @@ class Task(db.Model):
             "id":self.task_id,
             "title": self.title,
             "description": self.description,
-            "is_complete": True
+            "is_complete": True if self.completed_at else False
         }
         
 
