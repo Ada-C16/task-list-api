@@ -17,6 +17,9 @@ class Task(db.Model):
             "id": self.task_id, 
             "title": self.title,
             "description": self.description,
-            "is_complete": self.completed_at is not None
+            "is_complete": self.completed_at is not None,
         }
+        if self.goal_id:
+            task_dict["goal_id"] = self.goal_id
+        
         return task_dict
