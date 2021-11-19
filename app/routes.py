@@ -108,7 +108,7 @@ def mark_incomplete(task_id):
         db.session.commit()
         
         return jsonify({"task":task.to_dict()}), 200
-#####currently working on function below
+        
 @goals_bp.route("", methods=["POST"])
 def create_goal():
     request_body=request.get_json()
@@ -138,8 +138,6 @@ def get_goals():
     return jsonify(goal_response), 200
 
 
-#####working on the function below
-#get one saved goal
 @goals_bp.route("/<goal_id>", methods=["GET", "PUT", "DELETE"])
 def handle_goal(goal_id):
     goal_id=int(goal_id)
