@@ -4,7 +4,7 @@ from app import db
 
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
-# Helper functions
+# # Helper functions
 def valid_int(number):
     try:
         id = int(number)
@@ -24,15 +24,28 @@ def get_task_from_id(task_id):
 def valid_task(request_body):
     if "title" not in request_body or "description" not in request_body or "completed_at" not in request_body:
         abort(make_response({"details": "Invalid data"}, 400))
+# #
 
 # Get all tasks
 @tasks_bp.route("", methods=["GET"], strict_slashes=False)
 def get_all_tasks():
-    task_objects = Task.query.all()
+    sort_tasks = request.args.get("sort")
     response_list = []
+
+    # Sort task: by title, ascending
+    if sort_tasks == "asc":
+        task_objects = Task.query.order_by(Task.title.asc())
+    # Sort task: by title descending
+    elif sort_tasks == "desc":
+                task_objects = Task.query.order_by(Task.title.desc())
+    else:
+        task_objects = Task.query.all()
+
     for task in task_objects:
         response_list.append(task.to_dict())
     return make_response(jsonify(response_list), 200)
+
+
 
 # Get one task
 @tasks_bp.route("/<task_id>", methods=["GET"], strict_slashes=False)
