@@ -1,6 +1,7 @@
 from flask import Blueprint, request, make_response, jsonify, abort
 from app.models.task import Task
 from app import db
+from datetime import date, datetime
 
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
@@ -31,21 +32,17 @@ def valid_task(request_body):
 def get_all_tasks():
     sort_tasks = request.args.get("sort")
     response_list = []
-
     # Sort task: by title, ascending
     if sort_tasks == "asc":
         task_objects = Task.query.order_by(Task.title.asc())
     # Sort task: by title descending
     elif sort_tasks == "desc":
-                task_objects = Task.query.order_by(Task.title.desc())
+        task_objects = Task.query.order_by(Task.title.desc())
     else:
         task_objects = Task.query.all()
-
     for task in task_objects:
         response_list.append(task.to_dict())
     return make_response(jsonify(response_list), 200)
-
-
 
 # Get one task
 @tasks_bp.route("/<task_id>", methods=["GET"], strict_slashes=False)
@@ -82,7 +79,25 @@ def update_task(task_id):
         selected_task.title = request_body["title"]
     if "description" in request_body:
         selected_task.description = request_body["description"]
-    
+    db.session.commit()
+    response_body = {"task": selected_task.to_dict()}
+    return make_response(response_body, 200)
+
+# Mark task complete
+@tasks_bp.route("/<task_id>/mark_complete", methods=["PATCH"], strict_slashes=False)
+def mark_task_complete(task_id):
+    selected_task = get_task_from_id(task_id)
+    # selected_task.is_complete = True
+    selected_task.completed_at = datetime.now()
+    db.session.commit()
+    response_body = {"task": selected_task.to_dict()}
+    return make_response(response_body, 200)
+
+# Mark task incomplete
+@tasks_bp.route("/<task_id>/mark_incomplete", methods=["PATCH"], strict_slashes=False)
+def mark_task_incomplete(task_id):
+    selected_task = get_task_from_id(task_id)
+    selected_task.completed_at = None
     db.session.commit()
     response_body = {"task": selected_task.to_dict()}
     return make_response(response_body, 200)

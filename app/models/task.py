@@ -7,8 +7,7 @@ class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    # completed_at = db.Column(db.DateTime(timezone=True), default=datetime.datetime.utcnow())
-    # is_complete = db.Column(db.Boolean, nullable=False)
+    is_complete = db.Column(db.Boolean)
     completed_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     def to_dict(self):
@@ -16,5 +15,6 @@ class Task(db.Model):
             "id": self.task_id,
             "title": self.title,
             "description": self.description,
-            "is_complete": True if self.completed_at == True else False
+            # "is_complete": True if self.completed_at == True else False
+            "is_complete": bool(self.completed_at)
         }
