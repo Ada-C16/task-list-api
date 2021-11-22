@@ -122,7 +122,7 @@ def test_update_task_not_found(client):
     assert response_body == None
 
 
-def test_delete_task(client, one_task):
+def test_delete_task(client, one_task): #anything that looks like a param in a test is actually the name of a fixture that gets run before the test runs; see line 31 in conftest.py
     # Act
     response = client.delete("/tasks/1")
     response_body = response.get_json()

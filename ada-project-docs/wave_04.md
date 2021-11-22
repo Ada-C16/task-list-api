@@ -102,7 +102,7 @@ Answer the following questions. These questions will help you become familiar wi
 - What are the _two_ _required_ arguments for this endpoint?
 - How does this endpoint relate to the Slackbot API key (token) we just created?
 
-Now, visit https://api.slack.com/methods/chat.postMessage/test.
+Now, visit https://api.slack.com/methods/chat.postMessatge/test.
 
 ![](assets/api_test.png)
 
