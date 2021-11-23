@@ -7,7 +7,7 @@ class Task(db.Model):
     task_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
-    is_complete = db.Column(db.Boolean)
+    # is_complete = db.Column(db.Boolean)
     completed_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
     def to_dict(self):
