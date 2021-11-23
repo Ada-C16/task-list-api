@@ -6,10 +6,10 @@ from datetime import date, datetime
 goals_bp = Blueprint('goals', __name__, url_prefix='/goals')
 
 # # Helper functions
-def valid_int(number):
+def valid_int(id):
     try:
-        id = int(number)
-        return id 
+        number = int(id)
+        return number
     except:
         response_body = 'Invalid Data'
         abort(make_response(response_body,400))
@@ -27,14 +27,12 @@ def valid_goal(request_body):
         abort(make_response({"details": "Invalid data"}, 400))
 # #
 
-# Create a goal with error handler
+# Create a goal
 @goals_bp.route("", methods=["POST"], strict_slashes=False)
 def create_goal():
     request_body = request.get_json()
     valid_goal(request_body)
-    new_goal = Goal(
-        title=request_body["title"]
-    )
+    new_goal = Goal(title=request_body["title"])
     db.session.add(new_goal)
     db.session.commit()
     response = {"goal": new_goal.to_dict()}

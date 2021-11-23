@@ -6,10 +6,10 @@ from datetime import date, datetime
 tasks_bp = Blueprint('tasks', __name__, url_prefix='/tasks')
 
 # # Helper functions
-def valid_int(number):
+def valid_int(id):
     try:
-        id = int(number)
-        return id 
+        number = int(id)
+        return number 
     except:
         response_body = 'Invalid Data'
         abort(make_response(response_body,400))
