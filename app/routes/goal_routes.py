@@ -1,5 +1,7 @@
 from flask import Blueprint, request, make_response, jsonify, abort
+from flask.wrappers import Response
 from app.models.goal import Goal
+from app.models.task import Task
 from app import db
 from datetime import date, datetime
 
@@ -72,4 +74,32 @@ def delete_goal(goal_id):
     db.session.delete(selected_goal)
     db.session.commit()
     response_body = {'details': f'Goal {goal_id} "{selected_goal.title}" successfully deleted'}
+    return make_response(response_body, 200)
+
+# Post list of task_ids to a goal
+@goals_bp.route("/<goal_id>/tasks", methods=["POST"], strict_slashes=False)
+def post_tasks_to_goal(goal_id):
+    selected_goal = get_goal_from_id(goal_id)
+    selected_goal = Goal.query.get(goal_id)
+    request_body = request.get_json()
+    task_ids_list = request_body["task_ids"]
+
+    for task_id in task_ids_list:
+        task = Task.query.get(task_id)
+        selected_goal.tasks.append(task)
+    
+    db.session.commit()
+    response_body = selected_goal.add_tasks_to_goal_dict()
+    return make_response(response_body, 200)
+
+# Get tasks from goal
+@goals_bp.route("/<goal_id>/tasks", methods=["GET"], strict_slashes=False)
+def get_tasks_from_goal(goal_id):
+    selected_goal = get_goal_from_id(goal_id)
+    selected_goal = Goal.query.get(goal_id)
+
+
+    response_body = selected_goal.get_tasks_from_goal_dict()
+
+
     return make_response(response_body, 200)
