@@ -23,7 +23,6 @@ class Goal(db.Model):
     
     def get_tasks_from_goal_dict(self):
         tasks = [task.to_dict_for_goal() for task in self.tasks]
-
         return {
             "id": self.goal_id,
             "title": self.title,

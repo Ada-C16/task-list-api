@@ -63,7 +63,10 @@ def get_all_tasks():
 @tasks_bp.route("/<task_id>", methods=["GET"], strict_slashes=False)
 def get_task(task_id):
     selected_task = get_task_from_id(task_id)
-    response_body = {"task": selected_task.to_dict()}
+    if selected_task.is_related_to_goal():
+        response_body = {"task": selected_task.to_dict_for_goal()}
+    else:
+        response_body = {"task": selected_task.to_dict()}
     return make_response(response_body, 200)
 
 # Update task

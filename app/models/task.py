@@ -29,3 +29,10 @@ class Task(db.Model):
             "description": self.description,
             "is_complete": bool(self.completed_at)
         }
+    
+    def is_related_to_goal(self):
+        if self.goal_id:
+            related_to_goal = True
+        else:
+            related_to_goal = False
+        return related_to_goal

@@ -98,8 +98,8 @@ def get_tasks_from_goal(goal_id):
     selected_goal = get_goal_from_id(goal_id)
     selected_goal = Goal.query.get(goal_id)
 
+    
 
     response_body = selected_goal.get_tasks_from_goal_dict()
-
 
     return make_response(response_body, 200)
