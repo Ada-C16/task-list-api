@@ -9,6 +9,8 @@ class Task(db.Model):
     completed_at = db.Column(db.DateTime, nullable = True)
     # I'm not sure about completed_at and is_completed.
     # Is completed_at only for POST, and then is_completed only for responses?
+    goal_id = db.Column(db.Integer, db.ForeignKey('goal.goal_id'), nullable = True)
+    goal = db.relationship("Goal", back_populates="tasks")
 
     def to_dict(self):
         if self.completed_at:

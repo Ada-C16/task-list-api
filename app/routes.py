@@ -168,3 +168,23 @@ def delete_goal(goal_id):
         return jsonify({"details": f'Goal {goal_id} "{goal.title}" successfully deleted'}), 200
     else:
         return make_response("", 404)
+
+@goals_bp.route("/<goal_id>/tasks", methods=["GET", "POST"])
+def handle_goals_tasks(goal_id):
+    goal = Goal.query.get(goal_id)
+    if goal is None:
+        return make_response("Goal not found", 404)
+    
+    if request.method == "POST":
+        request_body = request.get_json()
+        goal.tasks = request_body["task_ids"]
+        db.session.add()
+        db.session.commit()
+
+        return make_response(goal, 200)
+    
+    elif request.method == "GET":
+        tasks_response = []
+        for task in goal.tasks:
+            tasks_response.append(task.to_dict())
+        return jsonify(tasks_response), 200
