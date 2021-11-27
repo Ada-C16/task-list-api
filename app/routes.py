@@ -1,5 +1,6 @@
 from sqlalchemy.sql.expression import null
 from app import db
+from app.models.goal import Goal
 from app.models.task import Task
 from datetime import datetime
 from flask import abort, Blueprint, jsonify, make_response, request
@@ -8,7 +9,9 @@ import requests
 from sqlalchemy import desc 
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
+goals_bp = Blueprint("goals", __name__, url_prefix="/goals")
 
+# Task routes
 # Posts new task
 @tasks_bp.route("", methods=["POST"])
 def create_task():
@@ -103,3 +106,65 @@ def validate_id_int(task_id):
         return task_id
     except:
         abort(400, "Error: Task ID needs to be a number")
+
+# Goal routes
+# Posts new goal
+@goals_bp.route("", methods=["POST"])
+def create_goal():
+    request_body = request.get_json()
+    if "title" not in request_body:
+        return jsonify({"details": "Invalid data"}), 400
+    new_goal = Goal(title=request_body["title"])
+    
+    db.session.add(new_goal)
+    db.session.commit()
+
+    #return jsonify(tasks_response), 200
+    new_goal_response = {"goal": new_goal.to_dict()}
+    return jsonify(new_goal_response), 201
+
+# Handles all goals
+@goals_bp.route("", methods=["GET"])
+def handle_goals():
+    goals_response = []
+    sort_by = request.args.get('sort')
+    if sort_by == "asc":
+        goals = Goal.query.order_by(Goal.title).all()
+    elif sort_by == "desc":
+        goals = Goal.query.order_by(desc(Goal.title)).all()
+    else:
+        goals = Goal.query.all()
+    for goal in goals:
+        goals_response.append(goal.to_dict())
+    return jsonify(goals_response), 200
+
+# Handles one goal
+@goals_bp.route("/<goal_id>", methods=["GET", "PUT"])
+def handle_goal(goal_id):
+    goal_id = validate_id_int(goal_id)
+    goal = Goal.query.get(goal_id)
+    if not goal:
+        return make_response("", 404)
+    if request.method == "GET":
+        return jsonify({"goal": goal.to_dict()}), 200
+    elif request.method == "PUT":
+        request_body = request.get_json()
+        goal.title=request_body["title"]
+        # Remove, not needed? - goal.description=request_body["description"]
+
+        db.session.commit()
+        return jsonify({"goal": goal.to_dict()}), 200
+
+@goals_bp.route("/<goal_id>", methods=["DELETE"])
+def delete_goal(goal_id):
+    print(goal_id)
+    goal_id=validate_id_int(goal_id)
+    
+    goal = Goal.query.get(goal_id)
+
+    if goal:
+        db.session.delete(goal)
+        db.session.commit()
+        return jsonify({"details": f'Goal {goal_id} "{goal.title}" successfully deleted'}), 200
+    else:
+        return make_response("", 404)
