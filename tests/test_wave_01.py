@@ -54,7 +54,12 @@ def test_get_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
+    assert response_body == {
+            "error": 404,
+            "message": "Not found",
+            "success": False
+            }
+
 
 
 def test_create_task_with_none_completed_at(client):
@@ -81,8 +86,7 @@ def test_create_task_with_none_completed_at(client):
     assert new_task
     assert new_task.title == "A Brand New Task"
     assert new_task.description == "Test Description"
-    assert new_task.completed_at == None
-
+    assert new_task.completed_at == None #change from None to False?
 
 def test_update_task(client, one_task):
     # Act
@@ -119,7 +123,11 @@ def test_update_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
+    assert response_body == {
+            "error": 404,
+            "message": "Not found",
+            "success": False
+            }
 
 
 def test_delete_task(client, one_task):
@@ -143,7 +151,11 @@ def test_delete_task_not_found(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
+    assert response_body == {
+            "error": 404,
+            "message": "Not found",
+            "success": False
+            }
     assert Task.query.all() == []
 
 
@@ -158,9 +170,7 @@ def test_create_task_must_contain_title(client):
     # Assert
     assert response.status_code == 400
     assert "details" in response_body
-    assert response_body == {
-        "details": "Invalid data"
-    }
+    assert response_body == {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
     assert Task.query.all() == []
 
 
@@ -175,9 +185,7 @@ def test_create_task_must_contain_description(client):
     # Assert
     assert response.status_code == 400
     assert "details" in response_body
-    assert response_body == {
-        "details": "Invalid data"
-    }
+    assert response_body == {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
     assert Task.query.all() == []
 
 
@@ -192,7 +200,5 @@ def test_create_task_must_contain_completed_at(client):
     # Assert
     assert response.status_code == 400
     assert "details" in response_body
-    assert response_body == {
-        "details": "Invalid data"
-    }
+    assert response_body == {"details": "Invalid data. 'title', 'description', 'completed_at' are required"} 
     assert Task.query.all() == []

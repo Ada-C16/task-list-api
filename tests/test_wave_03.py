@@ -17,6 +17,9 @@ def test_mark_complete_on_incomplete_task(client, one_task):
     test (due to Wave 4).
 
     There is no action needed here, the tests should work as-is.
+
+    The mock_get() mirrors requests.get() , and requests.get() 
+    returns a Response whereas mock_get() returns a Mock
     """
     with patch("requests.post") as mock_get:
         mock_get.return_value.status_code = 200
@@ -121,7 +124,8 @@ def test_mark_complete_missing_task(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
+    assert response_body == {"success": False, "error": 404, "message": "Not found"}
+    # changed response_body when 404 is returned 
 
 
 def test_mark_incomplete_missing_task(client):
@@ -131,8 +135,8 @@ def test_mark_incomplete_missing_task(client):
 
     # Assert
     assert response.status_code == 404
-    assert response_body == None
-
+    assert response_body == {"success": False, "error": 404, "message": "Not found"}
+    # changed response_body when 404 is returned 
 
 # Let's add this test for creating tasks, now that
 # the completion functionality has been implemented
