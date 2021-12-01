@@ -87,6 +87,9 @@ def test_update_goal(client, one_goal):
         "id":1,
         "title":"Updated goal title",
     }}
+    goal = Goal.query.get(1)
+    assert goal.goal_id == 1
+    assert goal.title == "Updated goal title"
     # ---- Complete Assertions Here ----
 
 def test_update_goal_not_found(client):

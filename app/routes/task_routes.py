@@ -23,10 +23,6 @@ def get_task_from_id(task_id):
     valid_int(task_id, "task_id")
     return Task.query.get_or_404(task_id, description="{task not found}")
 
-def get_goal_from_id(goal_id):
-    valid_int(goal_id, "goal_id")
-    return Goal.query.get_or_404(goal_id)
-
 # TASK ROUTES
 
 # Create a task
@@ -89,14 +85,14 @@ def update_task(task_id):
     request_body = request.get_json()
     if "title" not in request_body or "description" not in request_body:
         return {"message":"Request requires a title, description and completed_at info"}, 400
-    else:
-        task.title = request_body["title"]
-        task.description = request_body["description"]
-       
-        db.session.commit()
+    
+    task.title = request_body["title"]
+    task.description = request_body["description"]
+    
+    db.session.commit()
 
-        response_body = {"task":task.to_dict()}
-        return jsonify(response_body), 200
+    response_body = {"task":task.to_dict()}
+    return jsonify(response_body), 200
 
 # Delete a task by id
 @task_bp.route("/<task_id>", methods=["DELETE"])
