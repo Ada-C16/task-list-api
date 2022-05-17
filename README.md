@@ -5,7 +5,7 @@
 Task List is deployed on Heroku: https://much-wow-app.herokuapp.com/tasks
 
 ## Technologies
-I used `Python`, `Flask` ((including Migrate and Alembic), `SQLAlchemy`, `PostgreSQL`, `Postman`, `Heroku`
+I used `Python`, `Flask` (including Migrate and Alembic), `SQLAlchemy`, `PostgreSQL`, `Postman`, `Heroku`
 
 ## Overview
 
