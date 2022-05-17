@@ -33,6 +33,10 @@ This app is able to:
 - Creating a one-to-many relationship between two models
 - Write unit tests
 
+## Setup and Installation
+
+Please see the [setup guide](https://github.com/Ada-C16/task-list-api/blob/master/ada-project-docs/setup.md)
+
 ## CRUD for One Model
 
 ### Create a Task: Valid Task With `null` `completed_at`
