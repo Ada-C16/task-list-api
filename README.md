@@ -7,4 +7,4 @@ This is a simple web API to organize one's tasks. One can create, read, update, 
 - Mark them as complete
 - Get feedback about our task list through Slack (this API integrates with Slack's API)
 - Organize tasks with goals
-... and more!
+- ... and more!
