@@ -5,6 +5,6 @@ There's so much we want to do in the world! When we organize our goals into smal
 This is a simple web API to organize one's tasks. One can create, read, update, and delete tasks. One can also:
 - Sort tasks
 - Mark them as complete
-- Get feedback about our task list through Slack (this API integrates with Slack's API)
-- Organize tasks with goals
+- Get feedback about one's task list through Slack (this API integrates with Slack's API)
+- Organize tasks under specific goals
 - ... and more!
