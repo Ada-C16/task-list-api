@@ -1,6 +1,5 @@
 from app.models.task import Task
 
-
 def test_get_tasks_no_saved_tasks(client):
     # Act
     response = client.get("/tasks")
